@@ -1,0 +1,184 @@
+{
+    "scene": {
+        "name": "BreakOverlay",
+        "version": "1.0",
+        "type": "fullscreen",
+        "behavior": "blocking"
+    },
+    "root": {
+        "id": "break_root",
+        "type": "fullscreen_container",
+        "children": [
+            {
+                "id": "blur_background",
+                "type": "effect_layer",
+                "effect": "gaussian_blur",
+                "size": "fullscreen",
+                "animation": {
+                    "type": "fadeIn",
+                    "duration": 0.5,
+                    "easing": "easeOut"
+                }
+            },
+            {
+                "id": "overlay_tint",
+                "type": "panel",
+                "size": "fullscreen",
+                "style": {
+                    "backgroundColor": "rgba(0, 0, 0, 0.3)"
+                }
+            },
+            {
+                "id": "center_content",
+                "type": "container",
+                "position": "center",
+                "children": [
+                    {
+                        "id": "breathing_circle",
+                        "type": "shape",
+                        "shape": "circle",
+                        "size": {
+                            "width": 200,
+                            "height": 200
+                        },
+                        "style": {
+                            "fill": "radial-gradient(rgba(100, 200, 255, 0.6), rgba(50, 100, 200, 0.2))",
+                            "stroke": "rgba(255, 255, 255, 0.3)",
+                            "strokeWidth": 2
+                        },
+                        "animation": {
+                            "type": "breathing",
+                            "scaleMin": 0.8,
+                            "scaleMax": 1.2,
+                            "duration": 4.0,
+                            "easing": "easeInOutSine"
+                        }
+                    },
+                    {
+                        "id": "countdown_large",
+                        "type": "text",
+                        "position": {
+                            "y": 0
+                        },
+                        "anchor": "center",
+                        "binding": "remainingSeconds",
+                        "format": "{value}",
+                        "style": {
+                            "font": "SF Pro Display",
+                            "fontSize": 72,
+                            "fontWeight": "ultralight",
+                            "color": "#FFFFFF"
+                        }
+                    },
+                    {
+                        "id": "instruction_text",
+                        "type": "text",
+                        "position": {
+                            "y": 60
+                        },
+                        "anchor": "center",
+                        "content": "Look away from the screen",
+                        "style": {
+                            "font": "SF Pro Text",
+                            "fontSize": 20,
+                            "color": "rgba(255, 255, 255, 0.8)"
+                        }
+                    },
+                    {
+                        "id": "skip_hint",
+                        "type": "text",
+                        "position": {
+                            "y": 120
+                        },
+                        "anchor": "center",
+                        "content": "Press ESC to skip",
+                        "style": {
+                            "font": "SF Pro Text",
+                            "fontSize": 14,
+                            "color": "rgba(255, 255, 255, 0.4)"
+                        },
+                        "animation": {
+                            "type": "fadeIn",
+                            "delay": 3.0,
+                            "duration": 0.5
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "physics": {
+        "spring": {
+            "stiffness": 200.0,
+            "damping": 25.0,
+            "mass": 1.0
+        }
+    },
+    "shaders": {
+        "blur": {
+            "type": "gaussian",
+            "radiusStart": 0,
+            "radiusEnd": 30,
+            "animationDuration": 0.5,
+            "level": 1.0
+        },
+        "tint": {
+            "type": "colorOverlay",
+            "color": "rgba(0, 20, 40, 0.2)"
+        }
+    },
+    "lod": {
+        "high": {
+            "blurRadius": 30,
+            "animationsEnabled": true,
+            "particlesEnabled": true,
+            "refreshRate": 60
+        },
+        "med": {
+            "blurRadius": 20,
+            "animationsEnabled": true,
+            "particlesEnabled": false,
+            "refreshRate": 30
+        },
+        "low": {
+            "blurRadius": 10,
+            "animationsEnabled": false,
+            "particlesEnabled": false,
+            "refreshRate": 15
+        }
+    },
+    "styles": {
+        "calm": {
+            "tintColor": "rgba(0, 50, 100, 0.3)",
+            "circleColor": "rgba(100, 200, 255, 0.6)",
+            "breathingDuration": 4.0
+        },
+        "focus": {
+            "tintColor": "rgba(50, 0, 100, 0.3)",
+            "circleColor": "rgba(200, 100, 255, 0.6)",
+            "breathingDuration": 3.0
+        },
+        "energize": {
+            "tintColor": "rgba(100, 50, 0, 0.3)",
+            "circleColor": "rgba(255, 200, 100, 0.6)",
+            "breathingDuration": 2.5
+        }
+    },
+    "audio": {
+        "ambient": {
+            "asset": "Assets/Audio/ambient_calm.mp3",
+            "volume": 0.2,
+            "fadeInDuration": 1.0,
+            "loop": true
+        },
+        "complete": {
+            "asset": "Assets/Audio/complete.wav",
+            "volume": 0.5,
+            "trigger": "onComplete"
+        }
+    },
+    "input": {
+        "escapeKey": "skip",
+        "spaceKey": "pause"
+    }
+}

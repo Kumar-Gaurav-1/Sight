@@ -1,0 +1,294 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MicroNudges Configuration",
+    "description": "Configuration for micro-nudge cadences, snooze limits, and escalation",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string",
+            "default": "1.0"
+        },
+        "enabled": {
+            "type": "boolean",
+            "default": true
+        },
+        "nudges": {
+            "type": "object",
+            "properties": {
+                "blink": {
+                    "type": "object",
+                    "description": "Blink reminder every 20 seconds",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "intervalSeconds": {
+                            "type": "integer",
+                            "default": 20,
+                            "minimum": 10,
+                            "maximum": 60
+                        },
+                        "sound": {
+                            "type": "string",
+                            "default": "blink_soft.wav"
+                        },
+                        "message": {
+                            "type": "string",
+                            "default": "Blink 👀"
+                        },
+                        "displayDurationMs": {
+                            "type": "integer",
+                            "default": 1500
+                        },
+                        "style": {
+                            "type": "string",
+                            "enum": [
+                                "subtle",
+                                "normal",
+                                "prominent"
+                            ],
+                            "default": "subtle"
+                        }
+                    }
+                },
+                "posture": {
+                    "type": "object",
+                    "description": "Posture check every 20-30 minutes",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "intervalMinutes": {
+                            "type": "integer",
+                            "default": 25,
+                            "minimum": 15,
+                            "maximum": 45
+                        },
+                        "intervalVarianceMinutes": {
+                            "type": "integer",
+                            "default": 5,
+                            "minimum": 0,
+                            "maximum": 10
+                        },
+                        "sound": {
+                            "type": "string",
+                            "default": "posture_chime.wav"
+                        },
+                        "messages": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": [
+                                "Sit up straight 🧘",
+                                "Check your posture",
+                                "Shoulders back, chin up",
+                                "Relax your shoulders"
+                            ]
+                        },
+                        "displayDurationMs": {
+                            "type": "integer",
+                            "default": 4000
+                        },
+                        "style": {
+                            "type": "string",
+                            "enum": [
+                                "subtle",
+                                "normal",
+                                "prominent"
+                            ],
+                            "default": "normal"
+                        }
+                    }
+                },
+                "miniExercise": {
+                    "type": "object",
+                    "description": "Mini-exercise suggestion every 45-60 minutes",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "intervalMinutes": {
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 30,
+                            "maximum": 90
+                        },
+                        "intervalVarianceMinutes": {
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 0,
+                            "maximum": 15
+                        },
+                        "sound": {
+                            "type": "string",
+                            "default": "exercise_prompt.wav"
+                        },
+                        "exercises": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "duration": {
+                                        "type": "integer",
+                                        "description": "seconds"
+                                    },
+                                    "instruction": {
+                                        "type": "string"
+                                    },
+                                    "icon": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "default": [
+                                {
+                                    "name": "Neck Rolls",
+                                    "duration": 30,
+                                    "instruction": "Slowly roll your head in circles",
+                                    "icon": "figure.cooldown"
+                                },
+                                {
+                                    "name": "Shoulder Shrugs",
+                                    "duration": 20,
+                                    "instruction": "Raise shoulders to ears, hold, release",
+                                    "icon": "figure.arms.open"
+                                },
+                                {
+                                    "name": "Wrist Circles",
+                                    "duration": 20,
+                                    "instruction": "Rotate wrists in both directions",
+                                    "icon": "hand.wave"
+                                },
+                                {
+                                    "name": "Eye Palming",
+                                    "duration": 30,
+                                    "instruction": "Cover eyes with warm palms, relax",
+                                    "icon": "eye.slash"
+                                },
+                                {
+                                    "name": "Desk Stretch",
+                                    "duration": 45,
+                                    "instruction": "Stand, reach for the ceiling, hold",
+                                    "icon": "figure.stand"
+                                }
+                            ]
+                        },
+                        "displayDurationMs": {
+                            "type": "integer",
+                            "default": 8000
+                        },
+                        "style": {
+                            "type": "string",
+                            "enum": [
+                                "subtle",
+                                "normal",
+                                "prominent"
+                            ],
+                            "default": "prominent"
+                        }
+                    }
+                }
+            }
+        },
+        "snooze": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "defaultDurationMinutes": {
+                    "type": "integer",
+                    "default": 5,
+                    "minimum": 1,
+                    "maximum": 30
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "default": [
+                        5,
+                        10,
+                        15,
+                        30
+                    ],
+                    "description": "Minutes"
+                },
+                "maxSnoozesPerNudge": {
+                    "type": "integer",
+                    "default": 3,
+                    "minimum": 1,
+                    "maximum": 10
+                },
+                "maxDailySnoozesTotal": {
+                    "type": "integer",
+                    "default": 15,
+                    "minimum": 5,
+                    "maximum": 50
+                }
+            }
+        },
+        "escalation": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "thresholdSnoozes": {
+                    "type": "integer",
+                    "default": 3,
+                    "minimum": 1,
+                    "maximum": 5
+                },
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "suggestLongerBreak",
+                        "forceBreak",
+                        "notify"
+                    ],
+                    "default": "suggestLongerBreak"
+                },
+                "longerBreakDurationMinutes": {
+                    "type": "integer",
+                    "default": 5,
+                    "minimum": 2,
+                    "maximum": 15
+                },
+                "escalationMessage": {
+                    "type": "string",
+                    "default": "You've snoozed several times. Consider taking a 5-minute break to recharge."
+                }
+            }
+        },
+        "quietHours": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "start": {
+                    "type": "string",
+                    "format": "time",
+                    "default": "22:00"
+                },
+                "end": {
+                    "type": "string",
+                    "format": "time",
+                    "default": "08:00"
+                }
+            }
+        }
+    }
+}

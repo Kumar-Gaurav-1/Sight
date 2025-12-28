@@ -1,0 +1,117 @@
+{
+    "scene": {
+        "name": "FloatingCounter",
+        "version": "1.0",
+        "type": "widget",
+        "behavior": "floating"
+    },
+    "root": {
+        "id": "counter_root",
+        "type": "container",
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "anchor": "configurable",
+        "draggable": true,
+        "children": [
+            {
+                "id": "counter_pill",
+                "type": "panel",
+                "size": {
+                    "width": 100,
+                    "height": 36
+                },
+                "style": {
+                    "backgroundColor": "rgba(0, 0, 0, 0.75)",
+                    "cornerRadius": 18,
+                    "backdropBlur": 20
+                },
+                "children": [
+                    {
+                        "id": "status_dot",
+                        "type": "shape",
+                        "shape": "circle",
+                        "position": {
+                            "x": 14,
+                            "y": 12
+                        },
+                        "size": {
+                            "width": 12,
+                            "height": 12
+                        },
+                        "style": {
+                            "fill": "#4CAF50"
+                        },
+                        "animation": {
+                            "type": "pulse",
+                            "minOpacity": 0.5,
+                            "maxOpacity": 1.0,
+                            "duration": 2.0
+                        },
+                        "bindings": {
+                            "fill": {
+                                "idle": "#9E9E9E",
+                                "work": "#4CAF50",
+                                "preBreak": "#FFC107",
+                                "break": "#2196F3"
+                            }
+                        }
+                    },
+                    {
+                        "id": "time_display",
+                        "type": "text",
+                        "position": {
+                            "x": 34,
+                            "y": 9
+                        },
+                        "binding": "formattedTime",
+                        "style": {
+                            "font": "SF Mono",
+                            "fontSize": 16,
+                            "fontWeight": "medium",
+                            "color": "#FFFFFF"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "physics": {
+        "spring": {
+            "stiffness": 400.0,
+            "damping": 30.0,
+            "mass": 0.8
+        },
+        "snap": {
+            "enabled": true,
+            "gridSize": 10,
+            "edgeMargin": 20
+        }
+    },
+    "shaders": {
+        "background": {
+            "type": "vibrancy",
+            "style": "dark"
+        }
+    },
+    "lod": {
+        "high": {
+            "vibrancyEnabled": true,
+            "animationsEnabled": true
+        },
+        "med": {
+            "vibrancyEnabled": false,
+            "animationsEnabled": true
+        },
+        "low": {
+            "vibrancyEnabled": false,
+            "animationsEnabled": false
+        }
+    },
+    "interactions": {
+        "click": "toggleExpanded",
+        "drag": "reposition",
+        "rightClick": "showMenu"
+    }
+}

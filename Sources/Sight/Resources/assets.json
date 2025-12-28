@@ -1,0 +1,131 @@
+{
+    "assets": {
+        "models": [
+            {
+                "id": "eye_icon",
+                "path": "Assets/Models/eye_icon.gltf",
+                "format": "glTF 2.0",
+                "description": "3D eye icon for pre-break HUD",
+                "polyCount": 500,
+                "animated": true
+            },
+            {
+                "id": "breathing_orb",
+                "path": "Assets/Models/breathing_orb.gltf",
+                "format": "glTF 2.0",
+                "description": "Animated breathing sphere for break overlay",
+                "polyCount": 1000,
+                "animated": true
+            }
+        ],
+        "textures": [
+            {
+                "id": "countdown_bg",
+                "path": "Assets/Textures/countdown_bg.png",
+                "format": "PNG",
+                "resolution": "256x128",
+                "description": "HUD background with rounded corners"
+            },
+            {
+                "id": "blur_mask",
+                "path": "Assets/Textures/blur_mask.png",
+                "format": "PNG",
+                "resolution": "1920x1080",
+                "description": "Gradient mask for blur vignette effect"
+            },
+            {
+                "id": "noise_pattern",
+                "path": "Assets/Textures/noise_pattern.png",
+                "format": "PNG",
+                "resolution": "256x256",
+                "description": "Subtle noise for glass effect"
+            }
+        ],
+        "audio": [
+            {
+                "id": "tick",
+                "path": "Assets/Audio/tick.wav",
+                "format": "WAV",
+                "duration": "0.1s",
+                "description": "Countdown tick sound"
+            },
+            {
+                "id": "ambient_calm",
+                "path": "Assets/Audio/ambient_calm.mp3",
+                "format": "MP3",
+                "duration": "60s",
+                "loop": true,
+                "description": "Calm ambient audio for break"
+            },
+            {
+                "id": "ambient_focus",
+                "path": "Assets/Audio/ambient_focus.mp3",
+                "format": "MP3",
+                "duration": "60s",
+                "loop": true,
+                "description": "Focus ambient audio for break"
+            },
+            {
+                "id": "complete",
+                "path": "Assets/Audio/complete.wav",
+                "format": "WAV",
+                "duration": "1.5s",
+                "description": "Break complete chime"
+            },
+            {
+                "id": "warning",
+                "path": "Assets/Audio/warning.wav",
+                "format": "WAV",
+                "duration": "0.5s",
+                "description": "Pre-break warning sound"
+            }
+        ],
+        "fonts": [
+            {
+                "id": "sf_pro_display",
+                "family": "SF Pro Display",
+                "weights": [
+                    "ultralight",
+                    "regular",
+                    "bold"
+                ],
+                "system": true
+            },
+            {
+                "id": "sf_mono",
+                "family": "SF Mono",
+                "weights": [
+                    "regular",
+                    "medium"
+                ],
+                "system": true
+            }
+        ]
+    },
+    "lod_presets": {
+        "high": {
+            "textureResolution": "full",
+            "modelDetail": "full",
+            "particlesEnabled": true,
+            "shadowsEnabled": true,
+            "blurQuality": "high",
+            "targetFPS": 60
+        },
+        "medium": {
+            "textureResolution": "half",
+            "modelDetail": "reduced",
+            "particlesEnabled": false,
+            "shadowsEnabled": true,
+            "blurQuality": "medium",
+            "targetFPS": 30
+        },
+        "low": {
+            "textureResolution": "quarter",
+            "modelDetail": "minimal",
+            "particlesEnabled": false,
+            "shadowsEnabled": false,
+            "blurQuality": "low",
+            "targetFPS": 15
+        }
+    }
+}

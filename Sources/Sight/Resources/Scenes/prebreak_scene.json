@@ -1,0 +1,110 @@
+{
+  "scene": {
+    "name": "PreBreakHUD",
+    "version": "1.0",
+    "type": "overlay",
+    "behavior": "cursor_follow"
+  },
+  "root": {
+    "id": "prebreak_root",
+    "type": "container",
+    "position": { "x": 0, "y": 0 },
+    "anchor": "cursor",
+    "offset": { "x": 20, "y": 20 },
+    "children": [
+      {
+        "id": "hud_background",
+        "type": "panel",
+        "size": { "width": 160, "height": 80 },
+        "style": {
+          "backgroundColor": "rgba(0, 0, 0, 0.85)",
+          "cornerRadius": 16,
+          "shadow": {
+            "color": "rgba(0, 0, 0, 0.5)",
+            "blur": 20,
+            "offset": { "x": 0, "y": 4 }
+          }
+        },
+        "children": [
+          {
+            "id": "eye_icon",
+            "type": "model",
+            "asset": "Assets/Models/eye_icon.gltf",
+            "position": { "x": 20, "y": 20 },
+            "size": { "width": 40, "height": 40 },
+            "animation": {
+              "type": "pulse",
+              "duration": 1.5,
+              "easing": "easeInOut"
+            }
+          },
+          {
+            "id": "countdown_text",
+            "type": "text",
+            "position": { "x": 70, "y": 25 },
+            "binding": "remainingSeconds",
+            "format": "{value}s",
+            "style": {
+              "font": "SF Pro Display",
+              "fontSize": 28,
+              "fontWeight": "bold",
+              "color": "#FFFFFF"
+            }
+          },
+          {
+            "id": "label_text",
+            "type": "text",
+            "position": { "x": 70, "y": 52 },
+            "content": "Break soon",
+            "style": {
+              "font": "SF Pro Text",
+              "fontSize": 12,
+              "color": "rgba(255, 255, 255, 0.6)"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "physics": {
+    "spring": {
+      "stiffness": 300.0,
+      "damping": 20.0,
+      "mass": 1.0
+    },
+    "cursorTracking": {
+      "smoothing": 0.15,
+      "maxVelocity": 2000
+    }
+  },
+  "shaders": {
+    "background": {
+      "type": "blur",
+      "level": 0.0
+    }
+  },
+  "lod": {
+    "high": {
+      "shadowEnabled": true,
+      "animationsEnabled": true,
+      "refreshRate": 60
+    },
+    "med": {
+      "shadowEnabled": true,
+      "animationsEnabled": true,
+      "refreshRate": 30
+    },
+    "low": {
+      "shadowEnabled": false,
+      "animationsEnabled": false,
+      "refreshRate": 15
+    }
+  },
+  "audio": {
+    "tick": {
+      "asset": "Assets/Audio/tick.wav",
+      "volume": 0.3,
+      "trigger": "everySecond"
+    }
+  }
+}
