@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.kumargaurav.Sight</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Applications/Sight.app/Contents/MacOS/Sight</string>
+    </array>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <false/>
+    
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    
+    <key>LimitLoadToSessionType</key>
+    <array>
+        <string>Aqua</string>
+    </array>
+    
+    <key>StandardOutPath</key>
+    <string>/tmp/com.kumargaurav.Sight.out</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/tmp/com.kumargaurav.Sight.err</string>
+</dict>
+</plist>
