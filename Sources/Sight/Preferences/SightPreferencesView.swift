@@ -11,9 +11,9 @@ enum SightTab: String, CaseIterable, Identifiable {
     case statistics = "Statistics"
     case shortcuts = "Shortcuts"
     case about = "About"
-    
+
     var id: String { rawValue }
-    
+
     var icon: String {
         switch self {
         case .general: return "gearshape"
@@ -25,7 +25,7 @@ enum SightTab: String, CaseIterable, Identifiable {
         case .about: return "info.circle"
         }
     }
-    
+
     var isMainSection: Bool {
         switch self {
         case .general, .breaks, .wellnessReminders, .achievements, .statistics, .shortcuts:
@@ -43,33 +43,41 @@ public struct SightPreferencesView: View {
     @State private var selectedTab: SightTab = .general
     @State private var previousTab: SightTab = .general
     @State private var logoGlow: Bool = false
-    
+
     public init() {}
-    
+
     public var body: some View {
         HStack(spacing: 0) {
-            // Sidebar
+            // Glass Sidebar
             sidebar
-            
-            // Divider with subtle gradient
+                .background(.regularMaterial)
+
+            // Subtle glass divider
             Rectangle()
-                .fill(LinearGradient(colors: [SightTheme.divider.opacity(0.5), SightTheme.divider, SightTheme.divider.opacity(0.5)], startPoint: .top, endPoint: .bottom))
+                .fill(.ultraThinMaterial)
                 .frame(width: 1)
-            
-            // Content area with transition
+                .overlay(
+                    LinearGradient(
+                        colors: [.white.opacity(0.2), .white.opacity(0.05), .white.opacity(0.2)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
+            // Content area on glass background
             contentArea
+                .background(.thinMaterial)
         }
         .frame(minWidth: 900, minHeight: 650)
-        .background(SightTheme.background)
     }
-    
+
     // MARK: - Sidebar
-    
+
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Logo area
             logoArea
-            
+
             // Main navigation
             ScrollView {
                 VStack(spacing: 4) {
@@ -91,9 +99,9 @@ public struct SightPreferencesView: View {
                 }
                 .padding(.horizontal, 12)
             }
-            
+
             Spacer()
-            
+
             // Bottom section
             VStack(spacing: 4) {
                 ForEach(SightTab.allCases.filter { !$0.isMainSection }) { tab in
@@ -118,9 +126,9 @@ public struct SightPreferencesView: View {
         .frame(width: SightTheme.sidebarWidth)
         .background(SightTheme.sidebarBackground)
     }
-    
+
     // MARK: - Logo Area
-    
+
     private var logoArea: some View {
         VStack(spacing: 8) {
             // Logo with glow effect
@@ -131,18 +139,18 @@ public struct SightPreferencesView: View {
                     .frame(width: 80, height: 80)
                     .blur(radius: logoGlow ? 20 : 10)
                     .scaleEffect(logoGlow ? 1.1 : 1.0)
-                
+
                 // Logo
                 RoundedRectangle(cornerRadius: 16)
                     .fill(.white)
                     .frame(width: 64, height: 64)
                     .shadow(color: SightTheme.shadowMedium, radius: 8, x: 0, y: 4)
-                
+
                 Image(systemName: "eye.fill")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(SightTheme.sidebarBackground)
             }
-            
+
             Text("Sight")
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(SightTheme.accentGradient)
@@ -155,9 +163,9 @@ public struct SightPreferencesView: View {
             }
         }
     }
-    
+
     // MARK: - Content Area
-    
+
     private var contentArea: some View {
         Group {
             switch selectedTab {
@@ -184,4 +192,3 @@ public struct SightPreferencesView: View {
 #Preview {
     SightPreferencesView()
 }
-
