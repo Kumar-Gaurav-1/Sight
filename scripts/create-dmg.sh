@@ -3,8 +3,25 @@ set -e
 
 echo "🔨 Building Sight App Bundle..."
 
-# Build in release mode
-swift build -c release
+# Build universal binary for ARM64 and x86_64
+echo "Building for ARM64..."
+swift build -c release --arch arm64
+
+echo "Building for x86_64..."
+swift build -c release --arch x86_64 || echo "⚠️  x86_64 build skipped (ARM-only Mac)"
+
+# Check if we have both architectures
+if [ -f ".build/x86_64-apple-macosx/release/Sight" ]; then
+    echo "Creating universal binary..."
+    lipo -create \
+        .build/arm64-apple-macosx/release/Sight \
+        .build/x86_64-apple-macosx/release/Sight \
+        -output .build/release/Sight
+    echo "✓ Universal binary created (ARM64 + x86_64)"
+else
+    echo "✓ ARM64-only binary created"
+    cp .build/arm64-apple-macosx/release/Sight .build/release/Sight 2>/dev/null || true
+fi
 
 # Create app bundle structure
 APP_NAME="Sight.app"
@@ -96,9 +113,16 @@ rm -f "$DMG_NAME"
 # Create temporary directory for DMG contents
 rm -rf "$DMG_TEMP_DIR"
 mkdir -p "$DMG_TEMP_DIR"
+mkdir -p "$DMG_TEMP_DIR/.background"
 
 # Copy app to temp directory
 cp -R "$APP_DIR" "$DMG_TEMP_DIR/"
+
+# Copy background image if exists
+if [ -f "Resources/dmg-background.png" ]; then
+    cp Resources/dmg-background.png "$DMG_TEMP_DIR/.background/background.png"
+    echo "✓ Added DMG background image"
+fi
 
 # Create symbolic link to Applications folder
 ln -s /Applications "$DMG_TEMP_DIR/Applications"
@@ -121,10 +145,12 @@ tell application "Finder"
         set viewOptions to the icon view options of container window
         set arrangement of viewOptions to not arranged
         set icon size of viewOptions to 128
+        set background picture of viewOptions to file ".background:background.png"
         set position of item "Sight.app" of container window to {120, 180}
         set position of item "Applications" of container window to {380, 180}
         update without registering applications
-        delay 1
+        delay 2
+        close
     end tell
 end tell
 ' | osascript || echo "⚠️  Could not set Finder view (app may be running in background)"
