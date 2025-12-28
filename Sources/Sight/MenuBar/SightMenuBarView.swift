@@ -12,21 +12,25 @@ struct SightMenuBarView: View {
                 .padding(16)
 
             Divider()
-                .background(Color.primary.opacity(0.1))
+                .background(Color.white.opacity(0.1))
 
             statsRow
                 .padding(.vertical, 12)
                 .padding(.horizontal, 16)
 
             Divider()
-                .background(Color.primary.opacity(0.1))
+                .background(Color.white.opacity(0.1))
 
             actionButtons
                 .padding(.vertical, 12)
                 .padding(.horizontal, 16)
         }
         .frame(width: 280)
-        .background(Color(.windowBackgroundColor))
+        .background(.regularMaterial)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(.white.opacity(0.1), lineWidth: 0.5)
+        )
     }
 
     // MARK: - Timer Section
@@ -147,13 +151,13 @@ struct SightMenuBarView: View {
             StatItem(value: "\(adherence.todayStats.breaksCompleted)", label: "Breaks")
 
             Rectangle()
-                .fill(Color.primary.opacity(0.1))
+                .fill(Color.white.opacity(0.1))
                 .frame(width: 1, height: 24)
 
             StatItem(value: "\(adherence.currentStreak)d", label: "Streak")
 
             Rectangle()
-                .fill(Color.primary.opacity(0.1))
+                .fill(Color.white.opacity(0.1))
                 .frame(width: 1, height: 24)
 
             StatItem(
@@ -269,7 +273,7 @@ private struct ActionButton: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isHovered ? Color.cyan.opacity(0.1) : Color.primary.opacity(0.04))
+                    .fill(isHovered ? Color.cyan.opacity(0.15) : Color.white.opacity(0.05))
             )
         }
         .buttonStyle(.plain)

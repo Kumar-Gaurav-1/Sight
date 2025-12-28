@@ -46,7 +46,7 @@ struct SightBreakHUDView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Calming gradient background
+                // Deep calming gradient base
                 LinearGradient(
                     colors: [
                         Color(red: 0.05, green: 0.08, blue: 0.15),
@@ -56,6 +56,9 @@ struct SightBreakHUDView: View {
                     startPoint: .top,
                     endPoint: .bottom
                 )
+
+                // Ultra-thin glass overlay for depth
+                Color.black.opacity(0.3)
 
                 VStack(spacing: 0) {
                     Spacer()
@@ -228,18 +231,19 @@ struct SightBreakHUDView: View {
 
             Text(tip.1)
                 .font(.system(size: 17, weight: .regular))
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(.white.opacity(0.9))
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
         .background(
             Capsule()
-                .fill(Color.white.opacity(0.06))
+                .fill(.ultraThinMaterial)
                 .overlay(
                     Capsule()
-                        .stroke(Color.cyan.opacity(0.1), lineWidth: 1)
+                        .strokeBorder(.white.opacity(0.15), lineWidth: 0.5)
                 )
         )
+        .shadow(color: .black.opacity(0.2), radius: 15, y: 8)
         .id(currentTipIndex)
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }
