@@ -46,6 +46,16 @@ if [ -f "Resources/AppIcon.png" ]; then
     cp Resources/AppIcon.png "$RESOURCES_DIR/"
 fi
 
+# Copy Credits.rtf
+if [ -f "Resources/Credits.rtf" ]; then
+    cp Resources/Credits.rtf "$RESOURCES_DIR/"
+fi
+
+# Copy launch agent plist
+if [ -f "Resources/com.kumargaurav.Sight.plist" ]; then
+    cp Resources/com.kumargaurav.Sight.plist "$RESOURCES_DIR/"
+fi
+
 # Create enhanced Info.plist
 cat > "$CONTENTS_DIR/Info.plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -134,6 +144,7 @@ hdiutil create -volname "$VOLUME_NAME" -srcfolder "$DMG_TEMP_DIR" -ov -format UD
 MOUNT_DIR=$(hdiutil attach -readwrite -noverify -noautoopen "temp.dmg" | grep Volumes | sed 's/.*\/Volumes/\/Volumes/')
 
 # Set window appearance with AppleScript
+sleep 2  # Wait for volume to fully mount
 echo '
 tell application "Finder"
     tell disk "'$VOLUME_NAME'"
@@ -146,13 +157,13 @@ tell application "Finder"
         set arrangement of viewOptions to not arranged
         set icon size of viewOptions to 128
         set background picture of viewOptions to file ".background:background.png"
-        set position of item "Sight.app" of container window to {120, 180}
-        set position of item "Applications" of container window to {380, 180}
+        set position of item "Sight.app" of container window to {150, 200}
+        set position of item "Applications" of container window to {350, 200}
+        close
+        open
         update without registering applications
         delay 2
-        close
-    end tell
-end tell
+    end tell end tell
 ' | osascript || echo "⚠️  Could not set Finder view (app may be running in background)"
 
 # Unmount
