@@ -36,9 +36,14 @@ A premium macOS menu bar app for eye care and break reminders, implementing the 
 
 ## 📸 Screenshots
 
-| Menu Bar | Break Overlay | Preferences |
-|----------|---------------|-------------|
-| Quick access dashboard | Calming full-screen break | Customizable settings |
+<p align="center">
+  <img src="Resources/Screenshots/icon.png" width="128" alt="Sight App Icon">
+</p>
+
+| Menu Bar Dashboard | Break Overlay | Preferences |
+|:------------------:|:-------------:|:-----------:|
+| *[Add Dashboard Screenshot]* | *[Add Overlay Screenshot]* | *[Add Preferences Screenshot]* |
+| Quick access to timer & stats | Full-screen calming break guide | Customizable settings |
 
 ## 📋 Requirements
 
