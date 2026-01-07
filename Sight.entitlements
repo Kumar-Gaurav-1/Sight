@@ -2,10 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- Apple Events (for detecting running apps, Smart Pause) -->
     <key>com.apple.security.automation.apple-events</key>
     <true/>
+    
+    <!-- Network client (reserved for future update check feature) -->
     <key>com.apple.security.network.client</key>
     <true/>
+    
+    <!-- Calendar access for meeting detection -->
+    <key>com.apple.security.personal-information.calendars</key>
+    <true/>
+    
+    <!-- Hardened Runtime: Disable unsafe features -->
     <key>com.apple.security.device.camera</key>
     <false/>
     <key>com.apple.security.cs.allow-jit</key>
@@ -14,5 +23,10 @@
     <false/>
     <key>com.apple.security.cs.disable-library-validation</key>
     <false/>
+    
+    <!-- Hardened Runtime: Allow DYLD environment variables (development only) -->
+    <!-- Remove this for production builds -->
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
 </dict>
 </plist>

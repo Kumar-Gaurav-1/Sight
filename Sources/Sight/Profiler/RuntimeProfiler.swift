@@ -230,7 +230,7 @@ public final class RuntimeProfiler: ObservableObject {
 
     // MARK: - Private Properties
 
-    private let logger = Logger(subsystem: "com.sight.profiler", category: "RuntimeProfiler")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.profiler", category: "RuntimeProfiler")
     private var samplingTimer: DispatchSourceTimer?
     private let samplingQueue = DispatchQueue(label: "com.sight.profiler.sampling", qos: .utility)
 

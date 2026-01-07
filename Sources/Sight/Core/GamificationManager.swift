@@ -39,7 +39,7 @@ public final class GamificationManager: ObservableObject {
     @Published public private(set) var newlyUnlockedBadge: Badge?
 
     private let defaults = UserDefaults.standard
-    private let logger = Logger(subsystem: "com.sight.app", category: "Gamification")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "Gamification")
     private var cancellables = Set<AnyCancellable>()
 
     // SECURITY: Generation counter for badge display race protection

@@ -163,7 +163,7 @@ public final class SmartPauseManager: ObservableObject {
 
     // MARK: - Private Properties
 
-    private let logger = Logger(subsystem: "com.sight.smartpause", category: "SmartPause")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight", category: "SmartPause")
     private var pollingTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private var focusObserver: NSObjectProtocol?
@@ -296,7 +296,23 @@ public final class SmartPauseManager: ObservableObject {
             }
         }
 
-        // 4. Focus mode
+        // 4. Calendar meeting detection (from MeetingDetector)
+        if config.detectMeetingApps {
+            // Safely check meeting status - avoid deadlock if already on main thread
+            var isInMeeting = false
+            if Thread.isMainThread {
+                isInMeeting = MeetingDetector.shared.isInMeeting
+            } else {
+                DispatchQueue.main.sync {
+                    isInMeeting = MeetingDetector.shared.isInMeeting
+                }
+            }
+            if isInMeeting {
+                signals.append(.calendarMeeting)
+            }
+        }
+
+        // 5. Focus mode
         if config.detectFocusMode {
             if detectFocusMode() {
                 signals.append(.focusModeActive)

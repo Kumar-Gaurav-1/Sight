@@ -9,8 +9,12 @@ public final class MenuBarViewModel: ObservableObject {
 
     @Published public private(set) var currentState: TimerState = .idle
     @Published public private(set) var remainingSeconds: Int = 0
-    @Published public private(set) var strainLevel: Float = 0.0  // 0.0 to 1.0
-    @Published public private(set) var connectionState: Bool = false
+    @Published public private(set) var strainLevel: Float = 0.0 {  // 0.0 to 1.0, persisted
+        didSet {
+            // Persist strain level across app restarts
+            UserDefaults.standard.set(Double(strainLevel), forKey: "sightStrainLevel")
+        }
+    }
 
     // Derived UI Properties
     @Published public private(set) var statusIconName: String = "eye.slash"
@@ -29,17 +33,29 @@ public final class MenuBarViewModel: ObservableObject {
 
     private let stateMachine: TimerStateMachine
     private var cancellables = Set<AnyCancellable>()
+    private var breakEndedObserver: NSObjectProtocol?
 
     // MARK: - Initialization
 
     public init(stateMachine: TimerStateMachine) {
         self.stateMachine = stateMachine
+
+        // Restore persisted strain level
+        self.strainLevel = Float(UserDefaults.standard.double(forKey: "sightStrainLevel"))
+
         setupBindings()
+        setupNotificationObservers()
 
         // Initial state
         self.currentState = stateMachine.currentState
         self.remainingSeconds = stateMachine.remainingSeconds
         updateDerivedProperties()
+    }
+
+    deinit {
+        if let observer = breakEndedObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
     // MARK: - Bindings
@@ -74,6 +90,25 @@ public final class MenuBarViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// Setup notification observers for break events
+    private func setupNotificationObservers() {
+        // Resume timer after manual break ends (fixes timer desync issue)
+        breakEndedObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("SightBreakEnded"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            // Dispatch to MainActor for thread safety
+            Task { @MainActor in
+                guard let self = self else { return }
+                // Resume timer if we paused it for a manual break
+                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
+                    self.stateMachine.resume()
+                }
+            }
+        }
+    }
+
     // MARK: - Logic
 
     private func updateDerivedProperties() {
@@ -98,37 +133,54 @@ public final class MenuBarViewModel: ObservableObject {
             hudTitle = "Break in \(remainingSeconds)s"
             hudDetail = "Wrap up your work"
 
+            // Calculate preBreak progress (ring drains during countdown)
+            let preBreakTotal = Double(stateMachine.configuration.preBreakSeconds)
+            if preBreakTotal > 0 {
+                progress = max(0.0, min(1.0, Double(remainingSeconds) / preBreakTotal))
+            } else {
+                progress = 0.0
+            }
+            nextBreakText = nil
+
         case .break:
             statusIconName = "cup.and.saucer"
             statusLabel = "Break"
             hudTitle = "On Break"
             hudDetail = "Relax those eyes..."
-            // SECURITY: Guard against division by zero
+            // Calculate break progress (ring drains as break completes)
             let breakDuration = Double(stateMachine.configuration.breakDurationSeconds)
             if breakDuration > 0 {
-                progress = 1.0 - (Double(remainingSeconds) / breakDuration)
+                progress = max(0.0, min(1.0, Double(remainingSeconds) / breakDuration))
             } else {
-                progress = 1.0
+                progress = 0.0
             }
             nextBreakText = nil
         }
 
-        // Calculate Progress (Work)
+        // Calculate Progress (Work) - ring fills as work progresses
         if currentState == .work {
             let total = Double(stateMachine.configuration.workIntervalSeconds)
-            // SECURITY: Guard against division by zero
+            // Progress increases as time passes (ring fills up)
             if total > 0 {
                 progress = max(0.0, min(1.0, 1.0 - (Double(remainingSeconds) / total)))
             } else {
                 progress = 0.0
             }
 
-            // Calculate ETA only if significant time remains
-            if remainingSeconds > 60 {
+            // Calculate ETA with granular countdown
+            if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
                 let formatter = DateFormatter()
                 formatter.timeStyle = .short
                 nextBreakText = "Break at \(formatter.string(from: date))"
+            } else if remainingSeconds > 30 {
+                let mins = remainingSeconds / 60
+                let secs = remainingSeconds % 60
+                if mins > 0 {
+                    nextBreakText = "Break in \(mins)m \(secs)s"
+                } else {
+                    nextBreakText = "Break in \(secs)s"
+                }
             } else {
                 nextBreakText = "Break soon"
             }
@@ -148,7 +200,8 @@ public final class MenuBarViewModel: ObservableObject {
         }
     }
 
-    private var strainDescription: String {
+    /// Human-readable strain level description
+    public var strainDescription: String {
         if strainLevel < 0.3 { return "Low" }
         if strainLevel < 0.7 { return "Medium" }
         return "High"
@@ -173,7 +226,10 @@ public final class MenuBarViewModel: ObservableObject {
             stateMachine.pause(source: .user)
         }
 
-        Renderer.showBreak(durationSeconds: 20)
+        // Use user's configured break duration instead of hardcoded 20s
+        let duration = stateMachine.configuration.breakDurationSeconds
+        Renderer.showBreak(durationSeconds: duration)
+
         // Reset strain slightly for manual break
         strainLevel = max(0.0, strainLevel - 0.1)
     }

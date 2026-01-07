@@ -7,56 +7,69 @@ enum SightTheme {
 
     // MARK: - Colors
 
-    /// Main dark background color
-    static let background = Color(red: 0.11, green: 0.11, blue: 0.12)
+    /// Main background color (System Window Background)
+    static let background = Color(nsColor: .windowBackgroundColor)
 
-    /// Surface background (between background and card)
-    static let surface = Color(red: 0.15, green: 0.15, blue: 0.17)
+    /// Surface background (System Control Background)
+    static let surface = Color(nsColor: .controlBackgroundColor)
 
-    /// Sidebar background (slightly different shade)
-    static let sidebarBackground = Color(red: 0.13, green: 0.13, blue: 0.14)
+    /// Sidebar background (System Sidebar)
+    static let sidebarBackground = Color(nsColor: .windowBackgroundColor)  // Usually transparent/material in modern apps
 
-    /// Card/container background
-    static let cardBackground = Color(red: 0.17, green: 0.17, blue: 0.19)
+    /// Card/container background (System Control Background)
+    static let cardBackground = Color(nsColor: .controlBackgroundColor)
 
-    /// Elevated card background (for nested elements)
-    static let elevatedBackground = Color(red: 0.22, green: 0.22, blue: 0.24)
+    /// Elevated card background (System Alternating Content)
+    static let elevatedBackground = Color(nsColor: .alternatingContentBackgroundColors[1])
 
-    /// Primary accent color (blue)
-    static let accent = Color(red: 0.0, green: 0.48, blue: 1.0)
+    // MARK: - Dynamic Accent Colors
 
-    /// Accent light variant
-    static let accentLight = Color(red: 0.4, green: 0.7, blue: 1.0)
+    /// Primary accent color - dynamic based on user preference (hue slider)
+    @MainActor
+    static var accent: Color {
+        let hue = PreferencesManager.shared.accentHue
+        return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
+    }
 
-    /// Secondary text color
-    static let secondaryText = Color(white: 0.6)
+    /// Accent light variant - dynamic based on user preference
+    @MainActor
+    static var accentLight: Color {
+        let hue = PreferencesManager.shared.accentHue
+        return Color(hue: hue, saturation: 0.4, brightness: 1.0)
+    }
 
-    /// Tertiary text color
-    static let tertiaryText = Color(white: 0.45)
+    /// Secondary text color (System Secondary)
+    static let secondaryText = Color.secondary
 
-    /// Divider color
-    static let divider = Color(white: 0.25)
+    /// Tertiary text color (System Tertiary)
+    static let tertiaryText = Color(nsColor: .tertiaryLabelColor)
 
-    /// Border color for cards
-    static let border = Color(white: 0.2)
+    /// Divider color (System Separator)
+    static let divider = Color(nsColor: .separatorColor)
+
+    /// Border color for cards (System Separator/Grid)
+    static let border = Color(nsColor: .separatorColor)
 
     /// Success/active indicator (green)
-    static let success = Color(red: 0.2, green: 0.78, blue: 0.35)
+    static let success = Color.green
 
     /// Warning indicator (orange)
-    static let warning = Color(red: 1.0, green: 0.58, blue: 0.0)
+    static let warning = Color.orange
 
     /// Error/danger (red)
-    static let danger = Color(red: 1.0, green: 0.27, blue: 0.23)
+    static let danger = Color.red
 
     // MARK: - Gradients
 
-    /// Primary accent gradient
-    static let accentGradient = LinearGradient(
-        colors: [accent, accentLight],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
+    /// Primary accent gradient - dynamic based on user preference
+    @MainActor
+    static var accentGradient: LinearGradient {
+        LinearGradient(
+            colors: [accent, accentLight],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 
     /// Success gradient
     static let successGradient = LinearGradient(
@@ -72,11 +85,81 @@ enum SightTheme {
         endPoint: .bottomTrailing
     )
 
+    // MARK: - Break Gradient Presets
+
+    /// Available gradient presets for break screen
+    enum GradientPreset: String, CaseIterable {
+        case sunset = "sunset"
+        case ocean = "ocean"
+        case forest = "forest"
+        case aurora = "aurora"
+        case night = "night"
+
+        var colors: [Color] {
+            switch self {
+            case .sunset:
+                return [
+                    Color(red: 0.85, green: 0.4, blue: 0.6),
+                    Color(red: 0.95, green: 0.6, blue: 0.4),
+                ]
+            case .ocean:
+                return [
+                    Color(red: 0.2, green: 0.5, blue: 0.7),
+                    Color(red: 0.4, green: 0.7, blue: 0.7),
+                ]
+            case .forest:
+                return [
+                    Color(red: 0.2, green: 0.5, blue: 0.3),
+                    Color(red: 0.4, green: 0.7, blue: 0.4),
+                ]
+            case .aurora:
+                return [
+                    Color(red: 0.3, green: 0.6, blue: 0.5),
+                    Color(red: 0.5, green: 0.3, blue: 0.7),
+                ]
+            case .night:
+                return [
+                    Color(red: 0.1, green: 0.15, blue: 0.25),
+                    Color(red: 0.2, green: 0.2, blue: 0.35),
+                ]
+            }
+        }
+
+        var displayName: String {
+            switch self {
+            case .sunset: return "Sunset"
+            case .ocean: return "Ocean"
+            case .forest: return "Forest"
+            case .aurora: return "Aurora"
+            case .night: return "Night"
+            }
+        }
+
+        var gradient: LinearGradient {
+            LinearGradient(
+                colors: colors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    /// Get gradient for current user preference
+    @MainActor
+    static var breakGradient: LinearGradient {
+        let presetName = PreferencesManager.shared.breakGradientPreset
+        let preset = GradientPreset(rawValue: presetName) ?? .sunset
+        return preset.gradient
+    }
+
     /// Glassmorphism background
     static let glassBackground = Color.white.opacity(0.08)
 
-    /// Subtle glow color
-    static let glowColor = accent.opacity(0.4)
+    /// Subtle glow color using accent
+    @MainActor
+    static var glowColor: Color {
+        accent.opacity(0.4)
+    }
 
     // MARK: - Dimensions
 
@@ -221,8 +304,10 @@ extension View {
     }
 
     /// Add glow effect
-    func glowEffect(_ color: Color = SightTheme.accent, radius: CGFloat = 10) -> some View {
-        self.shadow(color: color.opacity(0.5), radius: radius, x: 0, y: 0)
+    @MainActor
+    func glowEffect(_ color: Color? = nil, radius: CGFloat = 10) -> some View {
+        let effectColor = color ?? SightTheme.accent
+        return self.shadow(color: effectColor.opacity(0.5), radius: radius, x: 0, y: 0)
     }
 
     /// Enhanced glassmorphism effect with depth
@@ -386,11 +471,11 @@ struct SightToggleStyle: ToggleStyle {
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
-    let gradient: LinearGradient
+    let gradient: LinearGradient?
 
     init(
         progress: Double, lineWidth: CGFloat = 4,
-        gradient: LinearGradient = SightTheme.accentGradient
+        gradient: LinearGradient? = nil
     ) {
         self.progress = progress
         self.lineWidth = lineWidth
@@ -398,6 +483,7 @@ struct ProgressRing: View {
     }
 
     var body: some View {
+        let displayGradient = gradient ?? SightTheme.accentGradient
         ZStack {
             // Background ring
             Circle()
@@ -406,7 +492,7 @@ struct ProgressRing: View {
             // Progress ring
             Circle()
                 .trim(from: 0, to: CGFloat(min(progress, 1.0)))
-                .stroke(gradient, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .stroke(displayGradient, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(SightTheme.springSmooth, value: progress)
         }

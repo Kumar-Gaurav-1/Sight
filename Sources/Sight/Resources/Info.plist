@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.sight.app</string>
+    <string>com.kumargaurav.Sight</string>
     <key>CFBundleName</key>
     <string>Sight</string>
     <key>CFBundleDisplayName</key>
@@ -27,8 +27,10 @@
     <key>NSUserNotificationAlertStyle</key>
     <string>alert</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Sight needs access to detect running applications for Smart Pause.</string>
+    <string>Sight needs accessibility access to provide global keyboard shortcuts and detect running applications for Smart Pause.</string>
     <key>NSCalendarsUsageDescription</key>
-    <string>Sight can pause breaks during calendar events.</string>
+    <string>Sight automatically pauses breaks during your scheduled calendar meetings to avoid interruptions.</string>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>Sight needs screen recording permission to detect fullscreen videos and presentations, allowing breaks to pause automatically during screen sharing or recording sessions.</string>
 </dict>
 </plist>

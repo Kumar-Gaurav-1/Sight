@@ -13,7 +13,7 @@ public final class IdleDetector: ObservableObject {
     @Published public private(set) var idleSeconds: Int = 0
 
     private var checkTimer: Timer?
-    private let logger = Logger(subsystem: "com.sight.app", category: "IdleDetector")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "IdleDetector")
 
     public var onIdlePause: (() -> Void)?
     public var onIdleResume: (() -> Void)?

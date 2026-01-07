@@ -7,13 +7,13 @@ import os.log
 
 /// Types of micro-nudges
 public enum NudgeType: String, CaseIterable, Codable {
-    case blink  // Every 20 seconds
+    case blink  // Every 2-15 minutes
     case posture  // Every 20-30 minutes
     case miniExercise  // Every 45-60 minutes
 
     public var defaultInterval: TimeInterval {
         switch self {
-        case .blink: return 20  // seconds
+        case .blink: return 2 * 60  // 2 minutes default
         case .posture: return 25 * 60  // 25 minutes
         case .miniExercise: return 50 * 60  // 50 minutes
         }
@@ -289,7 +289,7 @@ public final class MicroNudgesManager: ObservableObject {
 
     // MARK: - Private Properties
 
-    private let logger = Logger(subsystem: "com.sight.nudges", category: "MicroNudges")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.nudges", category: "MicroNudges")
     private var cancellables = Set<AnyCancellable>()
 
     // Combine timers for each nudge type
@@ -340,6 +340,40 @@ public final class MicroNudgesManager: ObservableObject {
 
         // Observe preferences changes
         setupPreferencesObservation()
+
+        // Setup notification observers for snooze/dismiss actions from system notifications
+        setupNotificationObservers()
+    }
+
+    // MARK: - Notification Observers
+
+    private func setupNotificationObservers() {
+        // Handle snooze action from system notification
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("SightSnoozeNudge"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self else { return }
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+            self.logger.info("Snoozing nudge for \(minutes) minutes via notification")
+
+            // Snooze the current nudge type
+            if let nudge = self.currentNudge {
+                self.snooze(nudge.type, for: minutes)
+            }
+        }
+
+        // Handle dismiss action from system notification
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("SightDismissNudge"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            self.logger.info("Dismissing nudge via notification")
+            self.currentNudge = nil
+        }
     }
 
     // MARK: - Preferences Integration
@@ -370,6 +404,38 @@ public final class MicroNudgesManager: ObservableObject {
                     enabled: enabled, interval: interval, soundEnabled: soundEnabled)
             }
             .store(in: &cancellables)
+    }
+
+    // MARK: - Break Completion Integration
+
+    /// Reset nudge timers after a break completes (if enabled in preferences)
+    public func resetAfterBreak() {
+        guard PreferencesManager.shared.resetTimersAfterBreak else {
+            logger.debug("Reset after break disabled, keeping current nudge timers")
+            return
+        }
+
+        logger.info("Resetting nudge timers after break completion")
+
+        // Reset snooze states
+        for type in NudgeType.allCases {
+            snoozeStates[type]?.reset()
+        }
+        saveSnoozeStates()
+
+        // Restart timers to reset their countdowns
+        if isRunning {
+            // Cancel current timers
+            blinkTimer?.cancel()
+            postureTimer?.cancel()
+            exerciseTimer?.cancel()
+            blinkDispatchTimer?.cancel()
+            postureDispatchTimer?.cancel()
+            exerciseDispatchTimer?.cancel()
+
+            // Restart timers fresh
+            startTimers()
+        }
     }
 
     private func updateBlinkConfig(enabled: Bool, interval: Int, soundEnabled: Bool) {
@@ -487,6 +553,16 @@ public final class MicroNudgesManager: ObservableObject {
     /// Dismiss current nudge (completed)
     public func dismiss() {
         if let nudge = currentNudge {
+            // Track nudge followed for statistics
+            switch nudge.type {
+            case .blink:
+                AdherenceManager.shared.recordBlinkNudge(shown: false, followed: true)
+            case .posture:
+                AdherenceManager.shared.recordPostureNudge(shown: false, followed: true)
+            case .miniExercise:
+                break  // Not tracked separately
+            }
+
             snoozeStates[nudge.type]?.reset()
             saveSnoozeStates()  // Persist
         }
@@ -594,6 +670,18 @@ public final class MicroNudgesManager: ObservableObject {
             return
         }
 
+        // Check if we should show reminders during pauses
+        let prefs = PreferencesManager.shared
+        if !prefs.showRemindersDuringPauses {
+            // Check SmartPauseManager, meeting detection, or other pause states
+            if SmartPauseManager.shared.shouldPause {
+                logger.debug(
+                    "\(type.rawValue) skipped - smart pause active and showRemindersDuringPauses is off"
+                )
+                return
+            }
+        }
+
         // Create nudge event
         let exercise: MiniExercise? =
             (type == .miniExercise)
@@ -605,6 +693,31 @@ public final class MicroNudgesManager: ObservableObject {
         DispatchQueue.main.async {
             self.currentNudge = event
             self.onNudge?(event)
+
+            // Track nudge shown for statistics
+            switch type {
+            case .blink:
+                AdherenceManager.shared.recordBlinkNudge(shown: true, followed: false)
+                // Send system notification for blink reminder
+                NotificationManager.shared.sendWellnessNotification(
+                    type: "blink",
+                    message: event.message
+                )
+            case .posture:
+                AdherenceManager.shared.recordPostureNudge(shown: true, followed: false)
+                // Send system notification for posture reminder
+                NotificationManager.shared.sendWellnessNotification(
+                    type: "posture",
+                    message: event.message
+                )
+            case .miniExercise:
+                break  // Not tracked separately - uses visual nudge only
+            }
+
+            // Play nudge sound if enabled
+            if self.config.config(for: type).soundEnabled {
+                SoundManager.shared.playNudge()
+            }
         }
 
         logger.info("Triggered \(type.rawValue): \(event.message)")
@@ -638,23 +751,11 @@ public final class MicroNudgesManager: ObservableObject {
             return
         }
 
-        let content = UNMutableNotificationContent()
-        content.title = "Time for a Real Break"
-        content.body = NudgeCopy.escalationSuggestion
-        content.sound = .default
+        // Get total snooze count for this escalation
+        let totalSnoozes = snoozeStates.values.reduce(0) { $0 + $1.snoozeCount }
 
-        let request = UNNotificationRequest(
-            identifier: "sight.escalation-\(UUID().uuidString)",
-            content: content,
-            trigger: nil
-        )
-
-        UNUserNotificationCenter.current().add(request) { [weak self] error in
-            if let error = error {
-                self?.logger.error(
-                    "Failed to send escalation notification: \(error.localizedDescription)")
-            }
-        }
+        // Use central NotificationManager for consistent handling with actions
+        NotificationManager.shared.sendEscalationNotification(snoozeCount: totalSnoozes)
     }
 
     // MARK: - Daily Reset

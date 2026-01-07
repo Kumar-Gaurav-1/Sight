@@ -131,7 +131,7 @@ public final class MetalOverlayView: MTKView, MTKViewDelegate {
     }
 
     required init(coder: NSCoder) {
-        fatalError("init(coder:) not implemented")
+        fatalError("init(coder:) not implemented - use init(frame:device:) instead")
     }
 
     // MARK: - Metal Setup
@@ -417,7 +417,8 @@ public final class CoreImageOverlayView: NSView {
     }
 
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) not implemented")
+        // Return nil instead of crashing - graceful failure
+        return nil
     }
 
     deinit {
@@ -502,10 +503,16 @@ public final class CoreImageOverlayView: NSView {
     }
 
     private func drawBreathingCircle() {
+        // Constants for breathing circle animation
+        let breathingCircleBaseRadius: CGFloat = 60
+        let breathingCircleMaxOffset: CGFloat = 10
+        let breathingCircleInnerAlpha: CGFloat = 0.6
+        let breathingCircleOuterAlpha: CGFloat = 0.2
+
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
-        let baseRadius: CGFloat = 60
-        let breatheOffset = sin(breathePhase) * 10 * CGFloat(config.breathingScale)
-        let radius = baseRadius + breatheOffset
+        let breatheOffset =
+            sin(breathePhase) * breathingCircleMaxOffset * CGFloat(config.breathingScale)
+        let radius = breathingCircleBaseRadius + breatheOffset
 
         let circlePath = NSBezierPath(
             ovalIn: CGRect(
@@ -517,8 +524,8 @@ public final class CoreImageOverlayView: NSView {
 
         // Gradient fill
         let gradient = NSGradient(colors: [
-            NSColor(red: 0.4, green: 0.6, blue: 0.8, alpha: 0.6),
-            NSColor(red: 0.3, green: 0.5, blue: 0.7, alpha: 0.2),
+            NSColor(red: 0.4, green: 0.6, blue: 0.8, alpha: breathingCircleInnerAlpha),
+            NSColor(red: 0.3, green: 0.5, blue: 0.7, alpha: breathingCircleOuterAlpha),
         ])
 
         gradient?.draw(in: circlePath, relativeCenterPosition: .zero)
@@ -633,11 +640,11 @@ public final class BreakOverlayManager: ObservableObject {
     // MARK: - Emergency Escape Handler
 
     private func setupEscapeHandler() {
-        // Escape or Cmd+Escape to close overlay (Escape alone after 3 seconds as safety)
+        // Escape or Cmd+Escape to close overlay
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return event }
 
-            // Cmd+Escape = immediate emergency exit
+            // Cmd+Escape = immediate emergency exit (always works)
             if event.keyCode == 53 && event.modifierFlags.contains(.command) {
                 self.logger.info("Emergency exit: Cmd+Escape pressed")
                 self.hide()
@@ -646,13 +653,35 @@ public final class BreakOverlayManager: ObservableObject {
                 return nil
             }
 
-            // Plain Escape = skip break (works always)
+            // Plain Escape = skip break (respects skip difficulty preference)
             if event.keyCode == 53 && !event.modifierFlags.contains(.command) {
-                self.logger.info("Skip break: Escape pressed")
-                self.hide()
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("SightSkipBreak"), object: nil)
-                return nil
+                // Check if skipping is allowed based on difficulty setting
+                // Use PreferencesManager directly (thread-safe) to avoid MainActor issues
+                let difficulty = PreferencesManager.shared.breakSkipDifficulty
+                let canSkip: Bool
+                switch difficulty {
+                case "casual":
+                    canSkip = true  // Can skip anytime
+                case "balanced":
+                    canSkip = true  // Allow skip via escape (balanced only blocks button skip before 5s)
+                case "hardcore":
+                    canSkip = false  // No skips allowed
+                default:
+                    canSkip = true
+                }
+
+                if canSkip {
+                    self.logger.info("Skip break: Escape pressed")
+                    self.hide()
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("SightSkipBreak"), object: nil)
+                    return nil
+                } else {
+                    // Not allowed to skip yet - log and ignore
+                    self.logger.debug("Skip blocked by hardcore difficulty setting")
+                    // Play a subtle "not allowed" feedback sound could be added here
+                    return nil  // Consume the event but don't skip
+                }
             }
 
             return event

@@ -95,7 +95,7 @@ public final class FloatingCounterWindow: NSPanel {
 
     // MARK: - Properties
 
-    private let logger = Logger(subsystem: "com.sight.ui", category: "FloatingWindow")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.ui", category: "FloatingWindow")
 
     /// Configuration
     public var config: FloatingWindowConfig {

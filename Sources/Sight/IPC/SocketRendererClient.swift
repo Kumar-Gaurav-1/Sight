@@ -10,7 +10,7 @@ public final class SocketRendererClient: RendererAPI {
 
     private let socketPath: String
     private var socket: Int32 = -1
-    private let logger = Logger(subsystem: "com.sight.renderer", category: "Socket")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "Socket")
     private let queue = DispatchQueue(label: "com.sight.socket", qos: .userInteractive)
     private var _isAvailable = false
 
@@ -153,7 +153,7 @@ public final class SocketRendererServer {
 
     private let socketPath: String
     private var serverSocket: Int32 = -1
-    private let logger = Logger(subsystem: "com.sight.renderer", category: "SocketServer")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "SocketServer")
     private let queue = DispatchQueue(label: "com.sight.socket.server")
 
     public var onMessage: ((RendererMessage) -> Void)?

@@ -13,7 +13,7 @@ public final class ShortcutManager: ObservableObject {
     @Published public var isMonitoring = false
     @Published public var hasAccessibilityAccess = false
 
-    private let logger = Logger(subsystem: "com.sight.app", category: "Shortcuts")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "Shortcuts")
     private var monitor: Any?
     private var localMonitor: Any?
 
@@ -121,51 +121,101 @@ public final class ShortcutManager: ObservableObject {
 
     @discardableResult
     private func handleEvent(_ event: NSEvent) -> Bool {
-        // Defined shortcuts:
-        // Cmd + Ctrl + P = Toggle Pause/Resume
-        // Cmd + Ctrl + B = Take Break Now
-        // Cmd + Ctrl + S = Skip Break
-        // Cmd + Ctrl + , = Open Preferences
+        // Check if shortcuts are enabled
+        guard PreferencesManager.shared.shortcutsEnabled else { return false }
+
+        let prefs = PreferencesManager.shared
+
+        // Check each configurable shortcut
+        if matchesShortcut(event, prefs.shortcutToggleTimer) {
+            logger.info("Shortcut triggered: Toggle Timer")
+            DispatchQueue.main.async {
+                self.menuBarViewModel?.toggleTimer()
+            }
+            return true
+        }
+
+        if matchesShortcut(event, prefs.shortcutTakeBreak) {
+            logger.info("Shortcut triggered: Take Break")
+            DispatchQueue.main.async {
+                self.menuBarViewModel?.triggerShortBreak()
+            }
+            return true
+        }
+
+        if matchesShortcut(event, prefs.shortcutSkipBreak) {
+            logger.info("Shortcut triggered: Skip Break")
+            DispatchQueue.main.async {
+                self.menuBarViewModel?.skipBreak()
+            }
+            return true
+        }
+
+        if matchesShortcut(event, prefs.shortcutPreferences) {
+            logger.info("Shortcut triggered: Open Preferences")
+            DispatchQueue.main.async {
+                self.openPreferences?()
+            }
+            return true
+        }
+
+        return false
+    }
+
+    /// Check if event matches a shortcut string (format: "cmd+ctrl:keyCode")
+    private func matchesShortcut(_ event: NSEvent, _ shortcut: String) -> Bool {
+        let parts = shortcut.split(separator: ":")
+        guard parts.count == 2,
+            let keyCode = UInt16(parts[1])
+        else { return false }
+
+        let modifierString = String(parts[0])
+        var expectedModifiers: NSEvent.ModifierFlags = []
+
+        if modifierString.contains("cmd") { expectedModifiers.insert(.command) }
+        if modifierString.contains("ctrl") { expectedModifiers.insert(.control) }
+        if modifierString.contains("opt") { expectedModifiers.insert(.option) }
+        if modifierString.contains("shift") { expectedModifiers.insert(.shift) }
 
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        return flags == expectedModifiers && event.keyCode == keyCode
+    }
 
-        // Cmd + Ctrl
-        if flags == [.command, .control] {
-            switch event.keyCode {
-            case 35:  // 'P'
-                logger.info("Shortcut triggered: Toggle Timer")
-                DispatchQueue.main.async {
-                    self.menuBarViewModel?.toggleTimer()
-                }
-                return true
+    /// Convert shortcut string to display format
+    public static func displayString(for shortcut: String) -> String {
+        let parts = shortcut.split(separator: ":")
+        guard parts.count == 2,
+            let keyCode = UInt16(parts[1])
+        else { return "Not Set" }
 
-            case 11:  // 'B'
-                logger.info("Shortcut triggered: Take Break")
-                DispatchQueue.main.async {
-                    // Use viewModel to properly pause timer before showing break
-                    self.menuBarViewModel?.triggerShortBreak()
-                }
-                return true
+        let modifierString = String(parts[0])
+        var symbols = ""
 
-            case 1:  // 'S'
-                logger.info("Shortcut triggered: Skip Break")
-                DispatchQueue.main.async {
-                    self.menuBarViewModel?.skipBreak()
-                }
-                return true
+        if modifierString.contains("ctrl") { symbols += "⌃" }
+        if modifierString.contains("opt") { symbols += "⌥" }
+        if modifierString.contains("shift") { symbols += "⇧" }
+        if modifierString.contains("cmd") { symbols += "⌘" }
 
-            case 43:  // ','
-                logger.info("Shortcut triggered: Open Preferences")
-                DispatchQueue.main.async {
-                    self.openPreferences?()
-                }
-                return true
+        let keyChar = keyCodeToChar(keyCode)
+        return symbols + keyChar
+    }
 
-            default:
-                break
-            }
-        }
-        return false
+    /// Convert keyCode to character
+    private static func keyCodeToChar(_ keyCode: UInt16) -> String {
+        let keyMap: [UInt16: String] = [
+            0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X",
+            8: "C", 9: "V", 11: "B", 12: "Q", 13: "W", 14: "E", 15: "R",
+            16: "Y", 17: "T", 18: "1", 19: "2", 20: "3", 21: "4", 22: "6",
+            23: "5", 24: "=", 25: "9", 26: "7", 27: "-", 28: "8", 29: "0",
+            30: "]", 31: "O", 32: "U", 33: "[", 34: "I", 35: "P", 36: "↩",
+            37: "L", 38: "J", 39: "'", 40: "K", 41: ";", 42: "\\", 43: ",",
+            44: "/", 45: "N", 46: "M", 47: ".", 48: "⇥", 49: "␣", 50: "`",
+            51: "⌫", 53: "⎋", 96: "F5", 97: "F6", 98: "F7", 99: "F3",
+            100: "F8", 101: "F9", 103: "F11", 105: "F13", 107: "F14",
+            109: "F10", 111: "F12", 113: "F15", 118: "F4", 120: "F2",
+            122: "F1", 123: "←", 124: "→", 125: "↓", 126: "↑",
+        ]
+        return keyMap[keyCode] ?? "?"
     }
 
     // MARK: - Callbacks

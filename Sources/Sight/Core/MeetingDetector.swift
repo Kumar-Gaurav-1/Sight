@@ -14,7 +14,7 @@ public final class MeetingDetector: ObservableObject {
     @Published public private(set) var hasCalendarAccess: Bool = false
 
     private let eventStore = EKEventStore()
-    private let logger = Logger(subsystem: "com.sight.app", category: "MeetingDetector")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "MeetingDetector")
     private var checkTimer: Timer?
 
     // MARK: - Initialization

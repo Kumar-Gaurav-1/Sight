@@ -19,7 +19,7 @@ public final class XPCRendererClient: RendererAPI {
     // MARK: - Properties
 
     private let connection: NSXPCConnection
-    private let logger = Logger(subsystem: "com.sight.renderer", category: "XPC")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "XPC")
     private var _isAvailable = false
 
     public var isAvailable: Bool { _isAvailable }
@@ -118,7 +118,7 @@ public final class XPCRendererClient: RendererAPI {
 /// The actual renderer would subclass this
 open class XPCRendererServiceBase: NSObject, XPCRendererProtocol {
 
-    private let logger = Logger(subsystem: "com.sight.renderer", category: "XPCService")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "XPCService")
 
     // SECURITY: Maximum allowed string lengths to prevent log injection and DoS
     private let maxStyleLength = 64

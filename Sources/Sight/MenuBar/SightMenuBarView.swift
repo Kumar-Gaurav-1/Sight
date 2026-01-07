@@ -1,282 +1,402 @@
 import SwiftUI
 
-// MARK: - Menu Bar Dashboard
+// MARK: - Menu Bar View (macOS System Settings Style - Enhanced)
 
 struct SightMenuBarView: View {
     @ObservedObject var viewModel: MenuBarViewModel
     @ObservedObject var adherence = AdherenceManager.shared
 
-    var body: some View {
-        VStack(spacing: 0) {
-            timerSection
-                .padding(16)
+    @State private var hoveredRow: String?
+    @State private var playButtonHovered = false
+    @State private var ringPulse = false
 
-            Divider()
-                .background(Color.white.opacity(0.1))
+    // MARK: - Theme
 
-            statsRow
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-
-            Divider()
-                .background(Color.white.opacity(0.1))
-
-            actionButtons
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-        }
-        .frame(width: 280)
-        .background(.regularMaterial)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(.white.opacity(0.1), lineWidth: 0.5)
+    private var accentGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 0.2, green: 0.7, blue: 0.5), Color(red: 0.3, green: 0.75, blue: 0.85),
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
 
-    // MARK: - Timer Section
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header Section with Timer Ring
+            headerSection
 
-    private var isIdle: Bool {
-        viewModel.currentState == .idle
-    }
+            // Subtle separator
+            Rectangle()
+                .fill(Color.primary.opacity(0.08))
+                .frame(height: 1)
 
-    private var isTimerPaused: Bool {
-        viewModel.isPaused
-    }
+            // Status Section
+            statusSection
 
-    private var isOnBreak: Bool {
-        viewModel.currentState == .break
-    }
+            // Subtle separator
+            Rectangle()
+                .fill(Color.primary.opacity(0.08))
+                .frame(height: 1)
 
-    private var pauseReasonText: String {
-        if let reason = WorkHoursManager.shared.pauseReason {
-            return reason
-        } else if SmartPauseManager.shared.shouldPause {
-            return SmartPauseManager.shared.activeSignals.first?.description ?? "Smart Pause"
-        } else if IdleDetector.shared.isIdle {
-            return "User Away"
-        } else if isTimerPaused {
-            return "Paused"
+            // Quick Actions
+            actionsSection
         }
-        return "Ready to start"
+        .frame(width: 280)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
+        )
+        .onAppear {
+            if viewModel.currentState == .work && !viewModel.isPaused {
+                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                    ringPulse = true
+                }
+            }
+        }
     }
 
-    private var statusColor: Color {
-        if isOnBreak { return .cyan }
-        if isIdle || isTimerPaused { return .orange }
-        return .green
-    }
+    // MARK: - Header Section
 
-    private var statusText: String {
-        if isOnBreak { return "On Break" }
-        if isTimerPaused { return "Paused" }
-        if isIdle { return "Stopped" }
-        return "Active"
-    }
-
-    private var timerSection: some View {
-        HStack(spacing: 14) {
-            // Progress ring
+    private var headerSection: some View {
+        HStack(spacing: 12) {
+            // Timer Ring with pulse
             ZStack {
-                Circle()
-                    .stroke(Color.primary.opacity(0.1), lineWidth: 4)
-                    .frame(width: 52, height: 52)
+                // Pulse glow when active
+                if viewModel.currentState == .work && !viewModel.isPaused {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.cyan.opacity(ringPulse ? 0.2 : 0.05), Color.clear],
+                                center: .center,
+                                startRadius: 15,
+                                endRadius: 28
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                }
 
+                // Background ring
                 Circle()
-                    .trim(from: 0, to: viewModel.progress)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 3.5)
+                    .frame(width: 42, height: 42)
+
+                // Progress ring
+                Circle()
+                    .trim(from: 0, to: timerProgress)
                     .stroke(
-                        isIdle ? Color.orange : Color.cyan,
-                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                        accentGradient,
+                        style: StrokeStyle(lineWidth: 3.5, lineCap: .round)
                     )
-                    .frame(width: 52, height: 52)
+                    .frame(width: 42, height: 42)
                     .rotationEffect(.degrees(-90))
+                    .shadow(color: Color.cyan.opacity(0.3), radius: 4)
+                    .animation(.linear(duration: 0.5), value: timerProgress)
 
-                Image(systemName: isIdle ? "pause.fill" : "eye")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(isIdle ? .orange : .cyan)
+                // Eye icon
+                Image(systemName: "eye.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(accentGradient)
             }
 
-            // Time info
             VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 5) {
-                    Circle()
-                        .fill(statusColor)
-                        .frame(width: 6, height: 6)
+                HStack(spacing: 6) {
+                    Text("Sight")
+                        .font(.system(size: 13, weight: .semibold))
 
-                    Text(statusText)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.secondary)
+                    // Status badge
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(statusColor)
+                            .frame(width: 5, height: 5)
+                        Text(statusText)
+                            .font(.system(size: 9, weight: .medium))
+                    }
+                    .foregroundColor(statusColor)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule()
+                            .fill(statusColor.opacity(0.12))
+                    )
                 }
 
-                Text(formatTime(viewModel.remainingSeconds))
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
-                    .monospacedDigit()
-
-                if isOnBreak {
-                    Text("Break ends in \(viewModel.remainingSeconds)s")
-                        .font(.system(size: 10))
-                        .foregroundColor(.cyan)
-                } else if let eta = viewModel.nextBreakText {
-                    Text(eta)
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                } else if isIdle || isTimerPaused {
-                    Text(pauseReasonText)
-                        .font(.system(size: 10))
-                        .foregroundColor(.orange)
-                }
+                Text(timeDisplay)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
             }
 
             Spacer()
 
-            // Play/Pause
-            Button(action: { viewModel.toggleTimer() }) {
-                Image(systemName: isIdle ? "play.fill" : "pause.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .frame(width: 32, height: 32)
+            // Pause/Play button
+            Button(action: {
+                viewModel.toggleTimer()
+            }) {
+                Image(systemName: isPausedOrIdle ? "play.fill" : "pause.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(playButtonHovered ? .primary : .secondary)
+                    .frame(width: 26, height: 26)
                     .background(
                         Circle()
-                            .fill(Color.primary.opacity(0.06))
+                            .fill(Color.primary.opacity(playButtonHovered ? 0.12 : 0.06))
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
+                            )
                     )
             }
             .buttonStyle(.plain)
+            .scaleEffect(playButtonHovered ? 1.05 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: playButtonHovered)
+            .onHover { playButtonHovered = $0 }
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
-    // MARK: - Stats Row
+    // MARK: - Status Section
 
-    private var statsRow: some View {
-        HStack(spacing: 0) {
-            StatItem(value: "\(adherence.todayStats.breaksCompleted)", label: "Breaks")
-
-            Rectangle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 1, height: 24)
-
-            StatItem(value: "\(adherence.currentStreak)d", label: "Streak")
-
-            Rectangle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 1, height: 24)
-
-            StatItem(
-                value: "\(Int(min(adherence.goalProgress, 1) * 100))%",
-                label: "Goal"
+    private var statusSection: some View {
+        VStack(spacing: 0) {
+            // Breaks Today
+            StatusRow(
+                icon: "checkmark.circle.fill",
+                iconColor: .green,
+                title: "Breaks Today",
+                value: "\(adherence.todayStats.breaksCompleted)",
+                isHovered: hoveredRow == "breaks"
             )
+            .onHover { hoveredRow = $0 ? "breaks" : nil }
+
+            // Wellness Score
+            StatusRow(
+                icon: "heart.fill",
+                iconColor: .pink,
+                title: "Wellness Score",
+                value: "\(Int(adherence.todayStats.wellnessScore))%",
+                valueColor: wellnessColor,
+                isHovered: hoveredRow == "wellness"
+            )
+            .onHover { hoveredRow = $0 ? "wellness" : nil }
+
+            // Screen Time
+            StatusRow(
+                icon: "desktopcomputer",
+                iconColor: .orange,
+                title: "Screen Time",
+                value: formatScreenTime(adherence.todayStats.totalScreenTimeMinutes),
+                isHovered: hoveredRow == "screen"
+            )
+            .onHover { hoveredRow = $0 ? "screen" : nil }
+
+            // Current Streak
+            StatusRow(
+                icon: "flame.fill",
+                iconColor: Color(red: 1.0, green: 0.6, blue: 0.2),
+                title: "Current Streak",
+                value: "\(adherence.currentStreak)d",
+                isHovered: hoveredRow == "streak"
+            )
+            .onHover { hoveredRow = $0 ? "streak" : nil }
         }
+        .padding(.vertical, 4)
+    }
+
+    private var wellnessColor: Color {
+        let score = adherence.todayStats.wellnessScore
+        if score >= 80 { return .green } else if score >= 50 { return .orange } else { return .red }
+    }
+
+    // MARK: - Actions Section
+
+    private var actionsSection: some View {
+        VStack(spacing: 0) {
+            // Take Break
+            ActionRow(
+                icon: "cup.and.saucer.fill",
+                title: "Take Break Now",
+                color: .cyan,
+                shortcut: "⌘⇧B"
+            ) {
+                viewModel.triggerShortBreak()
+                closeMenu()
+            }
+
+            // Settings
+            ActionRow(
+                icon: "gearshape.fill",
+                title: "Preferences...",
+                color: Color(white: 0.5),
+                shortcut: "⌘,"
+            ) {
+                openSettings()
+            }
+
+            // Quit
+            ActionRow(
+                icon: "power",
+                title: "Quit Sight",
+                color: .red,
+                shortcut: "⌘Q"
+            ) {
+                NSApplication.shared.terminate(nil)
+            }
+        }
+        .padding(.vertical, 4)
     }
 
     // MARK: - Helpers
 
-    private func formatTime(_ seconds: Int) -> String {
-        let mins = seconds / 60
-        let secs = seconds % 60
-        return String(format: "%d:%02d", mins, secs)
+    private var timerProgress: CGFloat {
+        guard viewModel.currentState == .work else { return 0 }
+        let total = PreferencesManager.shared.workIntervalSeconds
+        let elapsed = total - viewModel.remainingSeconds
+        return CGFloat(elapsed) / CGFloat(total)
+    }
+
+    private var isPausedOrIdle: Bool {
+        viewModel.currentState == .idle || viewModel.isPaused
+    }
+
+    private var statusText: String {
+        if viewModel.isPaused { return "Paused" }
+        switch viewModel.currentState {
+        case .idle: return "Idle"
+        case .work: return "Active"
+        case .preBreak: return "Starting"
+        case .break: return "Break"
+        }
+    }
+
+    private var statusColor: Color {
+        if viewModel.isPaused { return .orange }
+        switch viewModel.currentState {
+        case .idle: return .gray
+        case .work: return .green
+        case .preBreak: return .yellow
+        case .break: return .cyan
+        }
+    }
+
+    private var timeDisplay: String {
+        if viewModel.currentState == .idle { return "Timer not running" }
+        let mins = viewModel.remainingSeconds / 60
+        let secs = viewModel.remainingSeconds % 60
+        return String(format: "Next break in %d:%02d", mins, secs)
+    }
+
+    private func formatScreenTime(_ minutes: Int) -> String {
+        if minutes < 60 { return "\(minutes)m" }
+        let hours = minutes / 60
+        let mins = minutes % 60
+        return mins > 0 ? "\(hours)h \(mins)m" : "\(hours)h"
+    }
+
+    private func closeMenu() {
+        NSApp.sendAction(#selector(NSMenu.cancelTracking), to: nil, from: nil)
     }
 
     private func openSettings() {
-        // Close the menu first, then open preferences
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             NSApp.sendAction(#selector(AppDelegate.openPreferences), to: nil, from: nil)
         }
     }
-
-    // MARK: - Action Buttons
-
-    private func closeMenu() {
-        // Close the menu by simulating escape key
-        DispatchQueue.main.async {
-            NSApp.sendAction(#selector(NSMenu.cancelTracking), to: nil, from: nil)
-        }
-    }
-
-    private var actionButtons: some View {
-        HStack(spacing: 8) {
-            if isOnBreak {
-                // During break - allow skip
-                ActionButton(icon: "forward.fill", title: "Skip") {
-                    closeMenu()
-                    viewModel.skipBreak()
-                }
-            } else if isIdle {
-                // Stopped - show start
-                ActionButton(icon: "play.fill", title: "Start") {
-                    closeMenu()
-                    viewModel.toggleTimer()
-                }
-            } else {
-                // Working - show break and postpone
-                ActionButton(icon: "cup.and.saucer.fill", title: "Break") {
-                    closeMenu()
-                    viewModel.triggerShortBreak()
-                }
-
-                ActionButton(icon: "clock.arrow.circlepath", title: "+5 min") {
-                    closeMenu()
-                    viewModel.postponeBreak()
-                }
-            }
-
-            ActionButton(icon: "gearshape.fill", title: "Settings") {
-                openSettings()
-            }
-
-            ActionButton(icon: "power", title: "Quit") {
-                NSApplication.shared.terminate(nil)
-            }
-        }
-    }
 }
 
-// MARK: - Stat Item
+// MARK: - Status Row (Enhanced)
 
-private struct StatItem: View {
+private struct StatusRow: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
     let value: String
-    let label: String
+    var valueColor: Color = .primary
+    var isHovered: Bool = false
 
     var body: some View {
-        VStack(spacing: 3) {
-            Text(value)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+        HStack(spacing: 10) {
+            // Icon with gradient background
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(width: 20, height: 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(iconColor.gradient)
+                        .shadow(color: iconColor.opacity(0.3), radius: 2, y: 1)
+                )
+
+            Text(title)
+                .font(.system(size: 12))
                 .foregroundColor(.primary)
 
-            Text(label)
-                .font(.system(size: 9))
-                .foregroundColor(.secondary)
+            Spacer()
+
+            Text(value)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundColor(valueColor)
         }
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(isHovered ? Color.primary.opacity(0.05) : Color.clear)
+        )
+        .padding(.horizontal, 4)
+        .animation(.easeOut(duration: 0.1), value: isHovered)
     }
 }
 
-// MARK: - Action Button
+// MARK: - Action Row (Enhanced)
 
-private struct ActionButton: View {
+private struct ActionRow: View {
     let icon: String
     let title: String
+    let color: Color
+    var shortcut: String? = nil
     let action: () -> Void
 
     @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            HStack(spacing: 10) {
+                // Icon with gradient
                 Image(systemName: icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(isHovered ? .cyan : .primary)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 20, height: 20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5, style: .continuous)
+                            .fill(color.gradient)
+                            .shadow(color: color.opacity(0.3), radius: 2, y: 1)
+                    )
 
                 Text(title)
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12))
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                if let shortcut = shortcut {
+                    Text(shortcut)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isHovered ? Color.cyan.opacity(0.15) : Color.white.opacity(0.05))
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(isHovered ? Color.primary.opacity(0.08) : Color.clear)
             )
+            .padding(.horizontal, 4)
         }
         .buttonStyle(.plain)
+        .animation(.easeOut(duration: 0.1), value: isHovered)
         .onHover { isHovered = $0 }
     }
 }

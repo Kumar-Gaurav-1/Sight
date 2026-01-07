@@ -1,31 +1,42 @@
 import SwiftUI
 
-// MARK: - Posture Nudge View (LookAway Style - Enhanced)
+// MARK: - Mini Exercise Nudge View (LookAway Style - Enhanced)
 
-struct PostureNudgeView: View {
+struct MiniExerciseNudgeView: View {
     var onDismiss: (() -> Void)?
     var onSnooze: (() -> Void)?
-    var autoDismissSeconds: Double = 4.0
+    var autoDismissSeconds: Double = 6.0
 
-    @State private var arrowBounce = false
+    @State private var bounce = false
     @State private var countdown: Int
     @State private var dragY: CGFloat = 0
     @State private var timer: Timer?
     @State private var snoozeHovered = false
-    @State private var isHovered = false
     @State private var isDismissing = false  // Prevent double dismiss
 
-    private let accentColor = Color.orange
+    private let accentColor = Color.green
+
+    // Random exercise suggestions
+    private let exercises = [
+        ("Stretch your arms overhead", "figure.arms.open"),
+        ("Roll your shoulders", "figure.walk"),
+        ("Stand up and stretch", "figure.stand"),
+        ("Touch your toes", "figure.flexibility"),
+        ("Rotate your wrists", "hand.raised.fingers.spread"),
+    ]
+
+    @State private var selectedExercise: (String, String)
 
     init(
         onDismiss: (() -> Void)? = nil,
         onSnooze: (() -> Void)? = nil,
-        autoDismissSeconds: Double = 4.0
+        autoDismissSeconds: Double = 6.0
     ) {
         self.onDismiss = onDismiss
         self.onSnooze = onSnooze
         self.autoDismissSeconds = autoDismissSeconds
         _countdown = State(initialValue: Int(autoDismissSeconds))
+        _selectedExercise = State(initialValue: exercises.randomElement()!)
     }
 
     var body: some View {
@@ -34,9 +45,9 @@ struct PostureNudgeView: View {
             ZStack {
                 // Outer glow
                 Circle()
-                    .fill(accentColor.opacity(arrowBounce ? 0.12 : 0.05))
+                    .fill(accentColor.opacity(bounce ? 0.12 : 0.05))
                     .frame(width: 52, height: 52)
-                    .scaleEffect(arrowBounce ? 1.1 : 1.0)
+                    .scaleEffect(bounce ? 1.1 : 1.0)
 
                 // Background ring
                 Circle()
@@ -48,7 +59,7 @@ struct PostureNudgeView: View {
                     .trim(from: 0, to: CGFloat(countdown) / CGFloat(autoDismissSeconds))
                     .stroke(
                         LinearGradient(
-                            colors: [.orange, .red],
+                            colors: [.green, .mint],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -58,28 +69,22 @@ struct PostureNudgeView: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.linear(duration: 1), value: countdown)
 
-                // Icon with bounce animation
-                ZStack {
-                    Image(systemName: "figure.stand")
-                        .font(.system(size: 15, weight: .semibold))
-
-                    Image(systemName: "chevron.up")
-                        .font(.system(size: 7, weight: .bold))
-                        .offset(x: 9, y: arrowBounce ? -6 : -2)
-                }
-                .foregroundColor(accentColor)
+                // Bouncing exercise icon
+                Image(systemName: selectedExercise.1)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(accentColor)
+                    .offset(y: bounce ? -2 : 2)
             }
             .frame(width: 56, height: 56)
-            .animation(
-                .easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: arrowBounce)
+            .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: bounce)
 
             // Content
             VStack(alignment: .leading, spacing: 3) {
-                Text("Posture Check")
+                Text("Quick Stretch")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.primary)
 
-                Text("Sit up straight, shoulders back")
+                Text(selectedExercise.0)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -146,9 +151,9 @@ struct PostureNudgeView: View {
     }
 
     private func startTimers() {
-        // Start arrow bounce animation
-        withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true)) {
-            arrowBounce = true
+        // Start bounce animation
+        withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+            bounce = true
         }
 
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [self] t in
@@ -202,7 +207,7 @@ struct PostureNudgeView: View {
 
 #Preview {
     VStack {
-        PostureNudgeView(onSnooze: {})
+        MiniExerciseNudgeView(onSnooze: {})
             .padding(.horizontal, 20)
         Spacer()
     }

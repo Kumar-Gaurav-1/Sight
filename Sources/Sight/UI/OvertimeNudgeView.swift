@@ -1,42 +1,37 @@
 import SwiftUI
 
-// MARK: - Posture Nudge View (LookAway Style - Enhanced)
+// MARK: - Overtime Nudge View (LookAway Style - Enhanced)
 
-struct PostureNudgeView: View {
+struct OvertimeNudgeView: View {
+    let elapsedMinutes: Int
     var onDismiss: (() -> Void)?
-    var onSnooze: (() -> Void)?
-    var autoDismissSeconds: Double = 4.0
+    var autoDismissSeconds: Double = 8.0
 
-    @State private var arrowBounce = false
+    @State private var pulse = false
     @State private var countdown: Int
     @State private var dragY: CGFloat = 0
     @State private var timer: Timer?
-    @State private var snoozeHovered = false
-    @State private var isHovered = false
+    @State private var takeBreakHovered = false
     @State private var isDismissing = false  // Prevent double dismiss
 
-    private let accentColor = Color.orange
+    private let accentColor = Color.red
 
-    init(
-        onDismiss: (() -> Void)? = nil,
-        onSnooze: (() -> Void)? = nil,
-        autoDismissSeconds: Double = 4.0
-    ) {
+    init(elapsedMinutes: Int, onDismiss: (() -> Void)? = nil, autoDismissSeconds: Double = 8.0) {
+        self.elapsedMinutes = elapsedMinutes
         self.onDismiss = onDismiss
-        self.onSnooze = onSnooze
         self.autoDismissSeconds = autoDismissSeconds
         _countdown = State(initialValue: Int(autoDismissSeconds))
     }
 
     var body: some View {
         HStack(spacing: 14) {
-            // Animated icon with progress ring
+            // Pulsing warning icon with progress ring
             ZStack {
-                // Outer glow
+                // Outer pulse glow
                 Circle()
-                    .fill(accentColor.opacity(arrowBounce ? 0.12 : 0.05))
+                    .fill(accentColor.opacity(pulse ? 0.15 : 0.05))
                     .frame(width: 52, height: 52)
-                    .scaleEffect(arrowBounce ? 1.1 : 1.0)
+                    .scaleEffect(pulse ? 1.15 : 1.0)
 
                 // Background ring
                 Circle()
@@ -48,7 +43,7 @@ struct PostureNudgeView: View {
                     .trim(from: 0, to: CGFloat(countdown) / CGFloat(autoDismissSeconds))
                     .stroke(
                         LinearGradient(
-                            colors: [.orange, .red],
+                            colors: [.red, .orange],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -58,28 +53,21 @@ struct PostureNudgeView: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.linear(duration: 1), value: countdown)
 
-                // Icon with bounce animation
-                ZStack {
-                    Image(systemName: "figure.stand")
-                        .font(.system(size: 15, weight: .semibold))
-
-                    Image(systemName: "chevron.up")
-                        .font(.system(size: 7, weight: .bold))
-                        .offset(x: 9, y: arrowBounce ? -6 : -2)
-                }
-                .foregroundColor(accentColor)
+                // Warning icon
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(accentColor)
             }
             .frame(width: 56, height: 56)
-            .animation(
-                .easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: arrowBounce)
+            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulse)
 
             // Content
             VStack(alignment: .leading, spacing: 3) {
-                Text("Posture Check")
+                Text("Overtime Alert")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.primary)
 
-                Text("Sit up straight, shoulders back")
+                Text("\(elapsedMinutes) minutes without a break")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -87,24 +75,28 @@ struct PostureNudgeView: View {
 
             Spacer(minLength: 10)
 
-            // Snooze button with hover
-            if onSnooze != nil {
-                Button(action: { snooze() }) {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(snoozeHovered ? .primary : .secondary)
-                        .padding(6)
-                        .background(
-                            Circle()
-                                .fill(Color.primary.opacity(snoozeHovered ? 0.1 : 0.05))
-                        )
-                }
-                .buttonStyle(.plain)
-                .scaleEffect(snoozeHovered ? 1.05 : 1.0)
-                .animation(.easeOut(duration: 0.15), value: snoozeHovered)
-                .onHover { snoozeHovered = $0 }
-                .help("Snooze for 5 minutes")
+            // Take Break button with hover
+            Button(action: takeBreak) {
+                Text("Take Break")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.red, .orange],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
             }
+            .buttonStyle(.plain)
+            .scaleEffect(takeBreakHovered ? 1.05 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: takeBreakHovered)
+            .onHover { takeBreakHovered = $0 }
 
             // Countdown with animation
             Text("\(countdown)")
@@ -126,7 +118,7 @@ struct PostureNudgeView: View {
         )
         .overlay(
             Capsule()
-                .strokeBorder(Color.primary.opacity(0.1), lineWidth: 1)
+                .strokeBorder(accentColor.opacity(0.2), lineWidth: 1)
         )
         .offset(y: dragY)
         .gesture(
@@ -146,9 +138,9 @@ struct PostureNudgeView: View {
     }
 
     private func startTimers() {
-        // Start arrow bounce animation
-        withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true)) {
-            arrowBounce = true
+        // Start pulse animation
+        withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+            pulse = true
         }
 
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [self] t in
@@ -186,23 +178,24 @@ struct PostureNudgeView: View {
         }
     }
 
-    private func snooze() {
+    private func takeBreak() {
         guard !isDismissing else { return }
         isDismissing = true
 
         stopTimer()
+        NotificationCenter.default.post(name: NSNotification.Name("SightTakeBreak"), object: nil)
         withAnimation(.spring(response: 0.3)) {
             dragY = -60
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            onSnooze?()
+            onDismiss?()
         }
     }
 }
 
 #Preview {
     VStack {
-        PostureNudgeView(onSnooze: {})
+        OvertimeNudgeView(elapsedMinutes: 45)
             .padding(.horizontal, 20)
         Spacer()
     }

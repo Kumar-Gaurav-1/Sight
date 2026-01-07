@@ -14,7 +14,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var currentMenu: NSMenu?
     private var hostingController: NSHostingController<SightMenuBarView>?
-    private let logger = Logger(subsystem: "com.sight.app", category: "MenuBar")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "MenuBar")
 
     // Animation state
     private var iconAnimationTimer: Timer?
@@ -149,7 +149,11 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         guard let button = statusItem?.button else { return }
 
         let newIconName = viewModel.statusIconName
-        let newTitle = viewModel.statusLabel ?? ""
+
+        // Only show timer if preference is enabled
+        let showTimer = PreferencesManager.shared.showTimerInMenuBar
+        let newTitle = showTimer ? (viewModel.statusLabel ?? "") : ""
+
         let pauseHint = viewModel.isPaused ? " (⌥+click to resume)" : " (⌥+click to pause)"
         let newTooltip = "\(viewModel.hudTitle) - \(viewModel.hudDetail)\(pauseHint)"
 
@@ -166,7 +170,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
             lastIconName = newIconName
         }
 
-        // Update title if changed
+        // Update title if changed (respects showTimerInMenuBar)
         if newTitle != lastTitle {
             if newTitle.isEmpty {
                 button.title = ""
@@ -213,10 +217,11 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         let dashboardView = SightMenuBarView(viewModel: viewModel)
         let controller = NSHostingController(rootView: dashboardView)
 
-        // Match the view's width and let height be natural
-        controller.view.frame = NSRect(x: 0, y: 0, width: 280, height: 220)
+        // Let SwiftUI determine the natural size
+        let fittingSize = controller.view.fittingSize
+        controller.view.frame = NSRect(x: 0, y: 0, width: 280, height: fittingSize.height)
         controller.view.wantsLayer = true
-        controller.view.layer?.cornerRadius = 12
+        controller.view.layer?.cornerRadius = 10
 
         let customItem = NSMenuItem()
         customItem.view = controller.view

@@ -89,9 +89,11 @@ cat > "$CONTENTS_DIR/Info.plist" << EOF
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2024 Sight. All rights reserved.</string>
     <key>NSCalendarsUsageDescription</key>
-    <string>Sight needs calendar access to automatically pause breaks during your scheduled meetings.</string>
+    <string>Sight automatically pauses breaks during your scheduled calendar meetings to avoid interruptions.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Sight needs accessibility access to provide global keyboard shortcuts for quick timer control.</string>
+    <string>Sight needs accessibility access to provide global keyboard shortcuts and detect running applications for Smart Pause.</string>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>Sight needs screen recording permission to detect fullscreen videos and presentations, allowing breaks to pause automatically during screen sharing or recording sessions.</string>
     <key>NSUserNotificationAlertStyle</key>
     <string>alert</string>
     <key>NSAppTransportSecurity</key>
@@ -103,9 +105,15 @@ cat > "$CONTENTS_DIR/Info.plist" << EOF
 </plist>
 EOF
 
-# Ad-hoc code signing (for local development)
+# Code signing with hardened runtime for notarization
 echo "🔐 Signing app bundle..."
-codesign --force --deep --sign - "$APP_DIR" 2>/dev/null || echo "⚠️  Code signing skipped (requires Xcode)"
+# Note: For distribution, replace '-' with your Developer ID Application certificate
+# Example: --sign "Developer ID Application: Your Name (TEAM_ID)"
+codesign --force --deep --options runtime --sign - "$APP_DIR" 2>/dev/null || echo "⚠️  Code signing with hardened runtime failed (requires Xcode and entitlements)"
+
+# Verify signature
+echo "🔍 Verifying signature..."
+codesign --verify --verbose "$APP_DIR" 2>/dev/null && echo "✓ Signature valid" || echo "⚠️  Signature verification failed"
 
 
 echo "✅ App bundle created at: $APP_DIR"

@@ -1,5 +1,7 @@
 import AVFoundation
 import AppKit
+import AudioToolbox
+import os.log
 
 // MARK: - Sound Manager
 
@@ -69,17 +71,20 @@ public final class SoundManager {
 
         var systemSound: NSSound.Name? {
             switch self {
-            case .ocean: return NSSound.Name("Submarine")
-            case .rain: return NSSound.Name("Sosumi")
+            // Nature sounds - mapped to closest available system sounds
+            case .ocean: return NSSound.Name("Sosumi")
+            case .rain: return NSSound.Name("Purr")
             case .forest: return NSSound.Name("Frog")
-            case .wind: return NSSound.Name("Breeze")
+            case .wind: return NSSound.Name("Blow")
+            // Classic sounds
             case .chime: return NSSound.Name("Tink")
             case .bell: return NSSound.Name("Glass")
             case .gentle: return NSSound.Name("Pop")
             case .harp: return NSSound.Name("Hero")
+            // Minimal sounds
             case .tick: return NSSound.Name("Morse")
             case .click: return NSSound.Name("Ping")
-            case .soft: return NSSound.Name("Purr")
+            case .soft: return NSSound.Name("Pop")
             case .none: return nil
             }
         }
@@ -97,31 +102,75 @@ public final class SoundManager {
     // MARK: - Properties
 
     private var currentSound: NSSound?
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.sound", category: "SoundManager")
 
     public var volume: Float {
         get { Float(PreferencesManager.shared.soundVolume) }
         set { PreferencesManager.shared.soundVolume = Double(newValue) }
     }
 
-    private init() {}
+    private init() {
+        logger.info("SoundManager initialized, volume: \(self.volume)")
+    }
 
     // MARK: - Play Sounds
 
-    /// Play break start sound
+    /// Play break start sound (uses sound pair mapping)
     public func playBreakStart() {
         guard PreferencesManager.shared.breakStartSoundEnabled else { return }
-        play(.chime)
+        let pair = PreferencesManager.shared.soundPair
+        let selectedType = soundTypeForPair(pair, isStart: true)
+        play(selectedType)
     }
 
-    /// Play break end sound
+    /// Play break end sound (uses sound pair mapping)
     public func playBreakEnd() {
         guard PreferencesManager.shared.breakEndSoundEnabled else { return }
-        play(.bell)
+        let pair = PreferencesManager.shared.soundPair
+        let selectedType = soundTypeForPair(pair, isStart: false)
+        play(selectedType)
     }
 
-    /// Play nudge sound
+    /// Play break reminder sound (countdown notification)
+    public func playBreakReminder() {
+        guard PreferencesManager.shared.breakReminderSoundEnabled else { return }
+        play(.tick)  // Use tick sound for countdown reminder
+    }
+
+    /// Map sound pair name to actual sound types
+    private func soundTypeForPair(_ pair: String, isStart: Bool) -> SoundType {
+        switch pair {
+        case "Default":
+            return isStart ? .chime : .bell
+        case "Gentle":
+            return isStart ? .gentle : .soft
+        case "Chime":
+            return isStart ? .chime : .harp
+        case "Bell":
+            return isStart ? .bell : .chime
+        case "Nature":
+            return isStart ? .ocean : .rain
+        case "Minimal":
+            return isStart ? .tick : .click
+        default:
+            return isStart ? .chime : .bell
+        }
+    }
+
+    /// Play nudge sound (uses wellness volume)
     public func playNudge() {
-        play(.gentle)
+        // Play nudge if either posture or blink sound is enabled
+        let postureSoundOn = PreferencesManager.shared.postureSoundEnabled
+        let blinkSoundOn = PreferencesManager.shared.blinkSoundEnabled
+
+        // At least one must be enabled
+        guard postureSoundOn || blinkSoundOn else {
+            logger.debug("Both posture and blink sounds disabled, skipping nudge sound")
+            return
+        }
+
+        let selectedType = SoundType(rawValue: PreferencesManager.shared.nudgeSoundType) ?? .gentle
+        play(selectedType, useWellnessVolume: true)
     }
 
     /// Play focus start sound
@@ -132,6 +181,18 @@ public final class SoundManager {
     /// Play focus end sound
     public func playFocusEnd() {
         play(.ocean)
+    }
+
+    /// Play smart pause sound (when timer is auto-paused)
+    public func playSmartPause() {
+        guard PreferencesManager.shared.smartPauseSoundEnabled else { return }
+        play(.soft)  // Subtle sound for pause
+    }
+
+    /// Play idle resume sound (when returning from idle)
+    public func playIdleResume() {
+        guard PreferencesManager.shared.activeAfterIdleSoundEnabled else { return }
+        play(.gentle)  // Gentle notification sound
     }
 
     /// Play milestone celebration sound
@@ -148,21 +209,54 @@ public final class SoundManager {
     }
 
     /// Play specific sound type
-    public func play(_ type: SoundType) {
-        guard type != .none,
-            let soundName = type.systemSound,
-            let sound = NSSound(named: soundName)
-        else {
+    public func play(_ type: SoundType, useWellnessVolume: Bool = false) {
+        guard type != .none else {
+            logger.debug("Sound type is .none, skipping")
             return
         }
 
-        // Stop current sound
-        currentSound?.stop()
+        guard let soundName = type.systemSound else {
+            logger.warning("No system sound for type: \(type.rawValue)")
+            playDefaultAlert()
+            return
+        }
 
-        // Play new sound
-        sound.volume = volume
-        sound.play()
-        currentSound = sound
+        logger.info("Playing sound: \(type.rawValue) -> \(soundName)")
+
+        // Use wellness volume or standard volume, clamped to valid range
+        let rawVolume =
+            useWellnessVolume
+            ? Float(PreferencesManager.shared.wellnessReminderVolume)
+            : volume
+        let soundVolume = min(max(rawVolume, 0.0), 1.0)
+
+        // Try to load NSSound
+        if let sound = NSSound(named: soundName) {
+            // Stop current sound
+            currentSound?.stop()
+
+            // Play new sound
+            sound.volume = soundVolume
+            let success = sound.play()
+            currentSound = sound
+
+            if success {
+                logger.debug("Sound playing successfully")
+            } else {
+                logger.warning("NSSound.play() returned false, using fallback")
+                playDefaultAlert()
+            }
+        } else {
+            // NSSound failed - use system alert as fallback
+            logger.warning("NSSound not found: \(soundName), using fallback")
+            playDefaultAlert()
+        }
+    }
+
+    /// Play default system alert sound as fallback
+    private func playDefaultAlert() {
+        logger.info("Playing default system alert")
+        AudioServicesPlaySystemSound(1005)  // Default alert sound
     }
 
     /// Preview a sound (for settings)

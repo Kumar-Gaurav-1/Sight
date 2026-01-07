@@ -16,6 +16,18 @@ public final class TimerStateMachine: ObservableObject {
     @Published public private(set) var isPaused: Bool = false
     @Published public private(set) var pauseSource: PauseSource? = nil
 
+    /// Count of breaks taken in current session (for long breaks)
+    @Published public private(set) var breakCount: Int = 0
+
+    /// Time elapsed since break started (for skip difficulty)
+    @Published public private(set) var breakElapsedSeconds: Int = 0
+
+    /// Time elapsed in current work period (for overtime nudge)
+    @Published public private(set) var workElapsedSeconds: Int = 0
+
+    /// Track if overtime nudge was already shown this work period
+    private var overtimeNudgeShown: Bool = false
+
     /// Who triggered the pause
     public enum PauseSource: String {
         case user  // Manual pause via UI
@@ -23,6 +35,28 @@ public final class TimerStateMachine: ObservableObject {
         case workHours  // WorkHoursManager (quiet hours, rest day)
         case idle  // IdleDetector (user away)
         case system  // System sleep/wake
+    }
+
+    /// Whether user can skip based on skip difficulty setting
+    public var canSkipBreak: Bool {
+        let difficulty = PreferencesManager.shared.breakSkipDifficulty
+        switch difficulty {
+        case "casual":
+            return true  // Can skip anytime
+        case "balanced":
+            return breakElapsedSeconds >= 5  // Can skip after a pause
+        case "hardcore":
+            return false  // No skips allowed
+        default:
+            return true
+        }
+    }
+
+    /// Whether the current break is a long break
+    public var isLongBreak: Bool {
+        guard PreferencesManager.shared.longBreakEnabled else { return false }
+        let interval = PreferencesManager.shared.longBreakInterval
+        return breakCount > 0 && breakCount % interval == 0
     }
 
     // MARK: - Configuration
@@ -41,6 +75,10 @@ public final class TimerStateMachine: ObservableObject {
     /// Whether to send system notifications
     public var notificationsEnabled: Bool = true
 
+    // MARK: - Singleton
+
+    nonisolated(unsafe) public static var shared: TimerStateMachine!
+
     // MARK: - Private Properties
 
     private var timerCancellable: AnyCancellable?
@@ -48,7 +86,7 @@ public final class TimerStateMachine: ObservableObject {
     private var stateStartTime: Date?
     private var pausedRemainingSeconds: Int = 0
     private var pausedState: TimerState?
-    private let logger = Logger(subsystem: "com.sight", category: "StateMachine")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight", category: "StateMachine")
 
     // System observers
     private var wakeObserver: NSObjectProtocol?
@@ -114,18 +152,25 @@ public final class TimerStateMachine: ObservableObject {
     private func handleSystemWake() {
         logger.info("System wake detected")
 
-        // If we were paused due to sleep, resume
-        if isPaused && currentState != .idle {
+        // Only resume if WE (system sleep) were the one who paused it
+        // Don't resume if user manually paused or if smart pause paused
+        if isPaused && pauseSource == .system && currentState != .idle {
+            logger.info("Resuming timer after system wake")
             resume()
+        } else if isPaused && pauseSource != .system {
+            logger.info(
+                "Timer paused by \(self.pauseSource?.rawValue ?? "unknown") - not resuming on wake")
         }
     }
 
     private func handleSystemSleep() {
         logger.info("System sleep detected")
 
-        // Pause if running
+        // Only pause if timer is running (not already paused)
+        // Mark this as a system pause so we know to resume on wake
         if currentState != .idle && !isPaused {
-            pause()
+            logger.info("Pausing timer for system sleep")
+            pause(source: .system)
         }
     }
 
@@ -180,6 +225,10 @@ public final class TimerStateMachine: ObservableObject {
 
         isPaused = false
         logger.info("Starting timer (mode: \(self.configuration.mode.rawValue))")
+
+        // Track session start for statistics
+        StatisticsEngine.shared.startSession()
+
         transitionTo(.work)
     }
 
@@ -192,6 +241,12 @@ public final class TimerStateMachine: ObservableObject {
         isPaused = false
         pausedState = nil
         pausedRemainingSeconds = 0
+
+        // Track session end for statistics
+        StatisticsEngine.shared.endSession()
+
+        // Clear persisted state on normal stop
+        TimerStateStore.shared.clearState()
     }
 
     /// Pause the timer (preserves state)
@@ -207,6 +262,21 @@ public final class TimerStateMachine: ObservableObject {
         pauseSource = source
         timerCancellable?.cancel()
         timerCancellable = nil
+
+        // Track pause event for statistics
+        let pauseReason = mapToPauseReason(source)
+        StatisticsEngine.shared.startPause(reason: pauseReason)
+    }
+
+    /// Map PauseSource to PauseReason for statistics
+    private func mapToPauseReason(_ source: PauseSource) -> PauseReason {
+        switch source {
+        case .user: return .manual
+        case .smartPause: return .meeting
+        case .workHours: return .quietHours
+        case .idle: return .idle
+        case .system: return .systemSleep
+        }
     }
 
     /// Resume from pause
@@ -217,6 +287,10 @@ public final class TimerStateMachine: ObservableObject {
         logger.info(
             "Resuming timer from \(savedState.rawValue) with \(self.pausedRemainingSeconds)s remaining"
         )
+
+        // End pause tracking for statistics
+        StatisticsEngine.shared.endPause()
+
         isPaused = false
         if clearSource { pauseSource = nil }
         currentState = savedState
@@ -265,14 +339,30 @@ public final class TimerStateMachine: ObservableObject {
             return
         }
 
+        if currentState == .preBreak {
+            // "Skip" during countdown means skip the break entirely, not start it
+            logger.info("Pre-break skipped by user - returning to work")
+
+            // Hide any pre-break overlay/countdown
+            if rendererEnabled {
+                Renderer.hideOverlay()
+            }
+
+            // Record as skipped break
+            AdherenceManager.shared.recordBreak(
+                completed: false, duration: configuration.breakDurationSeconds)
+
+            // Return to work with full work interval
+            transitionTo(.work)
+            return
+        }
+
         switch currentState {
         case .idle:
             start()
         case .work:
             transitionTo(.preBreak)
-        case .preBreak:
-            transitionTo(.break)
-        case .break:
+        case .preBreak, .break:
             // Already handled above
             break
         }
@@ -338,7 +428,8 @@ public final class TimerStateMachine: ObservableObject {
             }
 
         case .preBreak:
-            duration = configuration.preBreakSeconds
+            // Use countdown duration from preferences
+            duration = PreferencesManager.shared.countdownDuration
 
             if rendererEnabled {
                 Renderer.showPreBreak(preSeconds: duration)
@@ -349,7 +440,23 @@ public final class TimerStateMachine: ObservableObject {
             }
 
         case .break:
-            duration = configuration.breakDurationSeconds
+            // Increment break counter
+            breakCount += 1
+            breakElapsedSeconds = 0
+
+            // Reset overtime tracking for fresh start after break
+            workElapsedSeconds = 0
+            overtimeNudgeShown = false
+
+            // Use longer duration if this is a long break
+            if isLongBreak {
+                duration = PreferencesManager.shared.longBreakDurationSeconds
+                logger.info(
+                    "Starting LONG break #\(self.breakCount) (every \(PreferencesManager.shared.longBreakInterval)th)"
+                )
+            } else {
+                duration = configuration.breakDurationSeconds
+            }
 
             // Play break start sound
             SoundManager.shared.playBreakStart()
@@ -361,10 +468,18 @@ public final class TimerStateMachine: ObservableObject {
             if notificationsEnabled {
                 NotificationManager.shared.sendBreakStartNotification(durationSeconds: duration)
             }
+
+            // Lock Mac if enabled - forces user to step away
+            if PreferencesManager.shared.lockMacOnBreak {
+                lockScreen()
+            }
         }
 
         remainingSeconds = duration
         startTimer(duration: duration)
+
+        // Save state for crash recovery
+        saveCurrentState()
     }
 
     private func startTimer(duration: Int) {
@@ -399,6 +514,60 @@ public final class TimerStateMachine: ObservableObject {
 
         remainingSeconds -= 1
 
+        // Track elapsed time during breaks (for skip difficulty)
+        if currentState == .break {
+            breakElapsedSeconds += 1
+        }
+
+        // Track elapsed work time (for overtime nudge)
+        if currentState == .work {
+            workElapsedSeconds += 1
+
+            // Sync screen time every 60 seconds
+            if workElapsedSeconds % 60 == 0 {
+                let totalMinutes = StatisticsEngine.shared.todayScreenTimeMinutes
+                AdherenceManager.shared.recordScreenTime(minutes: totalMinutes)
+            }
+
+            // Check for overtime nudge trigger
+            let prefs = PreferencesManager.shared
+            if prefs.overtimeNudgeEnabled && !overtimeNudgeShown {
+                // Show overtime nudge if working past configured interval
+                let workInterval = configuration.workIntervalSeconds
+                // Trigger overtime nudge when elapsed >= 1.5x work interval (e.g., 30 min for 20-20-20)
+                let overtimeThreshold = Int(Double(workInterval) * 1.5)
+                if workElapsedSeconds >= overtimeThreshold {
+                    logger.info("Showing overtime nudge after \\(workElapsedSeconds)s of work")
+                    overtimeNudgeShown = true
+                    if rendererEnabled {
+                        Renderer.showOvertimeNudge(elapsedMinutes: workElapsedSeconds / 60)
+                    }
+                    if prefs.overtimeNudgeSoundEnabled {
+                        SoundManager.shared.playNudge()
+                    }
+                    // Send notification
+                    NotificationManager.shared.sendOvertimeNotification(
+                        minutesPast: workElapsedSeconds / 60)
+                }
+            }
+        }
+
+        // Also check overtime nudge when paused (if overtimeShowWhenPaused is enabled)
+        if isPaused && PreferencesManager.shared.overtimeShowWhenPaused && !overtimeNudgeShown {
+            let prefs = PreferencesManager.shared
+            if prefs.overtimeNudgeEnabled {
+                let workInterval = configuration.workIntervalSeconds
+                let overtimeThreshold = Int(Double(workInterval) * 1.5)
+                if workElapsedSeconds >= overtimeThreshold {
+                    logger.info("Showing overtime nudge while paused after \\(workElapsedSeconds)s")
+                    overtimeNudgeShown = true
+                    if rendererEnabled {
+                        Renderer.showOvertimeNudge(elapsedMinutes: workElapsedSeconds / 60)
+                    }
+                }
+            }
+        }
+
         if remainingSeconds <= 0 {
             advanceState()
         }
@@ -409,8 +578,10 @@ public final class TimerStateMachine: ObservableObject {
         case .idle:
             break
         case .work:
-            // Skip preBreak if duration is 0 (disabled)
-            if configuration.preBreakSeconds <= 0 {
+            // Skip preBreak if disabled or duration is 0
+            let countdownEnabled = PreferencesManager.shared.countdownEnabled
+            let countdownDuration = PreferencesManager.shared.countdownDuration
+            if !countdownEnabled || countdownDuration <= 0 {
                 transitionTo(.break)
             } else {
                 transitionTo(.preBreak)
@@ -451,6 +622,61 @@ public final class TimerStateMachine: ObservableObject {
                 "advanceAfterBreak called but state is \(self.currentState.rawValue), ignoring")
             return
         }
+
+        // Reset wellness reminder timers after break if enabled
+        MicroNudgesManager.shared.resetAfterBreak()
+
         transitionTo(.work)
+    }
+
+    // MARK: - State Persistence
+
+    /// Save current timer state for crash recovery
+    private func saveCurrentState() {
+        guard currentState != .idle else {
+            TimerStateStore.shared.clearState()
+            return
+        }
+
+        TimerStateStore.shared.saveState(
+            state: currentState.rawValue,
+            remainingSeconds: remainingSeconds,
+            isPaused: isPaused,
+            pauseSource: pauseSource?.rawValue,
+            configuration: configuration
+        )
+    }
+
+    // MARK: - Screen Lock
+
+    /// Lock the screen to force user to step away during break
+    private func lockScreen() {
+        logger.info("Locking screen for break")
+
+        // Use the SACLockScreenImmediate function via session services
+        // This is the most reliable method on modern macOS
+        let task = Process()
+        task.launchPath = "/usr/bin/pmset"
+        task.arguments = ["displaysleepnow"]
+
+        do {
+            try task.run()
+            logger.debug("Screen lock command executed")
+        } catch {
+            // Fallback: Try using Keychain menu bar lock
+            logger.warning("pmset failed, trying alternate method: \\(error.localizedDescription)")
+
+            // Use AppleScript as fallback (works on all macOS versions)
+            let script = NSAppleScript(
+                source: """
+                        tell application "System Events" to keystroke "q" using {control down, command down}
+                    """)
+            var scriptError: NSDictionary?
+            script?.executeAndReturnError(&scriptError)
+
+            if scriptError != nil {
+                logger.error("Screen lock AppleScript failed")
+            }
+        }
     }
 }

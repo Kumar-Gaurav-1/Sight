@@ -27,7 +27,7 @@ public final class AccessibilityManager: ObservableObject {
     
     // MARK: - Private Properties
     
-    private let logger = Logger(subsystem: "com.sight.accessibility", category: "Accessibility")
+    private let logger = Logger(subsystem: "com.kumargaurav.Sight.accessibility", category: "Accessibility")
     private var cancellables = Set<AnyCancellable>()
     private var observers: [NSObjectProtocol] = []
     

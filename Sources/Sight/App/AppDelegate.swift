@@ -19,6 +19,12 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     // SECURITY: Debounce for skip notifications to prevent double-processing
     private var lastSkipTime: Date?
 
+    // PERFORMANCE: Memory pressure monitoring for 24/7 operation
+    private var memoryPressureSource: DispatchSourceMemoryPressure?
+
+    // PERFORMANCE: Prevent App Nap to ensure timer accuracy
+    private var timerActivity: NSObjectProtocol?
+
     // MARK: - NSApplicationDelegate
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
@@ -26,6 +32,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Configure state machine with saved preferences
         stateMachine.configuration = PreferencesManager.shared.timerConfiguration
+
+        // Set shared instance for global access (skip difficulty, etc.)
+        TimerStateMachine.shared = stateMachine
 
         // Initialize menu bar controller
         menuBarController = MenuBarController(stateMachine: stateMachine)
@@ -56,6 +65,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             // Only resume if we (IdleDetector) were the one who paused it
             if self?.stateMachine.pauseSource == .idle {
                 self?.stateMachine.resume()
+                SoundManager.shared.playIdleResume()  // Play sound when returning from idle
             }
         }
         IdleDetector.shared.onIdleReset = { [weak self] in
@@ -73,16 +83,23 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 if shouldPause && self.stateMachine.currentState != .idle
                     && !self.stateMachine.isPaused
                 {
+                    let reason =
+                        SmartPauseManager.shared.activeSignals.first?.description
+                        ?? "activity detected"
                     self.logger.info(
-                        "Smart Pause: pausing for \(SmartPauseManager.shared.activeSignals.first?.description ?? "unknown")"
+                        "Smart Pause: pausing for \(reason)"
                     )
                     self.stateMachine.pause(source: .smartPause)
+                    SoundManager.shared.playSmartPause()  // Play sound on smart pause
+                    NotificationManager.shared.sendSmartPauseStartNotification(reason: reason)
                 } else if !shouldPause && self.stateMachine.isPaused
                     && self.stateMachine.pauseSource == .smartPause
                 {
                     // Only auto-resume if WE (SmartPause) were the one who paused it
                     self.logger.info("Smart Pause: signals cleared, resuming")
                     self.stateMachine.resume()
+                    SoundManager.shared.playSmartPause()  // Play sound on resume too
+                    NotificationManager.shared.sendSmartPauseEndNotification()
                 }
             }
             .store(in: &cancellables)
@@ -159,6 +176,22 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Observe postpone break requests (5 min later from notification)
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("SightPostponeBreak"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self else { return }
+
+            Task { @MainActor in
+                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+                self.logger.info("Break postponed for \(minutes) minutes via notification")
+                // Postpone the break by adding time to the work interval
+                self.stateMachine.postpone(minutes: minutes)
+            }
+        }
+
         // Hide dock icon (LSUIElement behavior)
         NSApp.setActivationPolicy(.accessory)
 
@@ -167,9 +200,23 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         // Check Onboarding
         if !PreferencesManager.shared.hasCompletedOnboarding {
             showOnboarding()
+            // Timer will start after onboarding completes via notification
+            setupOnboardingCompletionListener()
+        } else {
+            // Onboarding already done - start timer normally
+            startTimerIfAppropriate()
         }
 
-        // Auto-start the timer (only if not in quiet hours)
+        // PERFORMANCE: Setup monitoring for 24/7 operation
+        setupMemoryPressureMonitoring()
+        setupAppNapPrevention()
+    }
+
+    private func startTimerIfAppropriate() {
+        // Initialize managers
+        _ = PreferencesManager.shared
+
+        // Only start if not in quiet hours
         if !WorkHoursManager.shared.shouldPause() {
             stateMachine.start()
             logger.info("Timer started automatically")
@@ -178,24 +225,56 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func showOnboarding() {
-        let onboardingView = SightOnboardingView()
-        let hostingController = NSHostingController(rootView: onboardingView)
+    private func setupOnboardingCompletionListener() {
+        // Listen for onboarding completion notification
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("OnboardingCompleted"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            self.logger.info("Onboarding completed - starting timer")
+            Task { @MainActor in
+                self.startTimerIfAppropriate()
+            }
+        }
+    }
 
-        onboardingWindow = NSWindow(contentViewController: hostingController)
-        onboardingWindow?.title = "Welcome to Sight"
-        onboardingWindow?.styleMask = [.titled, .closable, .fullSizeContentView]
-        onboardingWindow?.titlebarAppearsTransparent = true
-        onboardingWindow?.isMovableByWindowBackground = true
-        onboardingWindow?.setContentSize(NSSize(width: 550, height: 450))
-        onboardingWindow?.center()
-        onboardingWindow?.isReleasedWhenClosed = false
-        onboardingWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+    private func showOnboarding() {
+        logger.info("Showing onboarding window...")
+
+        // Small delay to ensure app is fully initialized
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+
+            let onboardingView = OnboardingView()
+            let hostingController = NSHostingController(rootView: onboardingView)
+
+            self.onboardingWindow = NSWindow(contentViewController: hostingController)
+            self.onboardingWindow?.identifier = NSUserInterfaceItemIdentifier("onboarding")
+            self.onboardingWindow?.title = "Welcome to Sight"
+            self.onboardingWindow?.styleMask = [.titled, .closable, .fullSizeContentView]
+            self.onboardingWindow?.titlebarAppearsTransparent = true
+            self.onboardingWindow?.isMovableByWindowBackground = true
+            self.onboardingWindow?.setContentSize(NSSize(width: 650, height: 600))
+            self.onboardingWindow?.center()
+            self.onboardingWindow?.isReleasedWhenClosed = false
+            self.onboardingWindow?.level = .floating  // Ensure window appears above others
+            self.onboardingWindow?.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+
+            self.logger.info("Onboarding window displayed: \(self.onboardingWindow != nil)")
+        }
     }
 
     public func applicationWillTerminate(_ notification: Notification) {
-        logger.info("Application terminating")
+        logger.info("Application terminating - cleaning up")
+
+        // End any active statistics session
+        StatisticsEngine.shared.endSession()
+
+        // Save current stats
+        logger.info("Goodbye!")
     }
 
     // MARK: - Actions
@@ -215,5 +294,44 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
 
         preferencesWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: - Performance Monitoring
+
+    /// Setup memory pressure monitoring for long-running 24/7 operation
+    private func setupMemoryPressureMonitoring() {
+        memoryPressureSource = DispatchSource.makeMemoryPressureSource(
+            eventMask: [.warning, .critical],
+            queue: .main
+        )
+
+        memoryPressureSource?.setEventHandler { [weak self] in
+            guard let self = self,
+                let event = self.memoryPressureSource?.data
+            else { return }
+
+            if event.contains(.warning) {
+                self.logger.warning("Memory pressure warning - cleaning up")
+            }
+
+            if event.contains(.critical) {
+                self.logger.critical("Memory pressure critical")
+                if BreakOverlayManager.shared.isShowing {
+                    BreakOverlayManager.shared.hide()
+                }
+            }
+        }
+
+        memoryPressureSource?.resume()
+        logger.info("Memory pressure monitoring enabled")
+    }
+
+    /// Prevent App Nap to ensure timer runs accurately when backgrounded
+    private func setupAppNapPrevention() {
+        timerActivity = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiated, .idleSystemSleepDisabled],
+            reason: "Break timer must run accurately"
+        )
+        logger.info("App Nap prevention enabled")
     }
 }

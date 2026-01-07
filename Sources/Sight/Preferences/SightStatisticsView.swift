@@ -2,14 +2,16 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - Statistics View
+// MARK: - Enhanced Statistics View
 
-/// Premium statistics screen with break activity and metrics
+/// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
 struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
     @State private var showResetConfirmation = false
     @State private var animateStats = false
+    @State private var insights: [WellnessInsight] = []
+    @State private var isLoading = true
 
     private var periodStats: AdherenceManager.AggregatedStats {
         adherence.getAggregatedStats(for: selectedPeriod)
@@ -17,16 +19,34 @@ struct SightStatisticsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
-            header
+            // Header (Native Style already handled by window title usually, but keeping simple title)
+            // header
+            Text("Statistics")
+                .font(.largeTitle.bold())
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Hero Stats
-                    heroStatsRow
+                    // Wellness Score & Hero Stats
+                    wellnessSection
+
+                    // Time Breakdown
+                    timeBreakdownSection
 
                     // Weekly Chart
                     weeklyChartCard
+
+                    // Insights Section
+                    if !insights.isEmpty {
+                        insightsSection
+                    }
+
+                    // Comparison Section
+                    comparisonSection
+
+                    // Nudge Analytics
+                    nudgeAnalyticsSection
 
                     // Period Stats
                     periodStatsSection
@@ -37,100 +57,195 @@ struct SightStatisticsView: View {
                 .padding(SightTheme.sectionSpacing)
             }
         }
-        .background(SightTheme.background)
+        .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
-            withAnimation(SightTheme.springSmooth.delay(0.2)) {
-                animateStats = true
+            // Force refresh stats from storage first
+            adherence.forceRefresh()
+
+            // Brief loading for better UX
+            Task {
+                try? await Task.sleep(nanoseconds: 100_000_000)  // 100ms
+                await MainActor.run {
+                    insights = InsightsEngine.shared.generateInsights()
+                    isLoading = false
+                    withAnimation(SightTheme.springSmooth.delay(0.1)) {
+                        animateStats = true
+                    }
+                }
+            }
+        }
+        .onChange(of: selectedPeriod) { _ in
+            // Refresh insights when period changes
+            isLoading = true
+            Task {
+                try? await Task.sleep(nanoseconds: 50_000_000)  // 50ms
+                await MainActor.run {
+                    insights = InsightsEngine.shared.generateInsights()
+                    isLoading = false
+                }
             }
         }
     }
 
     // MARK: - Header
 
-    private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Statistics")
-                    .font(SightTheme.titleFont)
-                    .foregroundColor(.white)
+    // MARK: - Header
+    // (Header view removed in favor of simple text above)
+    // private var header: some View { ... }
 
-                Text("Track your break habits")
-                    .font(.system(size: 13))
-                    .foregroundColor(SightTheme.secondaryText)
+    // MARK: - Wellness Section
+
+    private var wellnessSection: some View {
+        HStack(spacing: 16) {
+            // Wellness Gauge
+            WellnessGaugeView(
+                score: adherence.todayStats.wellnessScore,
+                animate: animateStats
+            )
+
+            // Hero Stats
+            VStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    MiniStatCard(
+                        icon: "checkmark.circle.fill",
+                        value: "\(adherence.todayStats.breaksCompleted)",
+                        label: "Breaks",
+                        color: SightTheme.success,
+                        animate: animateStats
+                    )
+
+                    MiniStatCard(
+                        icon: "clock.fill",
+                        value: "\(adherence.todayStats.totalBreakMinutes)m",
+                        label: "Rested",
+                        color: SightTheme.accent,
+                        animate: animateStats
+                    )
+                }
+
+                HStack(spacing: 12) {
+                    MiniStatCard(
+                        icon: "flame.fill",
+                        value: "\(adherence.currentStreak)",
+                        label: "Streak",
+                        color: .orange,
+                        animate: animateStats
+                    )
+
+                    MiniStatCard(
+                        icon: "target",
+                        value: String(format: "%.0f%%", adherence.goalProgress * 100),
+                        label: "Goal",
+                        color: adherence.goalMet ? SightTheme.success : SightTheme.accent,
+                        animate: animateStats
+                    )
+                }
+            }
+        }
+        .padding(16)
+        .background(SightTheme.cardBackground)
+        .cornerRadius(16)
+    }
+
+    // MARK: - Time Breakdown Section
+
+    private var timeBreakdownSection: some View {
+        EnhancedSettingsCard(
+            icon: "clock.badge.checkmark.fill",
+            iconColor: SightTheme.accent,
+            title: "Today's Time",
+            delay: 0
+        ) {
+            TimeBreakdownChart(
+                screenTime: adherence.todayStats.totalScreenTimeMinutes,
+                breakTime: adherence.todayStats.totalBreakMinutes,
+                meetingTime: adherence.todayStats.totalMeetingMinutes,
+                idleTime: adherence.todayStats.totalIdleMinutes,
+                animate: animateStats
+            )
+            .padding(16)
+        }
+    }
+
+    // MARK: - Insights Section
+
+    private var insightsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "lightbulb.fill")
+                    .foregroundColor(SightTheme.accent)
+                Text("Insights")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.primary)
             }
 
-            Spacer()
-
-            Button(action: {
-                // Close preferences window first so break overlay is visible
-                NSApp.keyWindow?.close()
-                // Post notification for AppDelegate to handle - ensures proper timer pause
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("SightTakeBreak"), object: nil)
-            }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "cup.and.saucer.fill")
-                        .font(.system(size: 12))
-                    Text("Take Break")
+            VStack(spacing: 8) {
+                ForEach(insights.prefix(4)) { insight in
+                    InsightCardView(insight: insight)
                 }
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(
-                    Capsule()
-                        .fill(SightTheme.accent)
+            }
+        }
+    }
+
+    // MARK: - Comparison Section
+
+    private var comparisonSection: some View {
+        EnhancedSettingsCard(
+            icon: "arrow.left.arrow.right",
+            iconColor: .purple,
+            title: "This Week vs Last Week",
+            delay: 0.05
+        ) {
+            VStack(spacing: 16) {
+                let current = adherence.getAggregatedStats(for: .week)
+                let previous = adherence.getPreviousWeekStats()
+
+                ComparisonBarView(
+                    currentValue: Double(current.breaksCompleted),
+                    previousValue: Double(previous.breaksCompleted),
+                    label: "Breaks Completed",
+                    format: "%.0f",
+                    animate: animateStats
+                )
+
+                ComparisonBarView(
+                    currentValue: current.averageScore,
+                    previousValue: previous.averageScore,
+                    label: "Average Score",
+                    format: "%.0f%%",
+                    animate: animateStats
+                )
+
+                ComparisonBarView(
+                    currentValue: Double(current.totalBreakMinutes),
+                    previousValue: Double(previous.totalBreakMinutes),
+                    label: "Total Rest Time",
+                    format: "%.0f min",
+                    animate: animateStats
                 )
             }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, SightTheme.sectionSpacing)
-        .padding(.top, SightTheme.sectionSpacing)
-        .padding(.bottom, 16)
-    }
-
-    // MARK: - Hero Stats Row
-
-    private var heroStatsRow: some View {
-        HStack(spacing: 12) {
-            HeroStatCard(
-                icon: "checkmark.circle.fill",
-                value: "\(adherence.todayStats.breaksCompleted)",
-                label: "Breaks",
-                color: SightTheme.success,
-                animate: animateStats
-            )
-
-            HeroStatCard(
-                icon: "clock.fill",
-                value: "\(adherence.todayStats.totalBreakMinutes)m",
-                label: "Rested",
-                color: SightTheme.accent,
-                animate: animateStats
-            )
-
-            HeroStatCard(
-                icon: "flame.fill",
-                value: "\(adherence.currentStreak)",
-                label: "Streak",
-                color: .orange,
-                animate: animateStats
-            )
-
-            HeroStatCard(
-                icon: "chart.line.uptrend.xyaxis",
-                value: String(format: "%.0f%%", adherence.todayStats.dailyScore),
-                label: "Score",
-                color: scoreColor(adherence.todayStats.dailyScore),
-                animate: animateStats
-            )
+            .padding(16)
         }
     }
 
-    private func scoreColor(_ score: Double) -> Color {
-        if score >= 80 { return SightTheme.success }
-        if score >= 50 { return SightTheme.warning }
-        return SightTheme.danger
+    // MARK: - Nudge Analytics Section
+
+    private var nudgeAnalyticsSection: some View {
+        EnhancedSettingsCard(
+            icon: "hand.raised.fill",
+            iconColor: SightTheme.success,
+            title: "Nudge Compliance",
+            delay: 0.06
+        ) {
+            NudgeComplianceCard(
+                blinkShown: adherence.todayStats.blinkNudgesShown,
+                blinkFollowed: adherence.todayStats.blinkNudgesFollowed,
+                postureShown: adherence.todayStats.postureNudgesShown,
+                postureFollowed: adherence.todayStats.postureNudgesFollowed,
+                animate: animateStats
+            )
+            .padding(16)
+        }
     }
 
     // MARK: - Weekly Chart
@@ -165,7 +280,9 @@ struct SightStatisticsView: View {
             HStack {
                 Text("Detailed Stats")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
+                Text("Detailed Stats")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.primary)
 
                 Spacer()
 
@@ -199,8 +316,7 @@ struct SightStatisticsView: View {
                 DetailStatCard(
                     icon: "forward.end.fill",
                     title: "Skipped",
-                    value:
-                        "\(periodStats.breaksCompleted > 0 ? max(0, periodStats.breaksCompleted - periodStats.shortBreaksCompleted - periodStats.longBreaksCompleted) : 0)",
+                    value: "\(periodStats.breaksSkipped)",
                     subtitle: "breaks missed",
                     color: SightTheme.warning
                 )
@@ -290,31 +406,94 @@ struct SightStatisticsView: View {
     // MARK: - Export
 
     private func exportJSON() {
-        guard let data = adherence.exportAsJSON() else { return }
+        Task.detached(priority: .userInitiated) {
+            guard let data = await MainActor.run(body: { self.adherence.exportAsJSON() }) else {
+                return
+            }
 
-        let savePanel = NSSavePanel()
-        savePanel.allowedContentTypes = [.json]
-        savePanel.nameFieldStringValue = "sight-statistics.json"
+            await MainActor.run {
+                let savePanel = NSSavePanel()
+                savePanel.allowedContentTypes = [.json]
+                savePanel.nameFieldStringValue = "sight-statistics.json"
 
-        if savePanel.runModal() == .OK, let url = savePanel.url {
-            try? data.write(to: url)
+                if savePanel.runModal() == .OK, let url = savePanel.url {
+                    try? data.write(to: url)
+                }
+            }
         }
     }
 
     private func exportCSV() {
-        let csv = adherence.exportAsCSV()
+        Task.detached(priority: .userInitiated) {
+            let csv = await MainActor.run(body: { self.adherence.exportAsCSV() })
 
-        let savePanel = NSSavePanel()
-        savePanel.allowedContentTypes = [.commaSeparatedText]
-        savePanel.nameFieldStringValue = "sight-statistics.csv"
+            await MainActor.run {
+                let savePanel = NSSavePanel()
+                savePanel.allowedContentTypes = [.commaSeparatedText]
+                savePanel.nameFieldStringValue = "sight-statistics.csv"
 
-        if savePanel.runModal() == .OK, let url = savePanel.url {
-            try? csv.write(to: url, atomically: true, encoding: .utf8)
+                if savePanel.runModal() == .OK, let url = savePanel.url {
+                    try? csv.write(to: url, atomically: true, encoding: .utf8)
+                }
+            }
         }
     }
 }
 
-// MARK: - Hero Stat Card
+// MARK: - Mini Stat Card
+
+struct MiniStatCard: View {
+    let icon: String
+    let value: String
+    let label: String
+    let color: Color
+    let animate: Bool
+
+    @State private var isHovered = false
+    @State private var isAnimated = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(color)
+                .frame(width: 32, height: 32)
+                .background(color.opacity(0.15))
+                .cornerRadius(8)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(value)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .scaleEffect(isAnimated ? 1 : 0.8)
+                    .opacity(isAnimated ? 1 : 0)
+
+                Text(label)
+                    .font(.system(size: 10))
+                    .foregroundColor(SightTheme.tertiaryText)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(Color.white.opacity(0.03))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(isHovered ? color.opacity(0.3) : Color.clear, lineWidth: 1)
+        )
+        .scaleEffect(isHovered ? 1.02 : 1)
+        .onHover { isHovered = $0 }
+        .onAppear {
+            if animate {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.1)) {
+                    isAnimated = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Hero Stat Card (Legacy)
 
 struct HeroStatCard: View {
     let icon: String
@@ -561,5 +740,5 @@ struct ExportButton: View {
 
 #Preview {
     SightStatisticsView()
-        .frame(width: 700, height: 700)
+        .frame(width: 700, height: 800)
 }
