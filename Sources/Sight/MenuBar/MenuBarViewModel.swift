@@ -98,12 +98,13 @@ public final class MenuBarViewModel: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            // Extract the view model reference early to avoid isolated capture errors
+            guard let viewModel = self else { return }
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let self = self else { return }
                 // Resume timer if we paused it for a manual break
-                if self.stateMachine.isPaused {
-                    self.stateMachine.resume()
+                if viewModel.stateMachine.isPaused {
+                    viewModel.stateMachine.resume()
                 }
             }
         }

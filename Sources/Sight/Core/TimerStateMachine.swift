@@ -77,7 +77,8 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
-    nonisolated(unsafe) public static var shared: TimerStateMachine!
+    @MainActor
+    public static var shared: TimerStateMachine!
 
     // MARK: - Private Properties
 
