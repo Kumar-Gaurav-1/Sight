@@ -19,6 +19,31 @@ public final class NudgeOverlayWindowController: NSObject {
     public func showNudge(type: NudgeType, duration: TimeInterval = 5.0) {
         logger.info("showNudge called for type: \(type.rawValue)")
 
+        let swiftUIView: AnyView
+        switch type {
+        case .posture:
+            swiftUIView = AnyView(PostureNudgeView(onDismiss: { [weak self] in self?.hide() }))
+        case .blink:
+            swiftUIView = AnyView(BlinkNudgeView(onDismiss: { [weak self] in self?.hide() }))
+        case .miniExercise:
+            swiftUIView = AnyView(MiniExerciseNudgeView(onDismiss: { [weak self] in self?.hide() }))
+        }
+
+        presentNudgeView(swiftUIView, duration: duration)
+    }
+
+    public func showOvertimeNudge(elapsedMinutes: Int, duration: TimeInterval = 8.0) {
+        logger.info("showOvertimeNudge called for \(elapsedMinutes) minutes")
+
+        let view = OvertimeNudgeView(
+            elapsedMinutes: elapsedMinutes,
+            onDismiss: { [weak self] in self?.hide() }
+        )
+
+        presentNudgeView(view, duration: duration)
+    }
+
+    private func presentNudgeView<V: View>(_ view: V, duration: TimeInterval) {
         // Close existing window to ensure fresh size
         window?.close()
         window = nil
@@ -31,7 +56,7 @@ public final class NudgeOverlayWindowController: NSObject {
         // Fixed window size
         let windowSize = NSSize(width: 400, height: 80)
 
-        // Create panel (better for floating overlays)
+        // Create panel
         let panel = NSPanel(
             contentRect: NSRect(origin: .zero, size: windowSize),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -51,19 +76,8 @@ public final class NudgeOverlayWindowController: NSObject {
 
         logger.info("Panel created with size: \(windowSize.width)x\(windowSize.height)")
 
-        // Create the SwiftUI view with dismiss callback
-        let swiftUIView: AnyView
-        switch type {
-        case .posture:
-            swiftUIView = AnyView(PostureNudgeView(onDismiss: { [weak self] in self?.hide() }))
-        case .blink:
-            swiftUIView = AnyView(BlinkNudgeView(onDismiss: { [weak self] in self?.hide() }))
-        case .miniExercise:
-            swiftUIView = AnyView(MiniExerciseNudgeView(onDismiss: { [weak self] in self?.hide() }))
-        }
-
         // Create hosting view and set it up
-        let hostingView = NSHostingView(rootView: swiftUIView)
+        let hostingView = NSHostingView(rootView: view)
         hostingView.frame = NSRect(origin: .zero, size: windowSize)
         hostingView.autoresizingMask = [.width, .height]
 
@@ -84,76 +98,6 @@ public final class NudgeOverlayWindowController: NSObject {
             logger.info("Positioning at x=\(x), y=\(finalY)")
 
             // Set final position directly (no animation for debugging)
-            panel.setFrame(
-                NSRect(x: x, y: finalY, width: windowSize.width, height: windowSize.height),
-                display: true)
-            panel.orderFront(nil)
-
-            logger.info("Panel final frame: \(NSStringFromRect(panel.frame))")
-        }
-
-        // Schedule dismissal
-        hideTimer?.invalidate()
-        hideTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) {
-            [weak self] _ in
-            self?.hide()
-        }
-    }
-
-    public func showOvertimeNudge(elapsedMinutes: Int, duration: TimeInterval = 8.0) {
-        logger.info("showOvertimeNudge called for \(elapsedMinutes) minutes")
-
-        // Close existing window to ensure fresh size
-        window?.close()
-        window = nil
-
-        // Show dim overlay if enabled in preferences
-        if PreferencesManager.shared.dimScreenOnReminder {
-            showDimOverlay()
-        }
-
-        // Fixed window size
-        let windowSize = NSSize(width: 400, height: 80)
-
-        // Create panel (consistent with showNudge)
-        let panel = NSPanel(
-            contentRect: NSRect(origin: .zero, size: windowSize),
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        panel.level = .statusBar
-        panel.collectionBehavior = [
-            .canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary,
-        ]
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = false
-        panel.ignoresMouseEvents = false
-
-        self.window = panel
-
-        // Create hosting view with dismiss callback
-        let hostingView = NSHostingView(
-            rootView: OvertimeNudgeView(
-                elapsedMinutes: elapsedMinutes,
-                onDismiss: { [weak self] in self?.hide() }
-            )
-        )
-        hostingView.frame = NSRect(origin: .zero, size: windowSize)
-        hostingView.autoresizingMask = [.width, .height]
-        panel.contentView = hostingView
-
-        // Position at top-center of screen containing mouse cursor
-        let mouseLocation = NSEvent.mouseLocation
-        let targetScreen =
-            NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) ?? NSScreen.main
-        if let screen = targetScreen {
-            let screenRect = screen.visibleFrame
-            let x = screenRect.midX - (windowSize.width / 2)
-            let finalY = screenRect.maxY - windowSize.height - 40
-
-            // Set position and show
             panel.setFrame(
                 NSRect(x: x, y: finalY, width: windowSize.width, height: windowSize.height),
                 display: true)
