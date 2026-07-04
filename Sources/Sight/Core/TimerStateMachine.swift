@@ -414,65 +414,12 @@ public final class TimerStateMachine: ObservableObject {
         case .idle:
             remainingSeconds = 0
             return
-
         case .work:
-            duration = configuration.workIntervalSeconds
-
-            // NOTE: Sound is NOT played here anymore for break->work transitions
-            // It's played in skipToNext() and advanceState() where it's more explicit
-            // This prevents double-play when skipToNext() calls transitionTo(.work)
-
-            // Send notification if coming from break
-            if oldState == .break && notificationsEnabled {
-                NotificationManager.shared.sendBreakEndNotification()
-            }
-
+            duration = handleWorkTransition(oldState: oldState)
         case .preBreak:
-            // Use countdown duration from preferences
-            duration = PreferencesManager.shared.countdownDuration
-
-            if rendererEnabled {
-                Renderer.showPreBreak(preSeconds: duration)
-            }
-
-            if notificationsEnabled {
-                NotificationManager.shared.sendPreBreakNotification(secondsRemaining: duration)
-            }
-
+            duration = handlePreBreakTransition()
         case .break:
-            // Increment break counter
-            breakCount += 1
-            breakElapsedSeconds = 0
-
-            // Reset overtime tracking for fresh start after break
-            workElapsedSeconds = 0
-            overtimeNudgeShown = false
-
-            // Use longer duration if this is a long break
-            if isLongBreak {
-                duration = PreferencesManager.shared.longBreakDurationSeconds
-                logger.info(
-                    "Starting LONG break #\(self.breakCount) (every \(PreferencesManager.shared.longBreakInterval)th)"
-                )
-            } else {
-                duration = configuration.breakDurationSeconds
-            }
-
-            // Play break start sound
-            SoundManager.shared.playBreakStart()
-
-            if rendererEnabled {
-                Renderer.showBreak(durationSeconds: duration)
-            }
-
-            if notificationsEnabled {
-                NotificationManager.shared.sendBreakStartNotification(durationSeconds: duration)
-            }
-
-            // Lock Mac if enabled - forces user to step away
-            if PreferencesManager.shared.lockMacOnBreak {
-                lockScreen()
-            }
+            duration = handleBreakTransition()
         }
 
         remainingSeconds = duration
@@ -480,6 +427,75 @@ public final class TimerStateMachine: ObservableObject {
 
         // Save state for crash recovery
         saveCurrentState()
+    }
+
+    private func handleWorkTransition(oldState: TimerState) -> Int {
+        let duration = configuration.workIntervalSeconds
+
+        // NOTE: Sound is NOT played here anymore for break->work transitions
+        // It's played in skipToNext() and advanceState() where it's more explicit
+        // This prevents double-play when skipToNext() calls transitionTo(.work)
+
+        // Send notification if coming from break
+        if oldState == .break && notificationsEnabled {
+            NotificationManager.shared.sendBreakEndNotification()
+        }
+
+        return duration
+    }
+
+    private func handlePreBreakTransition() -> Int {
+        // Use countdown duration from preferences
+        let duration = PreferencesManager.shared.countdownDuration
+
+        if rendererEnabled {
+            Renderer.showPreBreak(preSeconds: duration)
+        }
+
+        if notificationsEnabled {
+            NotificationManager.shared.sendPreBreakNotification(secondsRemaining: duration)
+        }
+
+        return duration
+    }
+
+    private func handleBreakTransition() -> Int {
+        // Increment break counter
+        breakCount += 1
+        breakElapsedSeconds = 0
+
+        // Reset overtime tracking for fresh start after break
+        workElapsedSeconds = 0
+        overtimeNudgeShown = false
+
+        let duration: Int
+        // Use longer duration if this is a long break
+        if isLongBreak {
+            duration = PreferencesManager.shared.longBreakDurationSeconds
+            logger.info(
+                "Starting LONG break #\(self.breakCount) (every \(PreferencesManager.shared.longBreakInterval)th)"
+            )
+        } else {
+            duration = configuration.breakDurationSeconds
+        }
+
+        // Play break start sound
+        SoundManager.shared.playBreakStart()
+
+        if rendererEnabled {
+            Renderer.showBreak(durationSeconds: duration)
+        }
+
+        if notificationsEnabled {
+            NotificationManager.shared.sendBreakStartNotification(durationSeconds: duration)
+        }
+
+        // Lock Mac if enabled - forces user to step away
+        if PreferencesManager.shared.lockMacOnBreak {
+            lockScreen()
+        }
+
+        return duration
     }
 
     private func startTimer(duration: Int) {
