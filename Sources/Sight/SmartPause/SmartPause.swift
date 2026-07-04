@@ -718,7 +718,8 @@ extension SmartPauseManager {
                 guard let sm = stateMachine else { return }
 
                 // SECURITY: Dispatch to MainActor to access main-actor-isolated properties
-                Task { @MainActor in
+                Task { @MainActor [weak sm] in
+                    guard let sm = sm else { return }
                     if shouldPause && sm.currentState != .idle {
                         // Timer is running and we should pause
                         // Note: Actual pause logic depends on state machine design
