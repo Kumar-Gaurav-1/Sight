@@ -494,24 +494,40 @@ public final class TimerStateMachine: ObservableObject {
     }
 
     private func tick() {
+        if handlePausedState() { return }
+        if handleWorkAutoPause() { return }
 
-        // Skip if manually paused
+        updateTimeTracking()
+        checkOvertimeNudge()
+
+        if remainingSeconds <= 0 {
+            advanceState()
+        }
+    }
+
+    private func handlePausedState() -> Bool {
         if isPaused {
             // Check if we should auto-resume (schedule cleared)
             if !WorkHoursManager.shared.shouldPause() && pausedState != nil {
                 // Schedule cleared - auto resume
                 resume()
             }
-            return
+            return true
         }
+        return false
+    }
 
+    private func handleWorkAutoPause() -> Bool {
         // Only pause during work state (not during breaks)
         if currentState == .work && WorkHoursManager.shared.shouldPause() {
             // During quiet hours or non-active days, pause automatically
             pause(source: .workHours)
-            return
+            return true
         }
+        return false
+    }
 
+    private func updateTimeTracking() {
         remainingSeconds -= 1
 
         // Track elapsed time during breaks (for skip difficulty)
@@ -528,7 +544,11 @@ public final class TimerStateMachine: ObservableObject {
                 let totalMinutes = StatisticsEngine.shared.todayScreenTimeMinutes
                 AdherenceManager.shared.recordScreenTime(minutes: totalMinutes)
             }
+        }
+    }
 
+    private func checkOvertimeNudge() {
+        if currentState == .work {
             // Check for overtime nudge trigger
             let prefs = PreferencesManager.shared
             if prefs.overtimeNudgeEnabled && !overtimeNudgeShown {
@@ -566,10 +586,6 @@ public final class TimerStateMachine: ObservableObject {
                     }
                 }
             }
-        }
-
-        if remainingSeconds <= 0 {
-            advanceState()
         }
     }
 
