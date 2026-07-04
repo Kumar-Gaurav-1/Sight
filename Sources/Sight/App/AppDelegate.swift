@@ -12,7 +12,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarController: MenuBarController?
     private var preferencesWindow: NSWindow?
     private var onboardingWindow: NSWindow?
-    private let stateMachine = TimerStateMachine()
+    private let stateMachine = TimerStateMachine.shared
     private let logger = Logger(subsystem: "com.sight.app", category: "AppDelegate")
     private var cancellables = Set<AnyCancellable>()
 
@@ -32,9 +32,6 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Configure state machine with saved preferences
         stateMachine.configuration = PreferencesManager.shared.timerConfiguration
-
-        // Set shared instance for global access (skip difficulty, etc.)
-        TimerStateMachine.shared = stateMachine
 
         // Initialize menu bar controller
         menuBarController = MenuBarController(stateMachine: stateMachine)
@@ -184,8 +181,10 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] notification in
             guard let self = self else { return }
 
-            Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 self.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
                 self.stateMachine.postpone(minutes: minutes)
