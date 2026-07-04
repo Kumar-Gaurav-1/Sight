@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - About View
 
 /// Premium about screen with app info, credits, and links
+@MainActor
 struct SightAboutView: View {
     @State private var logoHovered = false
     @State private var showVersion = false
@@ -11,7 +12,7 @@ struct SightAboutView: View {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     private let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
 
-    var body: some View {
+    @MainActor var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             Text("About")
@@ -51,7 +52,7 @@ struct SightAboutView: View {
 
     // MARK: - App Info Card
 
-    private var appInfoCard: some View {
+    @MainActor private var appInfoCard: some View {
         VStack(spacing: 20) {
             // Logo
             ZStack {
@@ -129,7 +130,7 @@ struct SightAboutView: View {
 
     // MARK: - Features Card
 
-    private var featuresCard: some View {
+    @MainActor private var featuresCard: some View {
         EnhancedSettingsCard(
             icon: "sparkles",
             iconColor: SightTheme.accent,
@@ -245,6 +246,7 @@ struct SightAboutView: View {
 
 // MARK: - Feature Row
 
+@MainActor
 struct FeatureRow: View {
     let icon: String
     let title: String
@@ -275,6 +277,7 @@ struct FeatureRow: View {
 
 // MARK: - Link Row
 
+@MainActor
 struct LinkRow: View {
     let icon: String
     let title: String
