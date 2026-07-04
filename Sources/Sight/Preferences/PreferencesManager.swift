@@ -884,6 +884,18 @@ public final class PreferencesManager: ObservableObject {
 
     /// Reset all preferences to defaults
     public func resetToDefaults() {
+        resetTimerAndStartupDefaults()
+        resetWellnessDefaults()
+        resetAppearanceDefaults()
+        resetBreakBehaviorDefaults()
+        resetSoundDefaults()
+        resetAutomationDefaults()
+        resetShortcutsDefaults()
+
+        logger.info("Preferences reset to defaults")
+    }
+
+    private func resetTimerAndStartupDefaults() {
         // Timer intervals
         workIntervalSeconds = 20 * 60
         preBreakSeconds = 10
@@ -898,7 +910,9 @@ public final class PreferencesManager: ObservableObject {
         // Idle behavior
         idlePauseMinutes = 1
         idleResetMinutes = 5
+    }
 
+    private func resetWellnessDefaults() {
         // Wellness Reminders
         blinkReminderEnabled = true
         blinkReminderIntervalSeconds = 120
@@ -912,7 +926,9 @@ public final class PreferencesManager: ObservableObject {
         showRemindersDuringPauses = false
         resetTimersAfterBreak = true
         nudgeDimIntensity = 0.5
+    }
 
+    private func resetAppearanceDefaults() {
         // Appearance
         appearanceMode = "system"
         accentColor = "cyan"
@@ -925,6 +941,17 @@ public final class PreferencesManager: ObservableObject {
         showInMenuBar = true
         showTimerInMenuBar = true
 
+        // Break Screen Appearance
+        breakBackgroundType = "wallpaper"
+        breakCustomImagePath = ""
+        breakBlurBackground = true
+        breakCustomMessages = []
+        breakHideMessages = false
+        breakAlertPosition = "topCenter"
+        breakGradientPreset = "sunset"
+    }
+
+    private func resetBreakBehaviorDefaults() {
         // Break Behavior
         allowSkipBreak = true
         allowPostponeBreak = true
@@ -939,12 +966,6 @@ public final class PreferencesManager: ObservableObject {
         longBreakInterval = 4
         longBreakDurationSeconds = 5 * 60
 
-        // Office Hours
-        officeHoursEnabled = false
-        let calendar = Calendar.current
-        officeHoursStart = calendar.date(from: DateComponents(hour: 9, minute: 0)) ?? Date()
-        officeHoursEnd = calendar.date(from: DateComponents(hour: 17, minute: 0)) ?? Date()
-
         // Countdown
         countdownEnabled = true
         countdownDuration = 5
@@ -957,15 +978,12 @@ public final class PreferencesManager: ObservableObject {
         endBreakEarly = false
         lockMacOnBreak = false
 
-        // Break Screen Appearance
-        breakBackgroundType = "wallpaper"
-        breakCustomImagePath = ""
-        breakBlurBackground = true
-        breakCustomMessages = []
-        breakHideMessages = false
-        breakAlertPosition = "topCenter"
-        breakGradientPreset = "sunset"
+        // Profile
+        activeProfile = .custom
+        meetingDetectionEnabled = true
+    }
 
+    private func resetSoundDefaults() {
         // Sounds
         soundVolume = 0.7
         breakStartSoundEnabled = true
@@ -980,6 +998,14 @@ public final class PreferencesManager: ObservableObject {
         smartPauseNotificationEnabled = true
         activeAfterIdleSoundEnabled = false
         overtimeNudgeSoundEnabled = true
+    }
+
+    private func resetAutomationDefaults() {
+        // Office Hours
+        officeHoursEnabled = false
+        let calendar = Calendar.current
+        officeHoursStart = calendar.date(from: DateComponents(hour: 9, minute: 0)) ?? Date()
+        officeHoursEnd = calendar.date(from: DateComponents(hour: 17, minute: 0)) ?? Date()
 
         // Automation
         quietHoursEnabled = false
@@ -988,19 +1014,15 @@ public final class PreferencesManager: ObservableObject {
         weekendModeEnabled = false
         pauseForFullscreenApps = false
         activeDays = [true, true, true, true, true, false, false]
+    }
 
+    private func resetShortcutsDefaults() {
         // Shortcuts
         shortcutsEnabled = true
         shortcutToggleTimer = "cmd+ctrl:35"
         shortcutTakeBreak = "cmd+ctrl:11"
         shortcutSkipBreak = "cmd+ctrl:1"
         shortcutPreferences = "cmd+ctrl:43"
-
-        // Profile
-        activeProfile = .custom
-        meetingDetectionEnabled = true
-
-        logger.info("Preferences reset to defaults")
     }
 
 }
