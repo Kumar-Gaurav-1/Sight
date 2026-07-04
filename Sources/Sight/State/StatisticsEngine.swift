@@ -565,21 +565,35 @@ public final class StatisticsEngine: ObservableObject {
 
     /// Generate insights based on current data
     public func generateInsights() {
-        var newInsights: [WellnessInsight] = []
+        let newInsights: [WellnessInsight] = [
+            checkStreakInsight(),
+            checkWeeklyTrendInsight(),
+            checkPeakProductivityInsight(),
+            checkMeetingHeavyDayInsight(),
+            checkBlinkComplianceInsight(),
+            checkPostureAttentionInsight(),
+            checkGoalAchievedInsight()
+        ].compactMap { $0 }
 
-        // Streak achievement
+        self.insights = newInsights
+
+        logger.info("Generated \(newInsights.count) insights")
+    }
+
+    private func checkStreakInsight() -> WellnessInsight? {
         let streak = AdherenceManager.shared.currentStreak
         if streak >= 3 {
-            newInsights.append(.streakAchievement(days: streak))
+            return .streakAchievement(days: streak)
         }
+        return nil
+    }
 
-        // Check weekly trend with actual calculated percentage
+    private func checkWeeklyTrendInsight() -> WellnessInsight? {
         let summary = AdherenceManager.shared.getWeeklySummary()
         let previousWeekStats = AdherenceManager.shared.getPreviousWeekStats()
         let currentAvgScore = summary.averageScore
         let previousAvgScore = previousWeekStats.averageScore
 
-        // Calculate actual percentage change
         let percentChange =
             previousAvgScore > 0
             ? abs((currentAvgScore - previousAvgScore) / previousAvgScore * 100)
@@ -588,59 +602,65 @@ public final class StatisticsEngine: ObservableObject {
         switch summary.trend {
         case .improving:
             if percentChange > 1 {
-                newInsights.append(
-                    .improvingTrend(metric: "Break adherence", percentage: percentChange))
+                return .improvingTrend(metric: "Break adherence", percentage: percentChange)
             }
         case .declining:
             if percentChange > 1 {
-                newInsights.append(
-                    .decliningTrend(metric: "Break adherence", percentage: percentChange))
+                return .decliningTrend(metric: "Break adherence", percentage: percentChange)
             }
         case .stable:
-            break
+            return nil
         }
+        return nil
+    }
 
-        // Peak productivity time
+    private func checkPeakProductivityInsight() -> WellnessInsight? {
         let distribution = todayHourlyDistribution()
         if let peakHour = distribution.max(by: { $0.value < $1.value })?.key,
             distribution[peakHour] ?? 0 > 0
         {
-            newInsights.append(.peakProductivityTime(hour: peakHour))
+            return .peakProductivityTime(hour: peakHour)
         }
+        return nil
+    }
 
-        // Meeting heavy day
+    private func checkMeetingHeavyDayInsight() -> WellnessInsight? {
         let meetingMinutes = AdherenceManager.shared.todayStats.totalMeetingMinutes
         if meetingMinutes > 120 {
-            newInsights.append(.meetingHeavyDay(minutes: meetingMinutes))
+            return .meetingHeavyDay(minutes: meetingMinutes)
         }
+        return nil
+    }
 
-        // Blink compliance
+    private func checkBlinkComplianceInsight() -> WellnessInsight? {
         let todayStats = AdherenceManager.shared.todayStats
         if todayStats.blinkNudgesShown > 5 {
             let compliance =
                 Double(todayStats.blinkNudgesFollowed) / Double(todayStats.blinkNudgesShown)
             if compliance >= 0.8 {
-                newInsights.append(.excellentBlinkCompliance)
+                return .excellentBlinkCompliance
             }
         }
+        return nil
+    }
 
-        // Posture attention
+    private func checkPostureAttentionInsight() -> WellnessInsight? {
+        let todayStats = AdherenceManager.shared.todayStats
         if todayStats.postureNudgesShown > 3 {
             let compliance =
                 Double(todayStats.postureNudgesFollowed) / Double(todayStats.postureNudgesShown)
             if compliance < 0.5 {
-                newInsights.append(.postureNeedsAttention)
+                return .postureNeedsAttention
             }
         }
+        return nil
+    }
 
-        // Goal achieved
+    private func checkGoalAchievedInsight() -> WellnessInsight? {
         if AdherenceManager.shared.goalMet {
-            newInsights.append(.goalAchieved(type: "Daily breaks"))
+            return .goalAchieved(type: "Daily breaks")
         }
-
-        self.insights = newInsights
-
-        logger.info("Generated \(newInsights.count) insights")
+        return nil
     }
 
     // MARK: - Persistence
