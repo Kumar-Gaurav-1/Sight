@@ -227,12 +227,8 @@ public final class NudgeOverlayWindowController: NSObject {
     private func hideDimOverlay() {
         guard let dimWindow = dimWindow else { return }
 
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
-            dimWindow.animator().alphaValue = 0
-        } completionHandler: {
-            dimWindow.orderOut(nil)
-        }
+        dimWindow.alphaValue = 0
+        dimWindow.orderOut(nil)
 
         logger.debug("Dim overlay hidden")
     }
