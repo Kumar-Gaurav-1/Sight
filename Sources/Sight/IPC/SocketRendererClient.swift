@@ -198,20 +198,20 @@ public final class SocketRendererServer {
             }
         }
 
+        // SECURITY: Set umask before binding to ensure the socket file is created
+        // with restricted permissions (owner-only, 0600), preventing a race condition.
+        let originalUmask = umask(0o177)
         let bindResult = withUnsafePointer(to: &addr) { ptr in
             ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
                 bind(serverSocket, sockPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
             }
         }
+        umask(originalUmask)
 
         guard bindResult == 0 else {
             logger.error("Failed to bind socket")
             return
         }
-
-        // SECURITY: Restrict socket file permissions to owner-only (0600)
-        // This prevents other users from connecting to the socket
-        chmod(socketPath, 0o600)
 
         guard listen(serverSocket, 5) == 0 else {
             logger.error("Failed to listen on socket")
