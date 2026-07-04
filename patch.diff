@@ -1,0 +1,39 @@
+--- Sources/Sight/Core/TimerStateMachine.swift
++++ Sources/Sight/Core/TimerStateMachine.swift
+@@ -77,7 +77,7 @@
+
+     // MARK: - Singleton
+
+-    nonisolated(unsafe) public static var shared: TimerStateMachine!
++    nonisolated(unsafe) public static let shared = TimerStateMachine()
+
+     // MARK: - Private Properties
+
+@@ -123,7 +123,9 @@
+             object: nil,
+             queue: .main
+         ) { [weak self] _ in
+-            // SECURITY: Dispatch to MainActor for thread safety
+-            Task { @MainActor in
+-                self?.handleSystemWake()
+-            }
++            guard let self = self else { return }
++            Task {
++                await self.handleSystemWake()
++            }
+         }
+
+@@ -134,7 +136,9 @@
+             object: nil,
+             queue: .main
+         ) { [weak self] _ in
+-            // SECURITY: Dispatch to MainActor for thread safety
+-            Task { @MainActor in
+-                self?.handleSystemSleep()
+-            }
++            guard let self = self else { return }
++            Task {
++                await self.handleSystemSleep()
++            }
+         }
+     }
