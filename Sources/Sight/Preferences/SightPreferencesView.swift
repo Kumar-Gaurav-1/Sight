@@ -180,10 +180,10 @@ public struct SightPreferencesView: View {
                 // Footer with timer status
                 HStack(spacing: 8) {
                     Circle()
-                        .fill(TimerStateMachine.shared.isPaused ? Color.orange : Color.green)
+                        .fill(TimerStateMachine.shared?.isPaused ?? false ? Color.orange : Color.green)
                         .frame(width: 8, height: 8)
 
-                    Text(TimerStateMachine.shared.isPaused ? "Timer Paused" : "Timer Active")
+                    Text(TimerStateMachine.shared?.isPaused ?? false ? "Timer Paused" : "Timer Active")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
 
