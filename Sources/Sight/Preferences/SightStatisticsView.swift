@@ -360,8 +360,8 @@ struct SightStatisticsView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
-                        ExportButton(label: "JSON", action: exportJSON)
-                        ExportButton(label: "CSV", action: exportCSV)
+                        ExportButton(label: "JSON", action: { Task { exportJSON() } })
+                        ExportButton(label: "CSV", action: { Task { exportCSV() } })
                     }
                 }
                 .padding(16)
