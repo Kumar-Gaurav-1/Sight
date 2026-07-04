@@ -30,6 +30,16 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application launched")
 
+        setupCoreDependencies()
+        setupManagers()
+        setupLoginItemSync()
+        setupNotificationObservers()
+        setupAppBehavior()
+        setupMemoryPressureMonitoring()
+        setupAppNapPrevention()
+    }
+
+    private func setupCoreDependencies() {
         // Configure state machine with saved preferences
         stateMachine.configuration = PreferencesManager.shared.timerConfiguration
 
@@ -47,7 +57,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             }
             ShortcutManager.shared.startMonitoring()
         }
+    }
 
+    private func setupManagers() {
         // Setup Nudges
         MicroNudgesManager.shared.onNudge = { event in
             Renderer.showNudge(type: event.type)
@@ -103,7 +115,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
+    }
 
+    private func setupLoginItemSync() {
         // Sync Launch at Login with system
         LoginItemManager.shared.syncWithPreferences(PreferencesManager.shared)
 
@@ -114,7 +128,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 LoginItemManager.shared.setEnabled(enabled)
             }
             .store(in: &cancellables)
+    }
 
+    private func setupNotificationObservers() {
         // Observe skip break events from overlay (Escape key, Skip button)
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("SightSkipBreak"),
@@ -182,16 +198,20 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
+
+            // Extract necessary values before crossing into @MainActor Task
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
-                self.logger.info("Break postponed for \(minutes) minutes via notification")
+                strongSelf.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
-                self.stateMachine.postpone(minutes: minutes)
+                strongSelf.stateMachine.postpone(minutes: minutes)
             }
         }
+    }
 
+    private func setupAppBehavior() {
         // Hide dock icon (LSUIElement behavior)
         NSApp.setActivationPolicy(.accessory)
 
@@ -206,10 +226,6 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             // Onboarding already done - start timer normally
             startTimerIfAppropriate()
         }
-
-        // PERFORMANCE: Setup monitoring for 24/7 operation
-        setupMemoryPressureMonitoring()
-        setupAppNapPrevention()
     }
 
     private func startTimerIfAppropriate() {

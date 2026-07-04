@@ -77,7 +77,9 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
-    nonisolated(unsafe) public static var shared: TimerStateMachine!
+    // nonisolated(unsafe) cannot be applied to a stored property in Swift 5.9.
+    // Instead we use a global instance (set by AppDelegate)
+    public static var shared: TimerStateMachine!
 
     // MARK: - Private Properties
 
@@ -122,8 +124,9 @@ public final class TimerStateMachine: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // SECURITY: Dispatch to MainActor for thread safety
+            guard let strongSelf = self else { return }
             Task { @MainActor in
-                self?.handleSystemWake()
+                strongSelf.handleSystemWake()
             }
         }
 
@@ -134,8 +137,9 @@ public final class TimerStateMachine: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // SECURITY: Dispatch to MainActor for thread safety
+            guard let strongSelf = self else { return }
             Task { @MainActor in
-                self?.handleSystemSleep()
+                strongSelf.handleSystemSleep()
             }
         }
     }
