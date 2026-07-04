@@ -175,7 +175,8 @@ public final class NudgeOverlayWindowController: NSObject {
         hideTimer = nil
 
         // Hide dim overlay immediately (fixes stuck dim bug)
-        hideDimOverlay()
+        dimWindow?.alphaValue = 0
+        dimWindow?.orderOut(nil)
 
         guard let window = window else { return }
 
