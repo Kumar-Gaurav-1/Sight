@@ -26,7 +26,7 @@ enum SightTheme {
 
     /// Primary accent color - dynamic based on user preference (hue slider)
     @MainActor
-    @MainActor static var accent: Color {
+    static var accent: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
     }
@@ -380,7 +380,7 @@ struct HoverableCardModifier: ViewModifier {
 // MARK: - Custom Button Styles
 
 struct SightPrimaryButtonStyle: ButtonStyle {
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -404,7 +404,7 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -434,7 +434,7 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 // MARK: - Custom Toggle Style
 
 struct SightToggleStyle: ToggleStyle {
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
             Spacer()
