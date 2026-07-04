@@ -100,10 +100,10 @@ public final class MenuBarViewModel: ObservableObject {
         ) { [weak self] _ in
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let self = self else { return }
+                guard let strongSelf = self else { return }
                 // Resume timer if we paused it for a manual break
-                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.stateMachine.resume()
+                if strongSelf.stateMachine.isPaused && strongSelf.stateMachine.pauseSource == .user {
+                    strongSelf.stateMachine.resume()
                 }
             }
         }
@@ -112,62 +112,67 @@ public final class MenuBarViewModel: ObservableObject {
     // MARK: - Logic
 
     private func updateDerivedProperties() {
+        updateStateUI()
+        updateProgress()
+        updateNextBreakText()
+    }
 
+    private func updateStateUI() {
         switch currentState {
         case .idle:
             statusIconName = "circle"
             statusLabel = "Paused"
             hudTitle = "Monitoring Paused"
             hudDetail = "Ready to focus?"
-
         case .work:
             statusIconName = "circle.fill"
-            let timeStr = formatTimeCompact(remainingSeconds)
-            statusLabel = timeStr
+            statusLabel = formatTimeCompact(remainingSeconds)
             hudTitle = "Working"
             hudDetail = "Next break in \(formatTime(remainingSeconds))"
-
         case .preBreak:
             statusIconName = "exclamationmark.triangle"
             statusLabel = formatTimeCompact(remainingSeconds)
             hudTitle = "Break in \(remainingSeconds)s"
             hudDetail = "Wrap up your work"
+        case .break:
+            statusIconName = "cup.and.saucer"
+            statusLabel = "Break"
+            hudTitle = "On Break"
+            hudDetail = "Relax those eyes..."
+        }
+    }
 
-            // Calculate preBreak progress (ring drains during countdown)
+    private func updateProgress() {
+        switch currentState {
+        case .idle:
+            progress = 0.0
+        case .work:
+            let total = Double(stateMachine.configuration.workIntervalSeconds)
+            if total > 0 {
+                progress = max(0.0, min(1.0, 1.0 - (Double(remainingSeconds) / total)))
+            } else {
+                progress = 0.0
+            }
+        case .preBreak:
             let preBreakTotal = Double(stateMachine.configuration.preBreakSeconds)
             if preBreakTotal > 0 {
                 progress = max(0.0, min(1.0, Double(remainingSeconds) / preBreakTotal))
             } else {
                 progress = 0.0
             }
-            nextBreakText = nil
-
         case .break:
-            statusIconName = "cup.and.saucer"
-            statusLabel = "Break"
-            hudTitle = "On Break"
-            hudDetail = "Relax those eyes..."
-            // Calculate break progress (ring drains as break completes)
             let breakDuration = Double(stateMachine.configuration.breakDurationSeconds)
             if breakDuration > 0 {
                 progress = max(0.0, min(1.0, Double(remainingSeconds) / breakDuration))
             } else {
                 progress = 0.0
             }
-            nextBreakText = nil
         }
+    }
 
-        // Calculate Progress (Work) - ring fills as work progresses
-        if currentState == .work {
-            let total = Double(stateMachine.configuration.workIntervalSeconds)
-            // Progress increases as time passes (ring fills up)
-            if total > 0 {
-                progress = max(0.0, min(1.0, 1.0 - (Double(remainingSeconds) / total)))
-            } else {
-                progress = 0.0
-            }
-
-            // Calculate ETA with granular countdown
+    private func updateNextBreakText() {
+        switch currentState {
+        case .work:
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
                 let formatter = DateFormatter()
@@ -184,8 +189,7 @@ public final class MenuBarViewModel: ObservableObject {
             } else {
                 nextBreakText = "Break soon"
             }
-        } else if currentState == .idle {
-            progress = 0.0
+        case .idle, .preBreak, .break:
             nextBreakText = nil
         }
     }
