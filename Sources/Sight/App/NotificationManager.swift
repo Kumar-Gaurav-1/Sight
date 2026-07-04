@@ -98,92 +98,110 @@ public final class NotificationManager: NSObject, ObservableObject {
     private func setupCategories() {
         guard let center = center else { return }
 
-        // Break reminder actions
-        let startAction = UNNotificationAction(
-            identifier: Action.startBreak,
-            title: "Start Break",
-            options: .foreground
-        )
+        center.setNotificationCategories([
+            createBreakCategory(),
+            createPreBreakCategory(),
+            createWellnessCategory(),
+            createEscalationCategory(),
+            createSmartPauseCategory(),
+        ])
+    }
 
-        let skipAction = UNNotificationAction(
-            identifier: Action.skip,
-            title: "Skip",
-            options: .destructive
-        )
+    // MARK: - Category Helpers
 
-        let postponeAction = UNNotificationAction(
-            identifier: Action.postpone,
-            title: "5 min later",
-            options: []
-        )
-
-        // Wellness actions
-        let snoozeAction = UNNotificationAction(
-            identifier: Action.snooze,
-            title: "Snooze 5 min",
-            options: []
-        )
-
-        let dismissAction = UNNotificationAction(
-            identifier: Action.dismiss,
-            title: "Dismiss",
-            options: .destructive
-        )
-
-        // Escalation actions
-        let takeBreakNowAction = UNNotificationAction(
-            identifier: Action.takeBreakNow,
-            title: "Take Break Now",
-            options: .foreground
-        )
-
-        // Break reminder category
-        let breakCategory = UNNotificationCategory(
+    private func createBreakCategory() -> UNNotificationCategory {
+        UNNotificationCategory(
             identifier: Category.breakReminder,
             actions: [startAction, skipAction, postponeAction],
             intentIdentifiers: [],
             options: .customDismissAction
         )
+    }
 
-        // Pre-break countdown category
-        let preBreakCategory = UNNotificationCategory(
+    private func createPreBreakCategory() -> UNNotificationCategory {
+        UNNotificationCategory(
             identifier: Category.preBreak,
             actions: [startAction, skipAction],
             intentIdentifiers: [],
             options: []
         )
+    }
 
-        // Wellness reminder category (posture/blink)
-        let wellnessCategory = UNNotificationCategory(
+    private func createWellnessCategory() -> UNNotificationCategory {
+        UNNotificationCategory(
             identifier: Category.wellness,
             actions: [snoozeAction, dismissAction],
             intentIdentifiers: [],
             options: []
         )
+    }
 
-        // Escalation category (after multiple snoozes)
-        let escalationCategory = UNNotificationCategory(
+    private func createEscalationCategory() -> UNNotificationCategory {
+        UNNotificationCategory(
             identifier: Category.escalation,
             actions: [takeBreakNowAction, snoozeAction],
             intentIdentifiers: [],
             options: .customDismissAction
         )
+    }
 
-        // Smart pause category (meeting/screen recording paused)
-        let smartPauseCategory = UNNotificationCategory(
+    private func createSmartPauseCategory() -> UNNotificationCategory {
+        UNNotificationCategory(
             identifier: Category.smartPause,
             actions: [dismissAction],
             intentIdentifiers: [],
             options: []
         )
+    }
 
-        center.setNotificationCategories([
-            breakCategory,
-            preBreakCategory,
-            wellnessCategory,
-            escalationCategory,
-            smartPauseCategory,
-        ])
+    // MARK: - Action Helpers
+
+    private var startAction: UNNotificationAction {
+        UNNotificationAction(
+            identifier: Action.startBreak,
+            title: "Start Break",
+            options: .foreground
+        )
+    }
+
+    private var skipAction: UNNotificationAction {
+        UNNotificationAction(
+            identifier: Action.skip,
+            title: "Skip",
+            options: .destructive
+        )
+    }
+
+    private var postponeAction: UNNotificationAction {
+        UNNotificationAction(
+            identifier: Action.postpone,
+            title: "5 min later",
+            options: []
+        )
+    }
+
+    private var snoozeAction: UNNotificationAction {
+        UNNotificationAction(
+            identifier: Action.snooze,
+            title: "Snooze 5 min",
+            options: []
+        )
+    }
+
+    private var dismissAction: UNNotificationAction {
+        UNNotificationAction(
+            identifier: Action.dismiss,
+            title: "Dismiss",
+            options: .destructive
+        )
+    }
+
+    private var takeBreakNowAction: UNNotificationAction {
+        UNNotificationAction(
+            identifier: Action.takeBreakNow,
+            title: "Take Break Now",
+            options: .foreground
+        )
     }
 
     // MARK: - Thread Identifier (for grouping)
