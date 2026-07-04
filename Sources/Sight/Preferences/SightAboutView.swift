@@ -51,7 +51,6 @@ struct SightAboutView: View {
 
     // MARK: - App Info Card
 
-    @MainActor
     private var appInfoCard: some View {
         VStack(spacing: 20) {
             // Logo
@@ -130,7 +129,6 @@ struct SightAboutView: View {
 
     // MARK: - Features Card
 
-    @MainActor
     private var featuresCard: some View {
         EnhancedSettingsCard(
             icon: "sparkles",
@@ -252,7 +250,6 @@ struct FeatureRow: View {
     let title: String
     let description: String
 
-    @MainActor
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
@@ -285,7 +282,6 @@ struct LinkRow: View {
 
     @State private var isHovered = false
 
-    @MainActor
     var body: some View {
         Button(action: {
             if let url = URL(string: url) {
