@@ -30,6 +30,16 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application launched")
 
+        setupCoreDependencies()
+        setupManagers()
+        setupLoginItemSync()
+        setupNotificationObservers()
+        setupAppBehavior()
+        setupMemoryPressureMonitoring()
+        setupAppNapPrevention()
+    }
+
+    private func setupCoreDependencies() {
         // Configure state machine with saved preferences
         stateMachine.configuration = PreferencesManager.shared.timerConfiguration
 
@@ -47,7 +57,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             }
             ShortcutManager.shared.startMonitoring()
         }
+    }
 
+    private func setupManagers() {
         // Setup Nudges
         MicroNudgesManager.shared.onNudge = { event in
             Renderer.showNudge(type: event.type)
@@ -103,7 +115,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
+    }
 
+    private func setupLoginItemSync() {
         // Sync Launch at Login with system
         LoginItemManager.shared.syncWithPreferences(PreferencesManager.shared)
 
@@ -114,7 +128,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 LoginItemManager.shared.setEnabled(enabled)
             }
             .store(in: &cancellables)
+    }
 
+    private func setupNotificationObservers() {
         // Observe skip break events from overlay (Escape key, Skip button)
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("SightSkipBreak"),
@@ -191,7 +207,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 self.stateMachine.postpone(minutes: minutes)
             }
         }
+    }
 
+    private func setupAppBehavior() {
         // Hide dock icon (LSUIElement behavior)
         NSApp.setActivationPolicy(.accessory)
 
@@ -206,10 +224,6 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             // Onboarding already done - start timer normally
             startTimerIfAppropriate()
         }
-
-        // PERFORMANCE: Setup monitoring for 24/7 operation
-        setupMemoryPressureMonitoring()
-        setupAppNapPrevention()
     }
 
     private func startTimerIfAppropriate() {
