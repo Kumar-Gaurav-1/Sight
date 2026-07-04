@@ -373,7 +373,7 @@ struct TimeBreakdownChart: View {
         }
     }
 
-    private func segmentStartAngle(at index: Int) -> Double {
+    @MainActor private func segmentStartAngle(at index: Int) -> Double {
         var angle: Double = 0
         for i in 0..<index {
             angle += Double(segments[i].value) / Double(total) * 360
@@ -381,7 +381,7 @@ struct TimeBreakdownChart: View {
         return angle
     }
 
-    private func segmentEndAngle(at index: Int) -> Double {
+    @MainActor private func segmentEndAngle(at index: Int) -> Double {
         segmentStartAngle(at: index) + Double(segments[index].value) / Double(total) * 360
     }
 }
