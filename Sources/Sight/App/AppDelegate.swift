@@ -123,7 +123,8 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self else { return }
 
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 // SECURITY: Debounce to prevent double-skip
                 // If skipToNext was called recently (within 500ms), ignore this notification
                 let now = Date()
@@ -153,7 +154,8 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self else { return }
 
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 // Resume timer if it was paused by user (manual break)
                 if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
                     self.logger.info("Manual break ended, resuming timer")
@@ -170,7 +172,8 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self else { return }
 
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 self.logger.info("Take break requested via notification")
                 self.menuBarController?.viewModel.triggerShortBreak()
             }
@@ -184,8 +187,10 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] notification in
             guard let self = self else { return }
 
-            Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 self.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
                 self.stateMachine.postpone(minutes: minutes)
@@ -234,7 +239,8 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self else { return }
             self.logger.info("Onboarding completed - starting timer")
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 self.startTimerIfAppropriate()
             }
         }
