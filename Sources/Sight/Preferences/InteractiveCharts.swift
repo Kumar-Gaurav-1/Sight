@@ -209,7 +209,7 @@ struct ActivityHeatmapView: View {
         return formatter.string(from: date)
     }
 
-    private func intensityColor(_ intensity: Double) -> Color {
+    @MainActor private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -237,7 +237,7 @@ struct HeatmapCell: View {
         return Double(value) / Double(maxValue)
     }
 
-    private var cellColor: Color {
+    @MainActor private var cellColor: Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -291,7 +291,7 @@ struct TimeBreakdownChart: View {
         max(1, screenTime + breakTime + meetingTime + idleTime)
     }
 
-    private var segments: [(label: String, value: Int, color: Color, icon: String)] {
+    @MainActor private var segments: [(label: String, value: Int, color: Color, icon: String)] {
         [
             ("Screen", screenTime, SightTheme.accent, "display"),
             ("Breaks", breakTime, SightTheme.success, "eye.slash"),
