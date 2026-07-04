@@ -18,10 +18,32 @@ public final class SocketRendererClient: RendererAPI {
 
     // MARK: - Socket Path
 
-    /// Default socket path in user's temporary directory
+    /// Default socket path in the app's secure Application Support directory
     public static var defaultSocketPath: String {
-        let tmpDir = FileManager.default.temporaryDirectory
-        return tmpDir.appendingPathComponent("sight-renderer.sock").path
+        let fileManager = FileManager.default
+        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fileManager.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
+
+        let appDirURL = appSupportURL.appendingPathComponent("com.kumargaurav.Sight")
+
+        do {
+            if !fileManager.fileExists(atPath: appDirURL.path) {
+                try fileManager.createDirectory(
+                    at: appDirURL,
+                    withIntermediateDirectories: true,
+                    attributes: [.posixPermissions: 0o700]
+                )
+            } else {
+                try fileManager.setAttributes(
+                    [.posixPermissions: 0o700],
+                    ofItemAtPath: appDirURL.path
+                )
+            }
+        } catch {
+            // Proceed anyway; socket creation will fail if the directory is inaccessible
+        }
+
+        return appDirURL.appendingPathComponent("sight-renderer.sock").path
     }
 
     // MARK: - Initialization
