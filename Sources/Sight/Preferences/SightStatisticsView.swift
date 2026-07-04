@@ -406,7 +406,7 @@ struct SightStatisticsView: View {
 
     // MARK: - Export
 
-    private func exportJSON() {
+    @MainActor private func exportJSON() {
         Task.detached(priority: .userInitiated) {
             guard let data = await MainActor.run(body: { self.adherence.exportAsJSON() }) else {
                 return
@@ -424,7 +424,7 @@ struct SightStatisticsView: View {
         }
     }
 
-    private func exportCSV() {
+    @MainActor private func exportCSV() {
         Task.detached(priority: .userInitiated) {
             let csv = await MainActor.run(body: { self.adherence.exportAsCSV() })
 
@@ -725,7 +725,7 @@ struct LegendItem: View {
 @MainActor
 struct ExportButton: View {
     let label: String
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     @State private var isHovered = false
 
