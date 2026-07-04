@@ -25,14 +25,14 @@ enum SightTheme {
     // MARK: - Dynamic Accent Colors
 
     /// Primary accent color - dynamic based on user preference (hue slider)
-    @MainActor
+
     static var accent: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
     }
 
     /// Accent light variant - dynamic based on user preference
-    @MainActor
+
     static var accentLight: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.4, brightness: 1.0)
@@ -62,7 +62,7 @@ enum SightTheme {
     // MARK: - Gradients
 
     /// Primary accent gradient - dynamic based on user preference
-    @MainActor
+
     static var accentGradient: LinearGradient {
         LinearGradient(
             colors: [accent, accentLight],
@@ -145,7 +145,7 @@ enum SightTheme {
     }
 
     /// Get gradient for current user preference
-    @MainActor
+
     static var breakGradient: LinearGradient {
         let presetName = PreferencesManager.shared.breakGradientPreset
         let preset = GradientPreset(rawValue: presetName) ?? .sunset
@@ -156,7 +156,7 @@ enum SightTheme {
     static let glassBackground = Color.white.opacity(0.08)
 
     /// Subtle glow color using accent
-    @MainActor
+
     static var glowColor: Color {
         accent.opacity(0.4)
     }
@@ -257,13 +257,13 @@ enum SightTheme {
 
 extension SightTheme {
     /// Check if reduced motion is enabled
-    @MainActor
+
     static var reduceMotion: Bool {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
     /// Get animation respecting reduce motion
-    @MainActor
+
     static func animation(_ animation: Animation) -> Animation? {
         reduceMotion ? nil : animation
     }
@@ -304,7 +304,7 @@ extension View {
     }
 
     /// Add glow effect
-    @MainActor
+
     func glowEffect(_ color: Color? = nil, radius: CGFloat = 10) -> some View {
         let effectColor = color ?? SightTheme.accent
         return self.shadow(color: effectColor.opacity(0.5), radius: radius, x: 0, y: 0)
