@@ -62,6 +62,7 @@ final class MockRendererAPI: RendererAPI {
 
 // MARK: - Timer State Extended Tests
 
+@MainActor
 final class TimerStateExtendedTests: XCTestCase {
     
     // MARK: - State Transition Tests
