@@ -3,6 +3,7 @@ import SwiftUI
 
 // MARK: - Sound Effects View
 
+@MainActor
 struct SightSoundEffectsView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
 

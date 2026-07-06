@@ -73,7 +73,8 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
 // MARK: - Main Preferences View
 
-public struct SightPreferencesView: View {
+public @MainActor
+struct SightPreferencesView: View {
     @State private var selectedTab: SettingsTab = .general
     @State private var hoveredTab: SettingsTab?
     @State private var searchText: String = ""
@@ -229,7 +230,8 @@ public struct SightPreferencesView: View {
 
 // MARK: - Sidebar Item
 
-private struct SidebarItem: View {
+private @MainActor
+struct SidebarItem: View {
     let tab: SettingsTab
     let isSelected: Bool
     let isHovered: Bool
@@ -292,7 +294,8 @@ private struct SidebarItem: View {
 
 // MARK: - General Settings
 
-private struct GeneralSettingsView: View {
+private @MainActor
+struct GeneralSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
     @State private var showResetAlert = false
 
@@ -416,7 +419,8 @@ private struct GeneralSettingsView: View {
 
 // MARK: - Breaks Settings
 
-private struct BreaksSettingsView: View {
+private @MainActor
+struct BreaksSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
     var body: some View {
@@ -491,7 +495,8 @@ private struct BreaksSettingsView: View {
 
 // MARK: - Wellness Settings
 
-private struct WellnessSettingsView: View {
+private @MainActor
+struct WellnessSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
     var body: some View {
@@ -663,7 +668,8 @@ private struct WellnessSettingsView: View {
 
 // MARK: - Sounds Settings
 
-private struct SoundsSettingsView: View {
+private @MainActor
+struct SoundsSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
     var body: some View {
@@ -743,7 +749,8 @@ private struct SoundsSettingsView: View {
 
 // MARK: - Appearance Settings
 
-private struct AppearanceSettingsView: View {
+private @MainActor
+struct AppearanceSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
     var body: some View {
@@ -889,7 +896,8 @@ private struct AppearanceSettingsView: View {
 
 // MARK: - Position Button
 
-private struct PositionButton: View {
+private @MainActor
+struct PositionButton: View {
     let position: String
     let label: String
     let current: String
@@ -936,7 +944,8 @@ private struct PositionButton: View {
 
 // MARK: - Shortcuts Settings
 
-private struct ShortcutsSettingsView: View {
+private @MainActor
+struct ShortcutsSettingsView: View {
     var body: some View {
         Form {
             Section {
@@ -968,7 +977,8 @@ private struct ShortcutsSettingsView: View {
     }
 }
 
-private struct ShortcutRow: View {
+private @MainActor
+struct ShortcutRow: View {
     let icon: String
     let color: Color
     let label: String
@@ -994,7 +1004,8 @@ private struct ShortcutRow: View {
 
 // MARK: - About Settings
 
-private struct AboutSettingsView: View {
+private @MainActor
+struct AboutSettingsView: View {
     @State private var glowOpacity: Double = 0.3
     @ObservedObject var adherence = AdherenceManager.shared
 
