@@ -471,6 +471,7 @@ struct SightToggleStyle: ToggleStyle {
 
 // MARK: - Progress Ring View
 
+@MainActor
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
@@ -541,6 +542,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
+@MainActor
 struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color

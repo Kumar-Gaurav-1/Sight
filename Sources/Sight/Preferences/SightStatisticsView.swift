@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
+@MainActor
 struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
@@ -442,6 +443,7 @@ struct SightStatisticsView: View {
 
 // MARK: - Mini Stat Card
 
+@MainActor
 struct MiniStatCard: View {
     let icon: String
     let value: String
@@ -495,6 +497,7 @@ struct MiniStatCard: View {
 
 // MARK: - Hero Stat Card (Legacy)
 
+@MainActor
 struct HeroStatCard: View {
     let icon: String
     let value: String
@@ -537,6 +540,7 @@ struct HeroStatCard: View {
 
 // MARK: - Detail Stat Card
 
+@MainActor
 struct DetailStatCard: View {
     let icon: String
     let title: String
@@ -583,6 +587,7 @@ struct DetailStatCard: View {
 
 // MARK: - Animated Bar Chart
 
+@MainActor
 struct AnimatedBarChart: View {
     let dailyStats: [AdherenceManager.DayStats]
     let animate: Bool
@@ -681,6 +686,7 @@ struct AnimatedBarChart: View {
 
 // MARK: - Supporting Views
 
+@MainActor
 struct PeriodButton: View {
     let title: String
     let isSelected: Bool
@@ -700,6 +706,7 @@ struct PeriodButton: View {
     }
 }
 
+@MainActor
 struct LegendItem: View {
     let color: Color
     let label: String
@@ -716,6 +723,7 @@ struct LegendItem: View {
     }
 }
 
+@MainActor
 struct ExportButton: View {
     let label: String
     let action: () -> Void

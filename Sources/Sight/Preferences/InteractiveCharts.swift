@@ -243,6 +243,7 @@ struct HeatmapCell: View {
         return Double(value) / Double(maxValue)
     }
 
+    @MainActor
     private var cellColor: Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
