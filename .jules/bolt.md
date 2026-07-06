@@ -1,0 +1,3 @@
+## 2024-11-20 - Optimizing array passes in statistics aggregation
+**Learning:** In Swift, chaining higher-order functions like `.reduce` over arrays can create overhead because each call iterates over the array independently and invokes a closure. Even on small datasets (like a 7-day week of stats), consolidating these operations into a single imperative `for` loop provides a measurable improvement in constant-factor time complexity (from O(3N) to O(N)) without significantly degrading readability.
+**Action:** When aggregating multiple metrics from the same dataset (especially in core state managers like `AdherenceManager`), look for opportunities to replace chained or repeated `.reduce` or `.filter` calls with a single unified loop.

@@ -559,12 +559,20 @@ public final class AdherenceManager: ObservableObject {
         let lastWeekStart = calendar.date(byAdding: .day, value: -14, to: now) ?? now
         let lastWeekStats = stats.filter { $0.date >= lastWeekStart && $0.date < thisWeekStart }
 
-        // Calculate metrics
-        let totalBreaks = thisWeekStats.reduce(0) { $0 + $1.breaksCompleted }
-        let totalMinutes = thisWeekStats.reduce(0) { $0 + $1.totalBreakMinutes }
+        // Calculate metrics in a single pass to improve performance
+        var totalBreaks = 0
+        var totalMinutes = 0
+        var totalScore = 0.0
+
+        for stat in thisWeekStats {
+            totalBreaks += stat.breaksCompleted
+            totalMinutes += stat.totalBreakMinutes
+            totalScore += stat.dailyScore
+        }
+
         let avgScore =
             thisWeekStats.isEmpty
-            ? 100.0 : thisWeekStats.reduce(0.0) { $0 + $1.dailyScore } / Double(thisWeekStats.count)
+            ? 100.0 : totalScore / Double(thisWeekStats.count)
 
         // Find best day
         let bestDayStats = thisWeekStats.max(by: { $0.dailyScore < $1.dailyScore })
@@ -573,9 +581,14 @@ public final class AdherenceManager: ObservableObject {
         let bestDayName = bestDayStats.map { dayFormatter.string(from: $0.date) } ?? "N/A"
 
         // Calculate trend
+        var lastWeekTotalScore = 0.0
+        for stat in lastWeekStats {
+            lastWeekTotalScore += stat.dailyScore
+        }
+
         let lastWeekAvg =
             lastWeekStats.isEmpty
-            ? 100.0 : lastWeekStats.reduce(0.0) { $0 + $1.dailyScore } / Double(lastWeekStats.count)
+            ? 100.0 : lastWeekTotalScore / Double(lastWeekStats.count)
         let trend: Trend
         if avgScore > lastWeekAvg + 5 {
             trend = .improving
