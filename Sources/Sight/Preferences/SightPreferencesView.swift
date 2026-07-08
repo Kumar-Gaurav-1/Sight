@@ -73,6 +73,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
 // MARK: - Main Preferences View
 
+@MainActor
 public struct SightPreferencesView: View {
     @State private var selectedTab: SettingsTab = .general
     @State private var hoveredTab: SettingsTab?
