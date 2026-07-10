@@ -77,7 +77,11 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
-    public static nonisolated(unsafe) var shared: TimerStateMachine!
+    #if compiler(>=5.10)
+    nonisolated(unsafe) public static var shared: TimerStateMachine!
+    #else
+    public static var shared: TimerStateMachine!
+    #endif
 
     // MARK: - Private Properties
 
