@@ -7,3 +7,6 @@
 ## 2026-07-10 - CI strict concurrency fixes part 2
 **Learning:** Found more Swift 5.10 strict concurrency CI failures: 1. MainActor isolated static properties like 'SightTheme.accent' cannot be referenced from non-isolated views or helper methods; SwiftUI views using them must be explicitly annotated with '@MainActor'. 2. To satisfy older compilers that do not support 'nonisolated(unsafe)' while preserving strict concurrency suppression for Swift 5.10+, conditional compilation directives '#if compiler(>=5.10)' must be used.
 **Action:** When creating SwiftUI Views or helper methods referencing '@MainActor' properties, always annotate the struct/method with '@MainActor'. Use conditional compilation for newer concurrency keywords to maintain backward compatibility in CI pipelines.
+## 2026-07-10 - CI strict concurrency fixes part 3
+**Learning:** Found more Swift 5.10 strict concurrency CI failures: Custom UI styles like ButtonStyle and ToggleStyle cannot reference '@MainActor'-isolated static properties unless the styles themselves or their 'makeBody' methods are annotated with '@MainActor'.
+**Action:** When creating SwiftUI ButtonStyle, ToggleStyle, or other ViewModifiers referencing '@MainActor' properties, always annotate the struct with '@MainActor' to satisfy strict concurrency.
