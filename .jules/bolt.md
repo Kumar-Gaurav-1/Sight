@@ -1,0 +1,3 @@
+## 2026-07-11 - DateFormatter vs FormatStyle in High-Frequency Loops
+**Learning:** Instantiating `DateFormatter` is a known performance anti-pattern. While caching it statically reduces CPU overhead, it introduces strict concurrency warnings (since `DateFormatter` is a mutable reference type and not `Sendable`) and fails to respect real-time TimeZone or Locale changes if the user updates them while the app is running.
+**Action:** Instead of caching `DateFormatter`, use the modern, highly optimized `FormatStyle` API (e.g., `date.formatted(date: .omitted, time: .shortened)`). This approach is thread-safe, computationally lightweight, and dynamically adjusts to system environment changes without any concurrency overhead.
