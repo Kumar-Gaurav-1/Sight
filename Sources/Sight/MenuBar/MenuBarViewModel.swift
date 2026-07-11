@@ -16,14 +16,6 @@ public final class MenuBarViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Formatters
-    // Cache DateFormatter to avoid expensive instantiation in timer callbacks
-    private static let breakFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
     // Derived UI Properties
     @Published public private(set) var statusIconName: String = "eye.slash"
     @Published public private(set) var statusLabel: String? = nil
@@ -108,10 +100,10 @@ public final class MenuBarViewModel: ObservableObject {
         ) { [weak self] _ in
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let strongSelf = self else { return }
+                guard let self = self else { return }
                 // Resume timer if we paused it for a manual break
-                if strongSelf.stateMachine.isPaused && strongSelf.stateMachine.pauseSource == .user {
-                    strongSelf.stateMachine.resume()
+                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
+                    self.stateMachine.resume()
                 }
             }
         }
@@ -178,7 +170,7 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                nextBreakText = "Break at \(Self.breakFormatter.string(from: date))"
+                nextBreakText = "Break at \(date.formatted(date: .omitted, time: .shortened))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
                 let secs = remainingSeconds % 60
