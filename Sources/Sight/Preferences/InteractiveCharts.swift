@@ -223,7 +223,7 @@ struct ActivityHeatmapView: View {
     }
 }
 
-struct HeatmapCell: View {
+@MainActor struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
     let isSelected: Bool
@@ -731,7 +731,7 @@ struct NudgeComplianceCard: View {
     }
 }
 
-struct ComplianceRing: View {
+@MainActor struct ComplianceRing: View {
     let value: Double  // 0-1
     let icon: String
     let label: String
