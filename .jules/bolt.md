@@ -1,0 +1,3 @@
+## 2024-11-20 - [DateFormatter Bottleneck]
+**Learning:** Found an anti-pattern across 8 files where expensive `DateFormatter` objects were being instantiated frequently, particularly inside `.map` closures and view render loops. This creates unnecessary CPU overhead and allocation churn in Swift.
+**Action:** Extract and cache `DateFormatter` instantiations as `private static let` properties. This provides a massive performance win while remaining fully backward compatible with older deployment targets and strictly matching expected string outputs, avoiding the CI breakages caused by `FormatStyle`.

@@ -17,6 +17,13 @@ struct SightStatisticsView: View {
         adherence.getAggregatedStats(for: selectedPeriod)
     }
 
+    // ⚡ Bolt: Cache expensive DateFormatter
+    fileprivate static let dayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEE"
+        return f
+    }()
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header (Native Style already handled by window title usually, but keeping simple title)
@@ -588,11 +595,6 @@ struct AnimatedBarChart: View {
     let animate: Bool
 
     private let barMaxHeight: CGFloat = 100
-    private let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f
-    }()
 
     private var maxBreaks: Int {
         max(1, dailyStats.map { $0.breaksCompleted }.max() ?? 1)
@@ -616,7 +618,7 @@ struct AnimatedBarChart: View {
                         .frame(height: animate ? barHeight(for: day.breaksCompleted) : 8)
 
                     // Day
-                    Text(dayFormatter.string(from: day.date))
+                    Text(SightStatisticsView.dayFormatter.string(from: day.date))
                         .font(
                             .system(
                                 size: 11,

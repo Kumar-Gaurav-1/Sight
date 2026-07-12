@@ -6,6 +6,13 @@ struct SightBreaksView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
     @State private var selectedTab = 0
 
+    // ⚡ Bolt: Cache expensive DateFormatter
+    private static let shortTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
@@ -235,9 +242,7 @@ struct SightBreaksView: View {
     }
 
     private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        return Self.shortTimeFormatter.string(from: date)
     }
 
     // MARK: - Reminders Section

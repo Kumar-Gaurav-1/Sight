@@ -216,6 +216,9 @@ public struct TelemetryEvent: Codable {
 /// Lightweight runtime profiler for CPU/Battery monitoring and adaptive LOD
 public final class RuntimeProfiler: ObservableObject {
 
+    // ⚡ Bolt: Cache expensive DateFormatter
+    private static let isoFormatter = ISO8601DateFormatter()
+
     // MARK: - Published State
 
     @Published public private(set) var currentMetrics: SystemMetrics?
@@ -620,7 +623,7 @@ public final class RuntimeProfiler: ObservableObject {
             "session_id": sessionId,
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    "timestamp": Self.isoFormatter.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [
