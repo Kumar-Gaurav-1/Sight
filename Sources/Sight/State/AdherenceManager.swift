@@ -7,6 +7,19 @@ import os.log
 /// Implements game-theory logic: "Skipping is allowed but costly"
 public final class AdherenceManager: ObservableObject {
 
+    // ⚡ Bolt: Cache expensive DateFormatter
+    private static let isoFormatter = ISO8601DateFormatter()
+    private static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter
+    }()
+    private static let csvDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
     // MARK: - Published State
 
     @Published public private(set) var weeklyScore: Double = 100.0  // 0-100
@@ -568,8 +581,7 @@ public final class AdherenceManager: ObservableObject {
 
         // Find best day
         let bestDayStats = thisWeekStats.max(by: { $0.dailyScore < $1.dailyScore })
-        // ⚡ Bolt: Replace DateFormatter with modern FormatStyle
-        let bestDayName = bestDayStats.map { $0.date.formatted(.dateTime.weekday(.wide)) } ?? "N/A"
+        let bestDayName = bestDayStats.map { Self.dayFormatter.string(from: $0.date) } ?? "N/A"
 
         // Calculate trend
         let lastWeekAvg =
@@ -657,8 +669,7 @@ public final class AdherenceManager: ObservableObject {
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
         let exportData: [String: Any] = [
-            // ⚡ Bolt: Replace ISO8601DateFormatter with modern FormatStyle
-            "exportDate": Date().formatted(.iso8601),
+            "exportDate": Self.isoFormatter.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,8 +678,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    // ⚡ Bolt: Replace ISO8601DateFormatter with modern FormatStyle
-                    "date": day.date.formatted(.iso8601),
+                    "date": Self.isoFormatter.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -698,11 +708,8 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(dateFormatter.string(from: day.date)),"
+            csv += "\(Self.csvDateFormatter.string(from: day.date)),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
             csv += "\(day.nudgesFollowed),"
@@ -889,9 +896,8 @@ public final class AdherenceManager: ObservableObject {
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            // ⚡ Bolt: Replace ISO8601DateFormatter with modern FormatStyle
             let line =
-                "\(day.date.formatted(.iso8601)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
+                "\(Self.isoFormatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
             csv += line
         }
 
@@ -921,8 +927,7 @@ public final class AdherenceManager: ObservableObject {
             return nil
         }
 
-        // ⚡ Bolt: Replace ISO8601DateFormatter with modern FormatStyle
-        let timestamp = Date().formatted(.iso8601)
+        let timestamp = Self.isoFormatter.string(from: Date())
             .replacingOccurrences(of: ":", with: "-")
 
         let filename: String

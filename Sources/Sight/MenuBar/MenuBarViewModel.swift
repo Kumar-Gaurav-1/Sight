@@ -35,6 +35,13 @@ public final class MenuBarViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var breakEndedObserver: NSObjectProtocol?
 
+    // ⚡ Bolt: Cache expensive DateFormatter to improve performance
+    private static let shortTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
     // MARK: - Initialization
 
     public init(stateMachine: TimerStateMachine) {
@@ -100,10 +107,10 @@ public final class MenuBarViewModel: ObservableObject {
         ) { [weak self] _ in
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let strongSelf = self else { return }
+                guard let self = self else { return }
                 // Resume timer if we paused it for a manual break
-                if strongSelf.stateMachine.isPaused && strongSelf.stateMachine.pauseSource == .user {
-                    strongSelf.stateMachine.resume()
+                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
+                    self.stateMachine.resume()
                 }
             }
         }
@@ -170,8 +177,7 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                // ⚡ Bolt: Replace expensive DateFormatter instantiation with modern FormatStyle
-                nextBreakText = "Break at \(date.formatted(date: .omitted, time: .shortened))"
+                nextBreakText = "Break at \(Self.shortTimeFormatter.string(from: date))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
                 let secs = remainingSeconds % 60

@@ -95,6 +95,13 @@ struct ActivityHeatmapView: View {
     @State private var selectedHour: Int?
     @State private var isAnimated = false
 
+    // ⚡ Bolt: Cache expensive DateFormatter
+    private static let hourFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "ha"
+        return formatter
+    }()
+
     private var maxValue: Int {
         max(1, hourlyDistribution.values.max() ?? 1)
     }
@@ -204,8 +211,7 @@ struct ActivityHeatmapView: View {
 
     private func hourLabel(_ hour: Int) -> String {
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
-        // ⚡ Bolt: Replace DateFormatter with modern FormatStyle
-        return date.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)))
+        return Self.hourFormatter.string(from: date)
     }
 
     private func intensityColor(_ intensity: Double) -> Color {
@@ -223,7 +229,7 @@ struct ActivityHeatmapView: View {
     }
 }
 
-@MainActor struct HeatmapCell: View {
+struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
     let isSelected: Bool
@@ -731,7 +737,7 @@ struct NudgeComplianceCard: View {
     }
 }
 
-@MainActor struct ComplianceRing: View {
+struct ComplianceRing: View {
     let value: Double  // 0-1
     let icon: String
     let label: String

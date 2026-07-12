@@ -6,6 +6,13 @@ import os.log
 /// Generates personalized wellness insights based on user behavior patterns
 public final class InsightsEngine {
 
+    // ⚡ Bolt: Cache expensive DateFormatter
+    private static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter
+    }()
+
     // MARK: - Types
 
     /// Pattern detection thresholds
@@ -274,8 +281,7 @@ public final class InsightsEngine {
         if weekStats.count >= 7 {
             var dayScores: [String: Double] = [:]
             for day in weekStats {
-                // ⚡ Bolt: Replace DateFormatter with modern FormatStyle
-                let dayName = day.date.formatted(.dateTime.weekday(.wide))
+                let dayName = Self.dayFormatter.string(from: day.date)
                 dayScores[dayName] = day.dailyScore
             }
 

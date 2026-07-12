@@ -17,6 +17,13 @@ struct SightStatisticsView: View {
         adherence.getAggregatedStats(for: selectedPeriod)
     }
 
+    // ⚡ Bolt: Cache expensive DateFormatter
+    fileprivate static let dayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEE"
+        return f
+    }()
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header (Native Style already handled by window title usually, but keeping simple title)
@@ -611,8 +618,7 @@ struct AnimatedBarChart: View {
                         .frame(height: animate ? barHeight(for: day.breaksCompleted) : 8)
 
                     // Day
-                    // ⚡ Bolt: Replace DateFormatter with modern FormatStyle
-                    Text(day.date.formatted(.dateTime.weekday(.abbreviated)))
+                    Text(SightStatisticsView.dayFormatter.string(from: day.date))
                         .font(
                             .system(
                                 size: 11,

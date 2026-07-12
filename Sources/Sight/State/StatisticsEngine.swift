@@ -207,8 +207,7 @@ public enum WellnessInsight: Codable, Identifiable, Equatable {
             if let date = Calendar.current.date(
                 bySettingHour: hour, minute: 0, second: 0, of: Date())
             {
-                // ⚡ Bolt: Replace DateFormatter with modern FormatStyle
-                return "⏰ Peak focus: \(date.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated))))"
+                return "⏰ Peak focus: \(StatisticsEngine.hourFormatter.string(from: date))"
             } else {
                 return "⏰ Peak focus: \(hour):00"
             }
@@ -392,6 +391,13 @@ public struct HourlyDistribution: Codable {
 /// Core statistics engine for advanced analytics
 @MainActor
 public final class StatisticsEngine: ObservableObject {
+
+    // ⚡ Bolt: Cache expensive DateFormatter
+    fileprivate static let hourFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h a"
+        return formatter
+    }()
 
     // MARK: - Published State
 
