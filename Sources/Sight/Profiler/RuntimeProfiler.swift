@@ -620,7 +620,8 @@ public final class RuntimeProfiler: ObservableObject {
             "session_id": sessionId,
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    // ⚡ Bolt: Replace ISO8601DateFormatter with modern FormatStyle
+                    "timestamp": event.timestamp.formatted(.iso8601),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [

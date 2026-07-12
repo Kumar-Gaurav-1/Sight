@@ -235,9 +235,8 @@ struct SightBreaksView: View {
     }
 
     private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        // ⚡ Bolt: Replace expensive DateFormatter instantiation with modern FormatStyle
+        return date.formatted(date: .omitted, time: .shortened)
     }
 
     // MARK: - Reminders Section
