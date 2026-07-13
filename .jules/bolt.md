@@ -1,0 +1,3 @@
+## 2024-07-13 - DateFormatter Performance Anti-Pattern in Timer Updates
+**Learning:** Instantiating `DateFormatter()` inside a timer update loop (`updateDerivedProperties` called every second) is a major performance anti-pattern in Swift. `DateFormatter` is notoriously expensive to initialize. It can cause UI stutter and excessive CPU usage, particularly in a persistent status bar app.
+**Action:** Always prefer the modern `FormatStyle` API (e.g., `date.formatted(date: .omitted, time: .shortened)`) introduced in iOS 15 / macOS 12 over `DateFormatter` instantiation or caching. The new API is highly optimized, thread-safe, and automatically adapts to locale/timezone changes without the overhead.
