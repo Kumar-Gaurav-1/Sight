@@ -1,0 +1,3 @@
+## 2024-05-24 - [Avoid DateFormatter Allocations in Hot Paths]
+**Learning:** [Allocating `DateFormatter` inside a high-frequency timer loop (like `MenuBarViewModel.updateDerivedProperties()` which fires every tick) is a classic Swift/Objective-C performance anti-pattern. While caching `DateFormatter` is a common fix, it introduces strict concurrency issues in modern Swift (since it's not `Sendable`) and fails to respect real-time locale/timezone changes.]
+**Action:** [Use the modern, highly-optimized `FormatStyle` API (e.g., `date.formatted(date: .omitted, time: .shortened)`) which is thread-safe, computationally much cheaper than `DateFormatter`, and automatically responds to environment changes.]
