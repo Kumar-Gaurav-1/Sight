@@ -4,3 +4,6 @@
 ## 2024-05-24 - [Fixing Swift 6 Strict Concurrency]
 **Learning:** [When fixing CI failures related to strict concurrency in SwiftUI views that access `@MainActor` global themes (like `SightTheme.accent`), the entire `View` struct needs `@MainActor`. Additionally, `nonisolated(unsafe)` must be wrapped in `#if compiler(>=5.10)` to avoid breaking older CI runners, and closures cannot shadow `self` (must use `strongSelf`) in concurrent contexts.]
 **Action:** [Apply `@MainActor` to views touching UI-isolated state, wrap `nonisolated(unsafe)` globals conditionally, and unwrap `[weak self]` to unique names in Tasks.]
+## 2024-05-24 - [Fixing Swift 6 Strict Concurrency: Capturing self and non-Sendable types]
+**Learning:** [When capturing `self` or non-Sendable types (like `Notification`) inside a concurrent context (e.g., `Task { @MainActor in }`) nested within a closure (e.g., `Timer.scheduledTimer` or `NotificationCenter.addObserver`), unwrapping `[weak self]` or extracting values *inside* the `Task` will cause strict concurrency compiler errors ("reference to captured var 'self' in concurrently-executing code" or "capture of non-sendable type").]
+**Action:** [Always extract non-Sendable values and strongly unwrap `[weak self]` (using a distinct variable like `guard let strongSelf = self`) *outside* and *before* crossing the `Task { @MainActor in }` boundary.]
