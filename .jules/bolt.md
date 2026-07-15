@@ -1,3 +1,6 @@
 ## 2024-05-24 - [Avoid DateFormatter Allocations in Hot Paths]
 **Learning:** [Allocating `DateFormatter` inside a high-frequency timer loop (like `MenuBarViewModel.updateDerivedProperties()` which fires every tick) is a classic Swift/Objective-C performance anti-pattern. While caching `DateFormatter` is a common fix, it introduces strict concurrency issues in modern Swift (since it's not `Sendable`) and fails to respect real-time locale/timezone changes.]
 **Action:** [Use the modern, highly-optimized `FormatStyle` API (e.g., `date.formatted(date: .omitted, time: .shortened)`) which is thread-safe, computationally much cheaper than `DateFormatter`, and automatically responds to environment changes.]
+## 2024-05-24 - [Fixing Swift 6 Strict Concurrency]
+**Learning:** [When fixing CI failures related to strict concurrency in SwiftUI views that access `@MainActor` global themes (like `SightTheme.accent`), the entire `View` struct needs `@MainActor`. Additionally, `nonisolated(unsafe)` must be wrapped in `#if compiler(>=5.10)` to avoid breaking older CI runners, and closures cannot shadow `self` (must use `strongSelf`) in concurrent contexts.]
+**Action:** [Apply `@MainActor` to views touching UI-isolated state, wrap `nonisolated(unsafe)` globals conditionally, and unwrap `[weak self]` to unique names in Tasks.]
