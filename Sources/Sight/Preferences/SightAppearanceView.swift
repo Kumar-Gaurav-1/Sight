@@ -816,22 +816,25 @@ struct BackgroundTypeCard: View {
             }
 
             guard let data = item as? Data,
-                let url = URL(dataRepresentation: data, relativeTo: nil),
-                isImageFile(url: url)
+                let url = URL(dataRepresentation: data, relativeTo: nil)
             else {
                 logger.warning("Invalid drop: not an image file")
                 return
             }
 
-            DispatchQueue.main.async {
-                onDrop(url.path)
+            if isImageFile(url: url) {
+                Task { @MainActor in
+                    onDrop(url.path)
+                }
+            } else {
+                logger.warning("Invalid drop: not an image file")
             }
         }
 
         return true
     }
 
-    private func isImageFile(url: URL) -> Bool {
+    nonisolated private func isImageFile(url: URL) -> Bool {
         let imageExtensions = [
             "jpg", "jpeg", "png", "gif", "heic", "heif", "webp", "tiff", "tif", "bmp",
         ]

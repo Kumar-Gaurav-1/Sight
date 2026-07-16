@@ -33,7 +33,9 @@ struct SightShortcutsView: View {
             permissionCheckTimer?.invalidate()
             // Start polling for permission changes
             permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                shortcutManager.checkPermissions()
+                Task { @MainActor in
+                    shortcutManager.checkPermissions()
+                }
             }
         }
         .onDisappear {
