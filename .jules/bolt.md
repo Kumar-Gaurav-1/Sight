@@ -1,0 +1,3 @@
+## 2024-07-16 - Optimize DateFormatter in UI code
+**Learning:** Using `DateFormatter` directly within SwiftUI view builders or helper functions (like `hourLabel`) causes performance overhead on every view update pass. While caching it statically is one fix, using the modern `FormatStyle` API (e.g., `date.formatted(.dateTime.hour())`) is faster, cleaner, natively localized, and fully threads-safe without strict concurrency warnings.
+**Action:** Always prefer `FormatStyle` over `DateFormatter` in modern Swift (macOS 12+/iOS 15+) when dealing with simple date/time string rendering, especially inside high-frequency UI rendering paths.
