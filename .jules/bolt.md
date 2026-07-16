@@ -1,3 +1,0 @@
-## 2024-07-16 - ISO8601DateFormatter Loop Performance
-**Learning:** Calling `Date().formatted(.iso8601)` inside loops or map closures forces the underlying evaluation of a FormatStyle on every iteration, leading to significant overhead. Despite the modern syntactic sugar, a static shared instance of `ISO8601DateFormatter` (or one hoisted strictly outside the loop) provides superior performance and should be the preferred optimization mechanism when resolving expensive date parsing in a hot path.
-**Action:** Always prefer caching/hoisting a single static `ISO8601DateFormatter` instance over inline `.formatted()` calls for raw performance, especially in list processing or exports.
