@@ -7,6 +7,11 @@ struct SightAboutView: View {
     @State private var logoHovered = false
     @State private var showVersion = false
 
+    @MainActor
+    private var accentColor: Color {
+        SightTheme.accent
+    }
+
     private let version =
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     private let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
@@ -57,7 +62,7 @@ struct SightAboutView: View {
             ZStack {
                 // Glow
                 Circle()
-                    .fill(SightTheme.accent.opacity(0.2))
+                    .fill(accentColor.opacity(0.2))
                     .frame(width: 100, height: 100)
                     .blur(radius: 20)
                     .scaleEffect(logoHovered ? 1.2 : 1)
@@ -69,7 +74,7 @@ struct SightAboutView: View {
                         .scaledToFit()
                         .frame(width: 80, height: 80)
                         .cornerRadius(18)
-                        .shadow(color: SightTheme.accent.opacity(0.5), radius: 15)
+                        .shadow(color: accentColor.opacity(0.5), radius: 15)
                         .scaleEffect(logoHovered ? 1.1 : 1)
                         .onHover { logoHovered = $0 }
                 } else {
@@ -79,8 +84,8 @@ struct SightAboutView: View {
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        SightTheme.accent,
-                                        SightTheme.accent.opacity(0.7),
+                                        accentColor,
+                                        accentColor.opacity(0.7),
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -132,7 +137,7 @@ struct SightAboutView: View {
     private var featuresCard: some View {
         EnhancedSettingsCard(
             icon: "sparkles",
-            iconColor: SightTheme.accent,
+            iconColor: accentColor,
             title: "Features",
             delay: 0
         ) {

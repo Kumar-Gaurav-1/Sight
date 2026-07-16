@@ -11,19 +11,24 @@ struct WellnessGaugeView: View {
 
     @State private var animatedScore: Double = 0
 
+    @MainActor
+    private var accentColor: Color { SightTheme.accent }
+
+    @MainActor
     private var scoreColor: Color {
         if score >= 80 { return SightTheme.success }
-        if score >= 60 { return SightTheme.accent }
+        if score >= 60 { return accentColor }
         if score >= 40 { return SightTheme.warning }
         return SightTheme.danger
     }
 
+    @MainActor
     private var scoreGradient: AngularGradient {
         AngularGradient(
             gradient: Gradient(colors: [
                 SightTheme.danger,
                 SightTheme.warning,
-                SightTheme.accent,
+                accentColor,
                 SightTheme.success,
             ]),
             center: .center,
@@ -209,6 +214,7 @@ struct ActivityHeatmapView: View {
         return formatter.string(from: date)
     }
 
+    @MainActor
     private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
@@ -237,13 +243,17 @@ struct HeatmapCell: View {
         return Double(value) / Double(maxValue)
     }
 
+    @MainActor
+    private var accentColor: Color { SightTheme.accent }
+
+    @MainActor
     private var cellColor: Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
-            return SightTheme.accent.opacity(0.3)
+            return accentColor.opacity(0.3)
         } else if intensity < 0.6 {
-            return SightTheme.accent.opacity(0.6)
+            return accentColor.opacity(0.6)
         } else if intensity < 0.8 {
             return SightTheme.success.opacity(0.7)
         } else {
@@ -291,9 +301,13 @@ struct TimeBreakdownChart: View {
         max(1, screenTime + breakTime + meetingTime + idleTime)
     }
 
+    @MainActor
+    private var accentColor: Color { SightTheme.accent }
+
+    @MainActor
     private var segments: [(label: String, value: Int, color: Color, icon: String)] {
         [
-            ("Screen", screenTime, SightTheme.accent, "display"),
+            ("Screen", screenTime, accentColor, "display"),
             ("Breaks", breakTime, SightTheme.success, "eye.slash"),
             ("Meetings", meetingTime, .purple, "video.fill"),
             ("Idle", idleTime, SightTheme.tertiaryText, "moon.zzz"),
