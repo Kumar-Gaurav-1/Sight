@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
+@MainActor
 struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
@@ -359,8 +360,8 @@ struct SightStatisticsView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
-                        ExportButton(label: "JSON", action: exportJSON)
-                        ExportButton(label: "CSV", action: exportCSV)
+                        ExportButton(label: "JSON") { exportJSON() }
+                        ExportButton(label: "CSV") { exportCSV() }
                     }
                 }
                 .padding(16)
@@ -583,6 +584,7 @@ struct DetailStatCard: View {
 
 // MARK: - Animated Bar Chart
 
+@MainActor
 struct AnimatedBarChart: View {
     let dailyStats: [AdherenceManager.DayStats]
     let animate: Bool
@@ -680,6 +682,7 @@ struct AnimatedBarChart: View {
 
 // MARK: - Supporting Views
 
+@MainActor
 struct PeriodButton: View {
     let title: String
     let isSelected: Bool
@@ -715,9 +718,10 @@ struct LegendItem: View {
     }
 }
 
+@MainActor
 struct ExportButton: View {
     let label: String
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     @State private var isHovered = false
 
