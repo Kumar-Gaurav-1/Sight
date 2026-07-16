@@ -5,6 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
+@MainActor
 struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
