@@ -51,7 +51,7 @@ struct SightAboutView: View {
 
     // MARK: - App Info Card
 
-    private var appInfoCard: some View {
+     @MainActor private var appInfoCard: some View {
         VStack(spacing: 20) {
             // Logo
             ZStack {
@@ -129,7 +129,7 @@ struct SightAboutView: View {
 
     // MARK: - Features Card
 
-    private var featuresCard: some View {
+     @MainActor private var featuresCard: some View {
         EnhancedSettingsCard(
             icon: "sparkles",
             iconColor: SightTheme.accent,

@@ -291,7 +291,7 @@ struct TimeBreakdownChart: View {
         max(1, screenTime + breakTime + meetingTime + idleTime)
     }
 
-    private var segments: [(label: String, value: Int, color: Color, icon: String)] {
+     @MainActor private var segments: [(label: String, value: Int, color: Color, icon: String)] {
         [
             ("Screen", screenTime, SightTheme.accent, "display"),
             ("Breaks", breakTime, SightTheme.success, "eye.slash"),
