@@ -13,7 +13,7 @@ public final class MeetingDetector: ObservableObject {
     @Published public private(set) var currentMeeting: String?
     @Published public private(set) var hasCalendarAccess: Bool = false
 
-    private let eventStore = EKEventStore()
+    var eventStore: EKEventStore = EKEventStore()
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "MeetingDetector")
     private var checkTimer: Timer?
 
