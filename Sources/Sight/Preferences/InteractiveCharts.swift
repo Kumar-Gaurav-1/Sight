@@ -11,14 +11,14 @@ struct WellnessGaugeView: View {
 
     @State private var animatedScore: Double = 0
 
-    private var scoreColor: Color {
+    @MainActor private var scoreColor: Color {
         if score >= 80 { return SightTheme.success }
         if score >= 60 { return SightTheme.accent }
         if score >= 40 { return SightTheme.warning }
         return SightTheme.danger
     }
 
-    private var scoreGradient: AngularGradient {
+    @MainActor private var scoreGradient: AngularGradient {
         AngularGradient(
             gradient: Gradient(colors: [
                 SightTheme.danger,
@@ -209,6 +209,7 @@ struct ActivityHeatmapView: View {
         return formatter.string(from: date)
     }
 
+    @MainActor
     private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
@@ -291,7 +292,7 @@ struct TimeBreakdownChart: View {
         max(1, screenTime + breakTime + meetingTime + idleTime)
     }
 
-    private var segments: [(label: String, value: Int, color: Color, icon: String)] {
+    @MainActor private var segments: [(label: String, value: Int, color: Color, icon: String)] {
         [
             ("Screen", screenTime, SightTheme.accent, "display"),
             ("Breaks", breakTime, SightTheme.success, "eye.slash"),
