@@ -140,15 +140,6 @@ public final class TimerStateMachine: ObservableObject {
         }
     }
 
-    private func removeSystemObservers() {
-        if let observer = wakeObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
-        }
-        if let observer = sleepObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
-        }
-    }
-
     private func handleSystemWake() {
         logger.info("System wake detected")
 
