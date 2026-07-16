@@ -55,6 +55,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
 }
 
 public struct OnboardingView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var currentStep: OnboardingStep? = .welcome
 
     // Settings State
@@ -269,12 +270,7 @@ public struct OnboardingView: View {
         NotificationCenter.default.post(
             name: NSNotification.Name("OnboardingCompleted"), object: nil)
 
-        for window in NSApplication.shared.windows {
-            if window.identifier?.rawValue == "onboarding" {
-                window.close()
-                return
-            }
-        }
+        dismiss()
     }
 }
 
