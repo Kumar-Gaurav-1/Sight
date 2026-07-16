@@ -9,10 +9,9 @@ struct MiniExerciseNudgeView: View {
 
     @State private var bounce = false
     @State private var countdown: Int
-    @State private var dragY: CGFloat = 0
     @State private var timer: Timer?
     @State private var snoozeHovered = false
-    @State private var isDismissing = false  // Prevent double dismiss
+    @StateObject private var nudgeState = NudgeState()
 
     private let accentColor = Color.green
 
@@ -94,7 +93,7 @@ struct MiniExerciseNudgeView: View {
 
             // Snooze button with hover
             if onSnooze != nil {
-                Button(action: { snooze() }) {
+                Button(action: { nudgeState.dismiss(stopTimer: stopTimer) { onSnooze?() } }) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(snoozeHovered ? .primary : .secondary)
@@ -133,19 +132,7 @@ struct MiniExerciseNudgeView: View {
             Capsule()
                 .strokeBorder(Color.primary.opacity(0.1), lineWidth: 1)
         )
-        .offset(y: dragY)
-        .gesture(
-            DragGesture()
-                .onChanged { dragY = min(0, $0.translation.height * 0.6) }
-                .onEnded { value in
-                    if value.translation.height < -30 {
-                        dismiss()
-                    } else {
-                        withAnimation(.spring(response: 0.3)) { dragY = 0 }
-                    }
-                }
-        )
-        .onTapGesture { dismiss() }
+        .nudgeGestures(state: nudgeState, stopTimer: stopTimer, onDismiss: onDismiss)
         .onAppear { startTimers() }
         .onDisappear { stopTimer() }
     }
@@ -157,7 +144,7 @@ struct MiniExerciseNudgeView: View {
         }
 
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [self] t in
-            guard !isDismissing else {
+            guard !nudgeState.isDismissing else {
                 t.invalidate()
                 return
             }
@@ -168,7 +155,7 @@ struct MiniExerciseNudgeView: View {
                 }
             } else {
                 t.invalidate()
-                dismiss()
+                nudgeState.dismiss(stopTimer: stopTimer) { onDismiss?() }
             }
         }
     }
@@ -176,32 +163,6 @@ struct MiniExerciseNudgeView: View {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
-    }
-
-    private func dismiss() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            onDismiss?()
-        }
-    }
-
-    private func snooze() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            onSnooze?()
-        }
     }
 }
 
