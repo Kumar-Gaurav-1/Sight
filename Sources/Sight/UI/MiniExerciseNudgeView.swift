@@ -8,11 +8,9 @@ struct MiniExerciseNudgeView: View {
     var autoDismissSeconds: Double = 6.0
 
     @State private var bounce = false
-    @State private var countdown: Int
-    @State private var dragY: CGFloat = 0
-    @State private var timer: Timer?
     @State private var snoozeHovered = false
-    @State private var isDismissing = false  // Prevent double dismiss
+
+    @StateObject private var state: NudgeState
 
     private let accentColor = Color.green
 
@@ -35,7 +33,7 @@ struct MiniExerciseNudgeView: View {
         self.onDismiss = onDismiss
         self.onSnooze = onSnooze
         self.autoDismissSeconds = autoDismissSeconds
-        _countdown = State(initialValue: Int(autoDismissSeconds))
+        _state = StateObject(wrappedValue: NudgeState(autoDismissSeconds: autoDismissSeconds))
         _selectedExercise = State(initialValue: exercises.randomElement()!)
     }
 
@@ -56,7 +54,7 @@ struct MiniExerciseNudgeView: View {
 
                 // Progress ring (depletes as countdown decreases)
                 Circle()
-                    .trim(from: 0, to: CGFloat(countdown) / CGFloat(autoDismissSeconds))
+                    .trim(from: 0, to: CGFloat(state.countdown) / CGFloat(autoDismissSeconds))
                     .stroke(
                         LinearGradient(
                             colors: [.green, .mint],
@@ -67,7 +65,7 @@ struct MiniExerciseNudgeView: View {
                     )
                     .frame(width: 44, height: 44)
                     .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 1), value: countdown)
+                    .animation(.linear(duration: 1), value: state.countdown)
 
                 // Bouncing exercise icon
                 Image(systemName: selectedExercise.1)
@@ -94,7 +92,7 @@ struct MiniExerciseNudgeView: View {
 
             // Snooze button with hover
             if onSnooze != nil {
-                Button(action: { snooze() }) {
+                Button(action: { state.animateDismiss(action: onSnooze) }) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(snoozeHovered ? .primary : .secondary)
@@ -112,13 +110,13 @@ struct MiniExerciseNudgeView: View {
             }
 
             // Countdown with animation
-            Text("\(countdown)")
+            Text("\(state.countdown)")
                 .font(.system(size: 22, weight: .light, design: .rounded))
                 .foregroundColor(.secondary.opacity(0.5))
                 .monospacedDigit()
                 .frame(width: 26)
                 .contentTransition(.numericText())
-                .animation(.easeInOut(duration: 0.3), value: countdown)
+                .animation(.easeInOut(duration: 0.3), value: state.countdown)
         }
         .padding(.leading, 10)
         .padding(.trailing, 14)
@@ -133,74 +131,15 @@ struct MiniExerciseNudgeView: View {
             Capsule()
                 .strokeBorder(Color.primary.opacity(0.1), lineWidth: 1)
         )
-        .offset(y: dragY)
-        .gesture(
-            DragGesture()
-                .onChanged { dragY = min(0, $0.translation.height * 0.6) }
-                .onEnded { value in
-                    if value.translation.height < -30 {
-                        dismiss()
-                    } else {
-                        withAnimation(.spring(response: 0.3)) { dragY = 0 }
-                    }
-                }
-        )
-        .onTapGesture { dismiss() }
-        .onAppear { startTimers() }
-        .onDisappear { stopTimer() }
-    }
-
-    private func startTimers() {
-        // Start bounce animation
-        withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
-            bounce = true
-        }
-
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [self] t in
-            guard !isDismissing else {
-                t.invalidate()
-                return
+        .nudgeDismiss(state: state, onDismiss: onDismiss)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+                bounce = true
             }
-
-            if countdown > 1 {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    countdown -= 1
-                }
-            } else {
-                t.invalidate()
-                dismiss()
-            }
+            state.startTimer(onDismiss: onDismiss)
         }
-    }
-
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-
-    private func dismiss() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            onDismiss?()
-        }
-    }
-
-    private func snooze() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            onSnooze?()
+        .onDisappear {
+            state.stopTimer()
         }
     }
 }
