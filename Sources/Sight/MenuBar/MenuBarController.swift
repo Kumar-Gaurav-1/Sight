@@ -114,22 +114,24 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         guard !isAnimatingIcon else { return }
         isAnimatingIcon = true
 
-        var toggle = false
+        class ToggleState: @unchecked Sendable { var value = false }
+        let toggle = ToggleState()
         iconAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
             [weak self] _ in
+            guard let strongSelf = self else { return }
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let self = self, let button = self.statusItem?.button else { return }
+                guard let button = strongSelf.statusItem?.button else { return }
 
                 // Alternate between filled and empty icon
-                let iconName = toggle ? "bell.fill" : "bell"
+                let iconName = toggle.value ? "bell.fill" : "bell"
                 if let image = NSImage(
                     systemSymbolName: iconName, accessibilityDescription: "Break Soon")
                 {
                     image.isTemplate = true
                     button.image = image
                 }
-                toggle.toggle()
+                toggle.value.toggle()
             }
         }
     }
