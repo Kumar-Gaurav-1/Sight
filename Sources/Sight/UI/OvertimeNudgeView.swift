@@ -9,10 +9,9 @@ struct OvertimeNudgeView: View {
 
     @State private var pulse = false
     @State private var countdown: Int
-    @State private var dragY: CGFloat = 0
     @State private var timer: Timer?
     @State private var takeBreakHovered = false
-    @State private var isDismissing = false  // Prevent double dismiss
+    @StateObject private var nudgeState = NudgeState()
 
     private let accentColor = Color.red
 
@@ -76,7 +75,7 @@ struct OvertimeNudgeView: View {
             Spacer(minLength: 10)
 
             // Take Break button with hover
-            Button(action: takeBreak) {
+            Button(action: { nudgeState.dismiss(stopTimer: stopTimer, immediateAction: { NotificationCenter.default.post(name: NSNotification.Name("SightTakeBreak"), object: nil) }, delayedAction: { onDismiss?() }) }) {
                 Text("Take Break")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.white)
@@ -120,19 +119,7 @@ struct OvertimeNudgeView: View {
             Capsule()
                 .strokeBorder(accentColor.opacity(0.2), lineWidth: 1)
         )
-        .offset(y: dragY)
-        .gesture(
-            DragGesture()
-                .onChanged { dragY = min(0, $0.translation.height * 0.6) }
-                .onEnded { value in
-                    if value.translation.height < -30 {
-                        dismiss()
-                    } else {
-                        withAnimation(.spring(response: 0.3)) { dragY = 0 }
-                    }
-                }
-        )
-        .onTapGesture { dismiss() }
+        .nudgeGestures(state: nudgeState, stopTimer: stopTimer, onDismiss: onDismiss)
         .onAppear { startTimers() }
         .onDisappear { stopTimer() }
     }
@@ -144,7 +131,7 @@ struct OvertimeNudgeView: View {
         }
 
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [self] t in
-            guard !isDismissing else {
+            guard !nudgeState.isDismissing else {
                 t.invalidate()
                 return
             }
@@ -155,7 +142,7 @@ struct OvertimeNudgeView: View {
                 }
             } else {
                 t.invalidate()
-                dismiss()
+                nudgeState.dismiss(stopTimer: stopTimer) { onDismiss?() }
             }
         }
     }
@@ -163,33 +150,6 @@ struct OvertimeNudgeView: View {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
-    }
-
-    private func dismiss() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            onDismiss?()
-        }
-    }
-
-    private func takeBreak() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        NotificationCenter.default.post(name: NSNotification.Name("SightTakeBreak"), object: nil)
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            onDismiss?()
-        }
     }
 }
 
