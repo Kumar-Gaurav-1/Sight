@@ -254,24 +254,4 @@ public final class NudgeOverlayWindowController: NSObject {
         self.dimWindow = dimWindow
     }
 
-    private func createWindow() {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 100),  // Wide enough for nudge content
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false
-        )
-
-        window.level = .statusBar  // Higher than .floating to appear over fullscreen apps
-        window.collectionBehavior = [
-            .canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary,
-        ]
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.ignoresMouseEvents = false  // Allow interaction if we add buttons later
-
-        // Content view set in showNudge
-
-        self.window = window
-    }
 }
