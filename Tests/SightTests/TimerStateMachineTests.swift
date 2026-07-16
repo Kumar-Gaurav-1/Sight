@@ -1,6 +1,7 @@
 import XCTest
 @testable import Sight
 
+@MainActor
 final class TimerStateMachineTests: XCTestCase {
     
     var stateMachine: TimerStateMachine!
@@ -87,6 +88,50 @@ final class TimerStateMachineTests: XCTestCase {
         XCTAssertEqual(stateMachine.remainingSeconds, 100)
     }
     
+    // MARK: - Postpone Tests
+
+    func testPostponeFromWorkAddsTime() {
+        stateMachine.start()
+        let currentRemaining = stateMachine.remainingSeconds
+        stateMachine.postpone(minutes: 5)
+        XCTAssertEqual(stateMachine.remainingSeconds, currentRemaining + 300)
+        XCTAssertEqual(stateMachine.currentState, .work)
+    }
+
+    func testPostponeFromPreBreakTransitionsToWorkAndSetsTime() {
+        stateMachine.start()
+        stateMachine.skipToNext() // transitions to preBreak
+        XCTAssertEqual(stateMachine.currentState, .preBreak)
+
+        stateMachine.postpone(minutes: 5)
+
+        XCTAssertEqual(stateMachine.remainingSeconds, 300)
+        XCTAssertEqual(stateMachine.currentState, .work)
+    }
+
+    func testPostponeFromIdleIsIgnored() {
+        XCTAssertEqual(stateMachine.currentState, .idle)
+        let currentRemaining = stateMachine.remainingSeconds
+
+        stateMachine.postpone(minutes: 5)
+
+        XCTAssertEqual(stateMachine.currentState, .idle)
+        XCTAssertEqual(stateMachine.remainingSeconds, currentRemaining)
+    }
+
+    func testPostponeFromBreakIsIgnored() {
+        stateMachine.start()
+        stateMachine.skipToNext() // work -> preBreak
+        stateMachine.skipToNext() // preBreak -> break
+        XCTAssertEqual(stateMachine.currentState, .break)
+
+        let currentRemaining = stateMachine.remainingSeconds
+        stateMachine.postpone(minutes: 5)
+
+        XCTAssertEqual(stateMachine.currentState, .break)
+        XCTAssertEqual(stateMachine.remainingSeconds, currentRemaining)
+    }
+
     // MARK: - State Enum Tests
     
     func testTimerStateDisplayNames() {
