@@ -1,8 +1,10 @@
 import AppKit
 import SwiftUI
+import os.log
 
 // MARK: - Appearance Settings View
 
+@MainActor
 struct SightAppearanceView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
     @State private var showMessageEditor = false
@@ -658,6 +660,7 @@ struct SightAppearanceView: View {
 
 // MARK: - Background Type Card
 
+@MainActor
 struct BackgroundTypeCard: View {
     let type: String
     let title: String
@@ -669,6 +672,7 @@ struct BackgroundTypeCard: View {
     let onDrop: (String) -> Void
 
     @State private var isHovered = false
+    private let logger = Logger(subsystem: "com.sight.app", category: "Preferences")
 
     var body: some View {
         Button(action: action) {
@@ -807,27 +811,30 @@ struct BackgroundTypeCard: View {
 
         provider.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, error in
             if let error = error {
-                print("[SightAppearanceView] Drop failed: \(error.localizedDescription)")
+                logger.error("Drop failed: \(error.localizedDescription, privacy: .public)")
                 return
             }
 
             guard let data = item as? Data,
-                let url = URL(dataRepresentation: data, relativeTo: nil),
-                isImageFile(url: url)
+                let url = URL(dataRepresentation: data, relativeTo: nil)
             else {
-                print("[SightAppearanceView] Invalid drop: not an image file")
+                logger.warning("Invalid drop: not an image file")
                 return
             }
 
-            DispatchQueue.main.async {
-                onDrop(url.path)
+            if isImageFile(url: url) {
+                Task { @MainActor in
+                    onDrop(url.path)
+                }
+            } else {
+                logger.warning("Invalid drop: not an image file")
             }
         }
 
         return true
     }
 
-    private func isImageFile(url: URL) -> Bool {
+    nonisolated private func isImageFile(url: URL) -> Bool {
         let imageExtensions = [
             "jpg", "jpeg", "png", "gif", "heic", "heif", "webp", "tiff", "tif", "bmp",
         ]
@@ -848,6 +855,7 @@ struct BackgroundTypeCard: View {
 
 // MARK: - Alert Position Card
 
+@MainActor
 struct AlertPositionCard: View {
     let position: String
     let title: String
@@ -957,6 +965,7 @@ struct AlertPositionCard: View {
 
 // MARK: - Appearance Mode Card
 
+@MainActor
 struct AppearanceModeCard: View {
     let mode: String
     let title: String

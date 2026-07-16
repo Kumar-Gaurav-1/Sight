@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Achievements View
 
 /// Display badges and achievements with progress
+@MainActor
 struct SightAchievementsView: View {
     @ObservedObject private var gamification = GamificationManager.shared
     @ObservedObject private var adherence = AdherenceManager.shared
@@ -115,6 +116,7 @@ struct SightAchievementsView: View {
 
 // MARK: - Achievement Stat Card
 
+@MainActor
 struct AchievementStatCard: View {
     let icon: String
     let value: String
@@ -146,6 +148,7 @@ struct AchievementStatCard: View {
 
 // MARK: - Badge Card
 
+@MainActor
 struct BadgeCard: View {
     let badge: Badge
     

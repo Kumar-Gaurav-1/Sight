@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Shortcuts View
 
+@MainActor
 struct SightShortcutsView: View {
     @ObservedObject private var shortcutManager = ShortcutManager.shared
     @ObservedObject private var preferences = PreferencesManager.shared
@@ -32,7 +33,9 @@ struct SightShortcutsView: View {
             permissionCheckTimer?.invalidate()
             // Start polling for permission changes
             permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                shortcutManager.checkPermissions()
+                Task { @MainActor in
+                    shortcutManager.checkPermissions()
+                }
             }
         }
         .onDisappear {
@@ -208,6 +211,7 @@ struct SightShortcutsView: View {
 
 // MARK: - Editable Shortcut Row
 
+@MainActor
 private struct EditableShortcutRow: View {
     let icon: String
     let title: String
@@ -248,6 +252,7 @@ private struct EditableShortcutRow: View {
 
 // MARK: - Shortcut Row
 
+@MainActor
 private struct ShortcutRow: View {
     let icon: String
     let title: String
@@ -290,6 +295,7 @@ private struct ShortcutRow: View {
 
 // MARK: - Tip Text
 
+@MainActor
 private struct TipText: View {
     let text: String
 

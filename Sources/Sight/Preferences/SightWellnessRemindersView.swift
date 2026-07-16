@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Wellness Reminders View
 
+@MainActor
 struct SightWellnessRemindersView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
 
