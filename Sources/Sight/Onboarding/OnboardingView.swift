@@ -67,25 +67,6 @@ public struct OnboardingView: View {
 
     public init() {}
 
-    // Custom Visual Effect View for sidebar
-    struct OnboardingVisualEffectView: NSViewRepresentable {
-        let material: NSVisualEffectView.Material
-        let blendingMode: NSVisualEffectView.BlendingMode
-
-        func makeNSView(context: Context) -> NSVisualEffectView {
-            let view = NSVisualEffectView()
-            view.material = material
-            view.blendingMode = blendingMode
-            view.state = .active
-            return view
-        }
-
-        func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-            nsView.material = material
-            nsView.blendingMode = blendingMode
-        }
-    }
-
     public var body: some View {
         NavigationSplitView {
             // MARK: - Sidebar
@@ -134,7 +115,7 @@ public struct OnboardingView: View {
             .safeAreaInset(edge: .top) {
                 Spacer().frame(height: 44)  // Clear traffic lights (Standard Height)
             }
-            .background(OnboardingVisualEffectView(material: .sidebar, blendingMode: .behindWindow))
+            .background(VisualEffectView(material: .sidebar, blendingMode: .behindWindow))
 
         } detail: {
             // MARK: - Content
