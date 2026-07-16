@@ -4,7 +4,7 @@ import SwiftUI
 // These components match the "Premium" look used in other tabs.
 // Ideally, these should be replaced by native Forms over time.
 
-struct EnhancedSettingsCard<Content: View>: View {
+@MainActor struct EnhancedSettingsCard<Content: View>: View {
     let icon: String
     let iconColor: Color
     let title: String
