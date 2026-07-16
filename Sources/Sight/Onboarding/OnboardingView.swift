@@ -65,6 +65,8 @@ public struct OnboardingView: View {
     @State private var blinkEnabled: Bool = true
     @State private var blinkInterval: Int = 20
 
+    @Environment(\.dismiss) private var dismiss
+
     public init() {}
 
     // Custom Visual Effect View for sidebar
@@ -269,12 +271,7 @@ public struct OnboardingView: View {
         NotificationCenter.default.post(
             name: NSNotification.Name("OnboardingCompleted"), object: nil)
 
-        for window in NSApplication.shared.windows {
-            if window.identifier?.rawValue == "onboarding" {
-                window.close()
-                return
-            }
-        }
+        dismiss()
     }
 }
 
