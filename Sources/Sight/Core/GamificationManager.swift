@@ -48,6 +48,8 @@ public final class GamificationManager: ObservableObject {
     private let badgesKey = "unlockedBadges"
     private let pointsKey = "totalPoints"
 
+    internal var dateProvider: () -> Date = Date.init
+
     // MARK: - Badge Definitions
 
     private static let allBadgeDefinitions: [Badge] = [
@@ -259,7 +261,7 @@ public final class GamificationManager: ObservableObject {
         }
 
         // Time-based badges
-        let hour = Calendar.current.component(.hour, from: Date())
+        let hour = Calendar.current.component(.hour, from: dateProvider())
         if hour < 7 && stats.breaksCompleted > 0 {
             unlockBadge(id: "early_bird")
         }
@@ -268,7 +270,7 @@ public final class GamificationManager: ObservableObject {
         }
 
         // Weekend badge
-        let weekday = Calendar.current.component(.weekday, from: Date())
+        let weekday = Calendar.current.component(.weekday, from: dateProvider())
         if (weekday == 1 || weekday == 7) && stats.breaksCompleted > 0 {
             unlockBadge(id: "weekend_warrior")
         }
@@ -282,7 +284,7 @@ public final class GamificationManager: ObservableObject {
         }
 
         badges[index].isUnlocked = true
-        badges[index].unlockedDate = Date()
+        badges[index].unlockedDate = dateProvider()
         newlyUnlockedBadge = badges[index]
 
         // SECURITY: Increment generation to prevent race conditions with multiple badge unlocks
