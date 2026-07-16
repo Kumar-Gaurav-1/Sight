@@ -226,6 +226,7 @@ struct ActivityHeatmapView: View {
     }
 }
 
+@MainActor
 struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
