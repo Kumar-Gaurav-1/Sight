@@ -697,11 +697,9 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(dateFormatter.string(from: day.date)),"
+            // Using timeZone: .current ensures we preserve local timezone behavior, unlike standard .iso8601
+            csv += "\(day.date.formatted(.iso8601.year().month().day().dateSeparator(.dash).timeZone(.current))),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
             csv += "\(day.nudgesFollowed),"
