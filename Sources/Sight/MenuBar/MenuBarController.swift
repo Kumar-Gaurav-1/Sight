@@ -122,7 +122,6 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
             Task { @MainActor in
                 guard let button = strongSelf.statusItem?.button else { return }
                 // Need to use strongSelf inside task now
-                let self = strongSelf
 
                 // Alternate between filled and empty icon
                 let iconName = toggle ? "bell.fill" : "bell"
