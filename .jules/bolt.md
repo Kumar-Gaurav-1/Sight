@@ -1,0 +1,3 @@
+## 2024-07-16 - Date Formatting Optimization
+**Learning:** Instantiating `DateFormatter` inside a loop is extremely expensive and causes massive performance bottlenecks. While Swift's modern `FormatStyle` (e.g., `.formatted()`) is highly optimized, using `.formatted(.iso8601)` forces the date into the GMT (UTC) time zone. In applications tracking daily adherence or statistics, this alters time zone semantics and attributes data to incorrect local dates. However, `DateFormatter` is thread-safe for reads (since iOS 7).
+**Action:** Always optimize date formatting in loops by declaring a static `DateFormatter` property (`static let formatter: DateFormatter`) and reusing it to preserve both performance and local time zone context safely.
