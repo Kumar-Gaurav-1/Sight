@@ -38,7 +38,7 @@ public final class MenuBarViewModel: ObservableObject {
     // MARK: - Initialization
 
     public init(stateMachine: TimerStateMachine) {
-        self.stateMachine = stateMachine
+        strongSelf.stateMachine = stateMachine
 
         // Restore persisted strain level
         self.strainLevel = Float(UserDefaults.standard.double(forKey: "sightStrainLevel"))
@@ -100,10 +100,10 @@ public final class MenuBarViewModel: ObservableObject {
         ) { [weak self] _ in
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let self = self else { return }
+                guard let strongSelf = self else { return }
                 // Resume timer if we paused it for a manual break
-                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.stateMachine.resume()
+                if strongSelf.stateMachine.isPaused && strongSelf.stateMachine.pauseSource == .user {
+                    strongSelf.stateMachine.resume()
                 }
             }
         }
