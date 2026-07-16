@@ -33,33 +33,33 @@ public final class InsightsEngine {
     // MARK: - Main API
 
     /// Generate all applicable insights from current data
-    public func generateInsights() -> [WellnessInsight] {
+    public func generateInsights(adherenceManager: AdherenceManager = .shared) -> [WellnessInsight] {
         var insights: [WellnessInsight] = []
-        let adherence = AdherenceManager.shared
+        let adherence = adherenceManager
 
         // Streak achievements
-        if let streakInsight = checkStreakAchievement() {
+        if let streakInsight = checkStreakAchievement(adherenceManager: adherenceManager) {
             insights.append(streakInsight)
         }
 
         // Trend analysis
-        insights.append(contentsOf: analyzeTrends())
+        insights.append(contentsOf: analyzeTrends(adherenceManager: adherenceManager))
 
         // Peak productivity
-        if let peakInsight = analyzePeakProductivity() {
+        if let peakInsight = analyzePeakProductivity(adherenceManager: adherenceManager) {
             insights.append(peakInsight)
         }
 
         // Nudge compliance
-        insights.append(contentsOf: analyzeNudgeCompliance())
+        insights.append(contentsOf: analyzeNudgeCompliance(adherenceManager: adherenceManager))
 
         // Session balance
-        if let sessionInsight = analyzeSessionBalance() {
+        if let sessionInsight = analyzeSessionBalance(adherenceManager: adherenceManager) {
             insights.append(sessionInsight)
         }
 
         // Meeting analysis
-        if let meetingInsight = analyzeMeetingLoad() {
+        if let meetingInsight = analyzeMeetingLoad(adherenceManager: adherenceManager) {
             insights.append(meetingInsight)
         }
 
@@ -69,17 +69,17 @@ public final class InsightsEngine {
         }
 
         // Schedule consistency
-        if let consistencyInsight = analyzeScheduleConsistency() {
+        if let consistencyInsight = analyzeScheduleConsistency(adherenceManager: adherenceManager) {
             insights.append(consistencyInsight)
         }
 
         // Recovery improvement
-        if let recoveryInsight = analyzeRecovery() {
+        if let recoveryInsight = analyzeRecovery(adherenceManager: adherenceManager) {
             insights.append(recoveryInsight)
         }
 
         // Recommended break interval
-        if let intervalInsight = recommendBreakInterval() {
+        if let intervalInsight = recommendBreakInterval(adherenceManager: adherenceManager) {
             insights.append(intervalInsight)
         }
 
@@ -90,16 +90,16 @@ public final class InsightsEngine {
     // MARK: - Pattern Detection
 
     /// Check for streak achievements
-    private func checkStreakAchievement() -> WellnessInsight? {
-        let streak = AdherenceManager.shared.currentStreak
+    private func checkStreakAchievement(adherenceManager: AdherenceManager = .shared) -> WellnessInsight? {
+        let streak = adherenceManager.currentStreak
         guard streak >= Thresholds.streakMinDays else { return nil }
         return .streakAchievement(days: streak)
     }
 
     /// Analyze trends compared to previous week
-    private func analyzeTrends() -> [WellnessInsight] {
+    private func analyzeTrends(adherenceManager: AdherenceManager = .shared) -> [WellnessInsight] {
         var insights: [WellnessInsight] = []
-        let adherence = AdherenceManager.shared
+        let adherence = adherenceManager
 
         let currentWeek = adherence.getAggregatedStats(for: .week)
         let previousWeek = adherence.getPreviousWeekStats()
@@ -138,8 +138,8 @@ public final class InsightsEngine {
     }
 
     /// Analyze peak productivity times
-    private func analyzePeakProductivity() -> WellnessInsight? {
-        let distribution = AdherenceManager.shared.getHourlyDistribution(for: .week)
+    private func analyzePeakProductivity(adherenceManager: AdherenceManager = .shared) -> WellnessInsight? {
+        let distribution = adherenceManager.getHourlyDistribution(for: .week)
 
         // Find hour with most breaks (indicates high productivity/activity)
         guard let peakHour = distribution.max(by: { $0.value < $1.value }),
@@ -152,9 +152,9 @@ public final class InsightsEngine {
     }
 
     /// Analyze nudge compliance rates
-    private func analyzeNudgeCompliance() -> [WellnessInsight] {
+    private func analyzeNudgeCompliance(adherenceManager: AdherenceManager = .shared) -> [WellnessInsight] {
         var insights: [WellnessInsight] = []
-        let todayStats = AdherenceManager.shared.todayStats
+        let todayStats = adherenceManager.todayStats
 
         // Blink compliance
         if todayStats.blinkNudgesShown >= 5 {
@@ -176,8 +176,8 @@ public final class InsightsEngine {
     }
 
     /// Analyze session balance
-    private func analyzeSessionBalance() -> WellnessInsight? {
-        let todayStats = AdherenceManager.shared.todayStats
+    private func analyzeSessionBalance(adherenceManager: AdherenceManager = .shared) -> WellnessInsight? {
+        let todayStats = adherenceManager.todayStats
 
         if todayStats.longestSessionMinutes >= Thresholds.longSessionMinutes {
             return .longestStretchWarning(minutes: todayStats.longestSessionMinutes)
@@ -187,8 +187,8 @@ public final class InsightsEngine {
     }
 
     /// Analyze meeting load
-    private func analyzeMeetingLoad() -> WellnessInsight? {
-        let todayStats = AdherenceManager.shared.todayStats
+    private func analyzeMeetingLoad(adherenceManager: AdherenceManager = .shared) -> WellnessInsight? {
+        let todayStats = adherenceManager.todayStats
 
         if todayStats.totalMeetingMinutes >= Thresholds.heavyMeetingMinutes {
             return .meetingHeavyDay(minutes: todayStats.totalMeetingMinutes)
@@ -198,8 +198,8 @@ public final class InsightsEngine {
     }
 
     /// Analyze schedule consistency
-    private func analyzeScheduleConsistency() -> WellnessInsight? {
-        let weekStats = AdherenceManager.shared.getDailyStats(days: 7)
+    private func analyzeScheduleConsistency(adherenceManager: AdherenceManager = .shared) -> WellnessInsight? {
+        let weekStats = adherenceManager.getDailyStats(days: 7)
         guard weekStats.count >= 5 else { return nil }
 
         // Check if break counts are consistent across days
@@ -219,9 +219,9 @@ public final class InsightsEngine {
     }
 
     /// Analyze recovery improvement
-    private func analyzeRecovery() -> WellnessInsight? {
-        let currentWeek = AdherenceManager.shared.getAggregatedStats(for: .week)
-        let previousWeek = AdherenceManager.shared.getPreviousWeekStats()
+    private func analyzeRecovery(adherenceManager: AdherenceManager = .shared) -> WellnessInsight? {
+        let currentWeek = adherenceManager.getAggregatedStats(for: .week)
+        let previousWeek = adherenceManager.getPreviousWeekStats()
 
         guard previousWeek.daysTracked > 0 && currentWeek.daysTracked > 0 else { return nil }
 
@@ -241,8 +241,8 @@ public final class InsightsEngine {
     }
 
     /// Recommend optimal break interval based on behavior
-    private func recommendBreakInterval() -> WellnessInsight? {
-        let todayStats = AdherenceManager.shared.todayStats
+    private func recommendBreakInterval(adherenceManager: AdherenceManager = .shared) -> WellnessInsight? {
+        let todayStats = adherenceManager.todayStats
 
         // If user has long sessions but few skips, they might benefit from longer intervals
         // If user skips a lot, suggest shorter intervals
@@ -265,9 +265,9 @@ public final class InsightsEngine {
     // MARK: - Detailed Analysis
 
     /// Get detailed pattern analysis
-    public func getDetailedPatterns() -> [String] {
+    public func getDetailedPatterns(adherenceManager: AdherenceManager = .shared) -> [String] {
         var patterns: [String] = []
-        let adherence = AdherenceManager.shared
+        let adherence = adherenceManager
 
         // Day of week analysis
         let weekStats = adherence.getDailyStats(days: 7)
@@ -306,9 +306,9 @@ public final class InsightsEngine {
     }
 
     /// Get specific recommendations based on current data
-    public func getRecommendations() -> [String] {
+    public func getRecommendations(adherenceManager: AdherenceManager = .shared) -> [String] {
         var recommendations: [String] = []
-        let todayStats = AdherenceManager.shared.todayStats
+        let todayStats = adherenceManager.todayStats
 
         // Session length recommendations
         if todayStats.longestSessionMinutes > 45 {
@@ -331,8 +331,8 @@ public final class InsightsEngine {
         }
 
         // Goal recommendations
-        if !AdherenceManager.shared.goalMet {
-            let remaining = AdherenceManager.shared.dailyBreakGoal - todayStats.breaksCompleted
+        if !adherenceManager.goalMet {
+            let remaining = adherenceManager.dailyBreakGoal - todayStats.breaksCompleted
             if remaining > 0 {
                 recommendations.append("Take \(remaining) more break(s) to reach your daily goal")
             }
@@ -342,8 +342,8 @@ public final class InsightsEngine {
     }
 
     /// Predict if user will meet their daily goal
-    public func predictGoalCompletion() -> (likely: Bool, reason: String) {
-        let adherence = AdherenceManager.shared
+    public func predictGoalCompletion(adherenceManager: AdherenceManager = .shared) -> (likely: Bool, reason: String) {
+        let adherence = adherenceManager
         let todayStats = adherence.todayStats
         let goal = adherence.dailyBreakGoal
 
