@@ -101,7 +101,7 @@ public final class SoundManager {
 
     // MARK: - Properties
 
-    private var currentSound: NSSound?
+    internal var currentSound: NSSound?
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.sound", category: "SoundManager")
 
     public var volume: Float {
@@ -138,7 +138,7 @@ public final class SoundManager {
     }
 
     /// Map sound pair name to actual sound types
-    private func soundTypeForPair(_ pair: String, isStart: Bool) -> SoundType {
+    internal func soundTypeForPair(_ pair: String, isStart: Bool) -> SoundType {
         switch pair {
         case "Default":
             return isStart ? .chime : .bell
