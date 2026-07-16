@@ -5,7 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
-struct WellnessGaugeView: View {
+@MainActor struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
 
@@ -37,6 +37,7 @@ struct WellnessGaugeView: View {
         )
     }
 
+    @MainActor
     var body: some View {
         ZStack {
             // Background arc
@@ -90,7 +91,7 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
-struct ActivityHeatmapView: View {
+@MainActor struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
 
@@ -104,6 +105,7 @@ struct ActivityHeatmapView: View {
         max(1, hourlyDistribution.values.max() ?? 1)
     }
 
+    @MainActor
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Hour labels
@@ -230,7 +232,7 @@ struct ActivityHeatmapView: View {
     }
 }
 
-struct HeatmapCell: View {
+@MainActor struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
     let isSelected: Bool
@@ -261,6 +263,7 @@ struct HeatmapCell: View {
         }
     }
 
+    @MainActor
     var body: some View {
         RoundedRectangle(cornerRadius: 2)
             .fill(cellColor)
@@ -288,7 +291,7 @@ struct HeatmapCell: View {
 // MARK: - Time Breakdown Chart
 
 /// Donut chart showing time distribution
-struct TimeBreakdownChart: View {
+@MainActor struct TimeBreakdownChart: View {
     let screenTime: Int
     let breakTime: Int
     let meetingTime: Int
@@ -314,6 +317,7 @@ struct TimeBreakdownChart: View {
         ].filter { $0.value > 0 }
     }
 
+    @MainActor
     var body: some View {
         HStack(spacing: 24) {
             // Donut chart
@@ -387,7 +391,7 @@ struct TimeBreakdownChart: View {
         }
     }
 
-    private func segmentStartAngle(at index: Int) -> Double {
+    @MainActor private func segmentStartAngle(at index: Int) -> Double {
         var angle: Double = 0
         for i in 0..<index {
             angle += Double(segments[i].value) / Double(total) * 360
@@ -395,7 +399,7 @@ struct TimeBreakdownChart: View {
         return angle
     }
 
-    private func segmentEndAngle(at index: Int) -> Double {
+    @MainActor private func segmentEndAngle(at index: Int) -> Double {
         segmentStartAngle(at: index) + Double(segments[index].value) / Double(total) * 360
     }
 }
@@ -403,7 +407,7 @@ struct TimeBreakdownChart: View {
 // MARK: - Comparison Bar View
 
 /// Week-over-week comparison visualization
-struct ComparisonBarView: View {
+@MainActor struct ComparisonBarView: View {
     let currentValue: Double
     let previousValue: Double
     let label: String
@@ -422,6 +426,7 @@ struct ComparisonBarView: View {
         currentValue >= previousValue
     }
 
+    @MainActor
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Label and change indicator
@@ -519,7 +524,7 @@ struct ComparisonBarView: View {
 // MARK: - Trend Line Chart
 
 /// Simple line chart for showing trends
-struct TrendLineChart: View {
+@MainActor struct TrendLineChart: View {
     let values: [Double]
     let labels: [String]
     let animate: Bool
@@ -534,6 +539,7 @@ struct TrendLineChart: View {
         max(0, (values.min() ?? 0) - 10)
     }
 
+    @MainActor
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
@@ -648,11 +654,12 @@ struct TrendLineChart: View {
 // MARK: - Insight Card View
 
 /// Card displaying a wellness insight
-struct InsightCardView: View {
+@MainActor struct InsightCardView: View {
     let insight: WellnessInsight
 
     @State private var isHovered = false
 
+    @MainActor
     var body: some View {
         HStack(spacing: 12) {
             // Icon
@@ -697,7 +704,7 @@ struct InsightCardView: View {
 // MARK: - Nudge Compliance Card
 
 /// Visual representation of nudge compliance
-struct NudgeComplianceCard: View {
+@MainActor struct NudgeComplianceCard: View {
     let blinkShown: Int
     let blinkFollowed: Int
     let postureShown: Int
@@ -716,6 +723,7 @@ struct NudgeComplianceCard: View {
         return Double(postureFollowed) / Double(postureShown)
     }
 
+    @MainActor
     var body: some View {
         HStack(spacing: 20) {
             // Blink compliance
@@ -746,7 +754,7 @@ struct NudgeComplianceCard: View {
     }
 }
 
-struct ComplianceRing: View {
+@MainActor struct ComplianceRing: View {
     let value: Double  // 0-1
     let icon: String
     let label: String
@@ -755,6 +763,7 @@ struct ComplianceRing: View {
 
     @State private var animatedValue: Double = 0
 
+    @MainActor
     var body: some View {
         VStack(spacing: 8) {
             ZStack {

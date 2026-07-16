@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - About View
 
 /// Premium about screen with app info, credits, and links
+@MainActor
 struct SightAboutView: View {
     @State private var logoHovered = false
     @State private var showVersion = false
@@ -16,6 +17,7 @@ struct SightAboutView: View {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     private let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
 
+    @MainActor
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
@@ -56,6 +58,7 @@ struct SightAboutView: View {
 
     // MARK: - App Info Card
 
+    @MainActor
     private var appInfoCard: some View {
         VStack(spacing: 20) {
             // Logo
@@ -134,6 +137,7 @@ struct SightAboutView: View {
 
     // MARK: - Features Card
 
+    @MainActor
     private var featuresCard: some View {
         EnhancedSettingsCard(
             icon: "sparkles",
@@ -166,6 +170,7 @@ struct SightAboutView: View {
 
     // MARK: - Credits Card
 
+    @MainActor
     private var creditsCard: some View {
         EnhancedSettingsCard(
             icon: "heart.fill",
@@ -192,6 +197,7 @@ struct SightAboutView: View {
 
     // MARK: - Links Card
 
+    @MainActor
     private var linksCard: some View {
         EnhancedSettingsCard(
             icon: "link",
@@ -217,6 +223,7 @@ struct SightAboutView: View {
 
     // MARK: - Legal Section
 
+    @MainActor
     private var legalSection: some View {
         VStack(spacing: 8) {
             Text("© \(Calendar.current.component(.year, from: Date())) Sight. All rights reserved.")
@@ -255,6 +262,7 @@ struct FeatureRow: View {
     let title: String
     let description: String
 
+    @MainActor
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
@@ -287,6 +295,7 @@ struct LinkRow: View {
 
     @State private var isHovered = false
 
+    @MainActor
     var body: some View {
         Button(action: {
             if let url = URL(string: url) {
