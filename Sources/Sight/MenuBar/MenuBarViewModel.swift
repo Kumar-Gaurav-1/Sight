@@ -38,7 +38,7 @@ public final class MenuBarViewModel: ObservableObject {
     // MARK: - Initialization
 
     public init(stateMachine: TimerStateMachine) {
-        strongSelf.stateMachine = stateMachine
+        self.stateMachine = stateMachine
 
         // Restore persisted strain level
         self.strainLevel = Float(UserDefaults.standard.double(forKey: "sightStrainLevel"))

@@ -73,6 +73,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
 // MARK: - Main Preferences View
 
+@MainActor
 public struct SightPreferencesView: View {
     @State private var selectedTab: SettingsTab = .general
     @State private var hoveredTab: SettingsTab?
@@ -229,6 +230,7 @@ public struct SightPreferencesView: View {
 
 // MARK: - Sidebar Item
 
+@MainActor
 private struct SidebarItem: View {
     let tab: SettingsTab
     let isSelected: Bool
@@ -292,6 +294,7 @@ private struct SidebarItem: View {
 
 // MARK: - General Settings
 
+@MainActor
 private struct GeneralSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
     @State private var showResetAlert = false
@@ -416,6 +419,7 @@ private struct GeneralSettingsView: View {
 
 // MARK: - Breaks Settings
 
+@MainActor
 private struct BreaksSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
@@ -491,6 +495,7 @@ private struct BreaksSettingsView: View {
 
 // MARK: - Wellness Settings
 
+@MainActor
 private struct WellnessSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
@@ -663,6 +668,7 @@ private struct WellnessSettingsView: View {
 
 // MARK: - Sounds Settings
 
+@MainActor
 private struct SoundsSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
@@ -743,6 +749,7 @@ private struct SoundsSettingsView: View {
 
 // MARK: - Appearance Settings
 
+@MainActor
 private struct AppearanceSettingsView: View {
     @ObservedObject var prefs = PreferencesManager.shared
 
@@ -889,6 +896,7 @@ private struct AppearanceSettingsView: View {
 
 // MARK: - Position Button
 
+@MainActor
 private struct PositionButton: View {
     let position: String
     let label: String
@@ -936,6 +944,7 @@ private struct PositionButton: View {
 
 // MARK: - Shortcuts Settings
 
+@MainActor
 private struct ShortcutsSettingsView: View {
     var body: some View {
         Form {
@@ -968,6 +977,7 @@ private struct ShortcutsSettingsView: View {
     }
 }
 
+@MainActor
 private struct ShortcutRow: View {
     let icon: String
     let color: Color
@@ -994,6 +1004,7 @@ private struct ShortcutRow: View {
 
 // MARK: - About Settings
 
+@MainActor
 private struct AboutSettingsView: View {
     @State private var glowOpacity: Double = 0.3
     @ObservedObject var adherence = AdherenceManager.shared
