@@ -2,11 +2,16 @@ import AppKit
 import SwiftUI
 
 /// A SwiftUI wrapper for NSVisualEffectView.
-struct VisualEffectView: NSViewRepresentable {
-    let material: NSVisualEffectView.Material
-    let blendingMode: NSVisualEffectView.BlendingMode
+public struct VisualEffectView: NSViewRepresentable {
+    public let material: NSVisualEffectView.Material
+    public let blendingMode: NSVisualEffectView.BlendingMode
 
-    func makeNSView(context: Context) -> NSVisualEffectView {
+    public init(material: NSVisualEffectView.Material, blendingMode: NSVisualEffectView.BlendingMode) {
+        self.material = material
+        self.blendingMode = blendingMode
+    }
+
+    public func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.material = material
         view.blendingMode = blendingMode
@@ -14,7 +19,7 @@ struct VisualEffectView: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+    public func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
         nsView.material = material
         nsView.blendingMode = blendingMode
     }
