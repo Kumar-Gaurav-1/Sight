@@ -9,6 +9,8 @@ import os.log
 public final class WorkHoursManager: ObservableObject {
     public static let shared = WorkHoursManager()
 
+    internal var dateProvider: () -> Date = Date.init
+
     @Published public private(set) var shouldPauseForSchedule: Bool = false
     @Published public private(set) var pauseReason: String?
     @Published public private(set) var isFullscreenAppActive: Bool = false
@@ -65,7 +67,7 @@ public final class WorkHoursManager: ObservableObject {
         let prefs = PreferencesManager.shared
         guard prefs.quietHoursEnabled else { return true }  // If disabled, always "working"
 
-        let now = Date()
+        let now = dateProvider()
         let calendar = Calendar.current
         let currentHour = calendar.component(.hour, from: now)
 
@@ -88,7 +90,7 @@ public final class WorkHoursManager: ObservableObject {
 
     private func isActiveDay() -> Bool {
         let prefs = PreferencesManager.shared
-        let weekday = Calendar.current.component(.weekday, from: Date())
+        let weekday = Calendar.current.component(.weekday, from: dateProvider())
 
         // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
         // activeDays: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
