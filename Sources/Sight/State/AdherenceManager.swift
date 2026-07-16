@@ -699,7 +699,7 @@ public final class AdherenceManager: ObservableObject {
 
         for day in stats.sorted(by: { $0.date < $1.date }) {
             // Using timeZone: .current ensures we preserve local timezone behavior, unlike standard .iso8601
-            csv += "\(day.date.formatted(.iso8601.year().month().day().dateSeparator(.dash).timeZone(.current))),"
+            csv += "\(day.date.formatted(.iso8601.year().month().day().dateSeparator(.dash).timeZone(separator: .omitted, timeZone: .current))),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
             csv += "\(day.nudgesFollowed),"
