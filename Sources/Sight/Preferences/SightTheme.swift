@@ -360,7 +360,7 @@ extension View {
 struct HoverableCardModifier: ViewModifier {
     @State private var isHovered = false
 
-    func body(content: Content) -> some View {
+    @MainActor func body(content: Content) -> some View {
         content
             .padding(SightTheme.cardPadding)
             .background(isHovered ? SightTheme.elevatedBackground : SightTheme.cardBackground)
@@ -483,7 +483,7 @@ struct ProgressRing: View {
     }
 
     @MainActor var body: some View {
-        let displayGradient = gradient ?? SightTheme.accentGradient // @MainActor access
+        let displayGradient = gradient ?? SightTheme.accentGradient
         ZStack {
             // Background ring
             Circle()
@@ -504,7 +504,7 @@ struct ProgressRing: View {
 struct ShimmerModifier: ViewModifier {
     @State private var phase: CGFloat = 0
 
-    func body(content: Content) -> some View {
+    @MainActor func body(content: Content) -> some View {
         content
             .overlay(
                 GeometryReader { geo in

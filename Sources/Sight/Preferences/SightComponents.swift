@@ -34,7 +34,7 @@ struct SettingsCard<Content: View>: View {
 // MARK: - Settings Toggle Row
 
 /// A toggle row with title, description, and switch
-struct SettingsToggleRow: View {
+@MainActor struct SettingsToggleRow: View {
     let title: String
     let description: String
     @Binding var isOn: Bool
@@ -103,7 +103,7 @@ struct SettingsDropdownRow<T: Hashable>: View {
 // MARK: - Large Value Slider
 
 /// A slider with a large value display above it
-struct LargeValueSlider: View {
+@MainActor struct LargeValueSlider: View {
     let title: String
     let description: String
     @Binding var value: Double
@@ -180,7 +180,7 @@ struct LargeValueSlider: View {
 // MARK: - Tab Bar
 
 /// A horizontal tab bar for section navigation
-struct SightTabBar: View {
+@MainActor struct SightTabBar: View {
     let tabs: [String]
     @Binding var selectedTab: String
 
@@ -223,7 +223,7 @@ struct SightTabBar: View {
 // MARK: - Sidebar Navigation Item
 
 /// A sidebar navigation item with icon
-struct SidebarNavItem: View {
+@MainActor struct SidebarNavItem: View {
     let icon: String
     let title: String
     let isSelected: Bool
@@ -276,7 +276,7 @@ struct SidebarNavItem: View {
 // MARK: - Assigned Exercise Row
 
 /// A row showing an assigned exercise
-struct AssignedExerciseRow: View {
+@MainActor struct AssignedExerciseRow: View {
     let number: Int
     let name: String
     let subtitle: String
@@ -312,7 +312,7 @@ struct AssignedExerciseRow: View {
 // MARK: - Exercise Table Row
 
 /// A table row for the exercises list
-struct ExerciseTableRow: View {
+@MainActor struct ExerciseTableRow: View {
     let name: String
     let title: String
     let description: String
@@ -374,7 +374,7 @@ struct ExerciseTableRow: View {
 // MARK: - Section Divider
 
 /// A divider for settings sections
-struct SettingsDivider: View {
+@MainActor struct SettingsDivider: View {
     var body: some View {
         Rectangle()
             .fill(SightTheme.divider)
@@ -386,7 +386,7 @@ struct SettingsDivider: View {
 // MARK: - Primary Action Button
 
 /// A blue primary action button
-struct SightPrimaryButton: View {
+@MainActor struct SightPrimaryButton: View {
     let title: String
     let icon: String?
     let action: () -> Void
@@ -428,7 +428,7 @@ struct SightPrimaryButton: View {
 // MARK: - Search Bar
 
 /// A search input field
-struct SightSearchBar: View {
+@MainActor struct SightSearchBar: View {
     @Binding var text: String
     let placeholder: String
 

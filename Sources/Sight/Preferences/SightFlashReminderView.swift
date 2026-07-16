@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Flash Reminder Settings View
 
 /// Flash Reminder settings screen matching Sight design
-struct SightFlashReminderView: View {
+@MainActor struct SightFlashReminderView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
     @State private var selectedTab = "General"
 
