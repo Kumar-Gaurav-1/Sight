@@ -79,25 +79,25 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] shouldPause in
-                guard let self = self else { return }
-                if shouldPause && self.stateMachine.currentState != .idle
-                    && !self.stateMachine.isPaused
+                guard let strongSelf = self else { return }
+                if shouldPause && strongSelf.stateMachine.currentState != .idle
+                    && !strongSelf.stateMachine.isPaused
                 {
                     let reason =
                         SmartPauseManager.shared.activeSignals.first?.description
                         ?? "activity detected"
-                    self.logger.info(
+                    strongSelf.logger.info(
                         "Smart Pause: pausing for \(reason)"
                     )
-                    self.stateMachine.pause(source: .smartPause)
+                    strongSelf.stateMachine.pause(source: .smartPause)
                     SoundManager.shared.playSmartPause()  // Play sound on smart pause
                     NotificationManager.shared.sendSmartPauseStartNotification(reason: reason)
-                } else if !shouldPause && self.stateMachine.isPaused
-                    && self.stateMachine.pauseSource == .smartPause
+                } else if !shouldPause && strongSelf.stateMachine.isPaused
+                    && strongSelf.stateMachine.pauseSource == .smartPause
                 {
                     // Only auto-resume if WE (SmartPause) were the one who paused it
-                    self.logger.info("Smart Pause: signals cleared, resuming")
-                    self.stateMachine.resume()
+                    strongSelf.logger.info("Smart Pause: signals cleared, resuming")
+                    strongSelf.stateMachine.resume()
                     SoundManager.shared.playSmartPause()  // Play sound on resume too
                     NotificationManager.shared.sendSmartPauseEndNotification()
                 }
@@ -121,27 +121,29 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
+
+            let capturedMinutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
                 // SECURITY: Debounce to prevent double-skip
                 // If skipToNext was called recently (within 500ms), ignore this notification
                 let now = Date()
-                if let lastSkip = self.lastSkipTime, now.timeIntervalSince(lastSkip) < 0.5 {
-                    self.logger.debug("Ignoring duplicate SightSkipBreak notification")
+                if let lastSkip = strongSelf.lastSkipTime, now.timeIntervalSince(lastSkip) < 0.5 {
+                    strongSelf.logger.debug("Ignoring duplicate SightSkipBreak notification")
                     return
                 }
-                self.lastSkipTime = now
+                strongSelf.lastSkipTime = now
 
                 // Only skip if we're actually in break state
                 // This prevents transitioning from work->preBreak if notification arrives late
-                guard self.stateMachine.currentState == .break else {
-                    self.logger.debug("SightSkipBreak ignored - not in break state")
+                guard strongSelf.stateMachine.currentState == .break else {
+                    strongSelf.logger.debug("SightSkipBreak ignored - not in break state")
                     return
                 }
 
-                self.logger.info("Break skipped via overlay")
-                self.stateMachine.skipToNext()
+                strongSelf.logger.info("Break skipped via overlay")
+                strongSelf.stateMachine.skipToNext()
             }
         }
 
@@ -151,13 +153,15 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
+
+            let capturedMinutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
                 // Resume timer if it was paused by user (manual break)
-                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.logger.info("Manual break ended, resuming timer")
-                    self.stateMachine.resume()
+                if strongSelf.stateMachine.isPaused && strongSelf.stateMachine.pauseSource == .user {
+                    strongSelf.logger.info("Manual break ended, resuming timer")
+                    strongSelf.stateMachine.resume()
                 }
             }
         }
@@ -168,11 +172,13 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
+
+            let capturedMinutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
-                self.logger.info("Take break requested via notification")
-                self.menuBarController?.viewModel.triggerShortBreak()
+                strongSelf.logger.info("Take break requested via notification")
+                strongSelf.menuBarController?.viewModel.triggerShortBreak()
             }
         }
 
@@ -182,13 +188,15 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
+
+            let capturedMinutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
-                self.logger.info("Break postponed for \(minutes) minutes via notification")
+
+                strongSelf.logger.info("Break postponed for \(capturedMinutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
-                self.stateMachine.postpone(minutes: minutes)
+                strongSelf.stateMachine.postpone(minutes: capturedMinutes)
             }
         }
 
@@ -232,10 +240,12 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
-            self.logger.info("Onboarding completed - starting timer")
+            guard let strongSelf = self else { return }
+            strongSelf.logger.info("Onboarding completed - starting timer")
+            let capturedMinutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+
             Task { @MainActor in
-                self.startTimerIfAppropriate()
+                strongSelf.startTimerIfAppropriate()
             }
         }
     }
@@ -245,25 +255,25 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Small delay to ensure app is fully initialized
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
 
             let onboardingView = OnboardingView()
             let hostingController = NSHostingController(rootView: onboardingView)
 
-            self.onboardingWindow = NSWindow(contentViewController: hostingController)
-            self.onboardingWindow?.identifier = NSUserInterfaceItemIdentifier("onboarding")
-            self.onboardingWindow?.title = "Welcome to Sight"
-            self.onboardingWindow?.styleMask = [.titled, .closable, .fullSizeContentView]
-            self.onboardingWindow?.titlebarAppearsTransparent = true
-            self.onboardingWindow?.isMovableByWindowBackground = true
-            self.onboardingWindow?.setContentSize(NSSize(width: 650, height: 600))
-            self.onboardingWindow?.center()
-            self.onboardingWindow?.isReleasedWhenClosed = false
-            self.onboardingWindow?.level = .floating  // Ensure window appears above others
-            self.onboardingWindow?.makeKeyAndOrderFront(nil)
+            strongSelf.onboardingWindow = NSWindow(contentViewController: hostingController)
+            strongSelf.onboardingWindow?.identifier = NSUserInterfaceItemIdentifier("onboarding")
+            strongSelf.onboardingWindow?.title = "Welcome to Sight"
+            strongSelf.onboardingWindow?.styleMask = [.titled, .closable, .fullSizeContentView]
+            strongSelf.onboardingWindow?.titlebarAppearsTransparent = true
+            strongSelf.onboardingWindow?.isMovableByWindowBackground = true
+            strongSelf.onboardingWindow?.setContentSize(NSSize(width: 650, height: 600))
+            strongSelf.onboardingWindow?.center()
+            strongSelf.onboardingWindow?.isReleasedWhenClosed = false
+            strongSelf.onboardingWindow?.level = .floating  // Ensure window appears above others
+            strongSelf.onboardingWindow?.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
 
-            self.logger.info("Onboarding window displayed: \(self.onboardingWindow != nil)")
+            strongSelf.logger.info("Onboarding window displayed: \(strongSelf.onboardingWindow != nil)")
         }
     }
 
@@ -311,11 +321,11 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             else { return }
 
             if event.contains(.warning) {
-                self.logger.warning("Memory pressure warning - cleaning up")
+                strongSelf.logger.warning("Memory pressure warning - cleaning up")
             }
 
             if event.contains(.critical) {
-                self.logger.critical("Memory pressure critical")
+                strongSelf.logger.critical("Memory pressure critical")
                 if BreakOverlayManager.shared.isShowing {
                     BreakOverlayManager.shared.hide()
                 }
