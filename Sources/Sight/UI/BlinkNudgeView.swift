@@ -124,19 +124,12 @@ struct BlinkNudgeView: View {
             Capsule()
                 .strokeBorder(Color.primary.opacity(0.1), lineWidth: 1)
         )
-        .offset(y: dragY)
-        .gesture(
-            DragGesture()
-                .onChanged { dragY = min(0, $0.translation.height * 0.6) }
-                .onEnded { value in
-                    if value.translation.height < -30 {
-                        dismiss()
-                    } else {
-                        withAnimation(.spring(response: 0.3)) { dragY = 0 }
-                    }
-                }
+        .nudgeInteraction(
+            dragY: $dragY,
+            isDismissing: $isDismissing,
+            stopTimer: stopTimer,
+            onDismiss: onDismiss
         )
-        .onTapGesture { dismiss() }
         .onAppear { startTimers() }
         .onDisappear { stopTimer() }
     }
@@ -170,27 +163,21 @@ struct BlinkNudgeView: View {
     }
 
     private func dismiss() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        executeNudgeDismiss(
+            isDismissing: $isDismissing,
+            dragY: $dragY,
+            stopTimer: stopTimer
+        ) {
             onDismiss?()
         }
     }
 
     private func snooze() {
-        guard !isDismissing else { return }
-        isDismissing = true
-
-        stopTimer()
-        withAnimation(.spring(response: 0.3)) {
-            dragY = -60
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        executeNudgeDismiss(
+            isDismissing: $isDismissing,
+            dragY: $dragY,
+            stopTimer: stopTimer
+        ) {
             onSnooze?()
         }
     }
