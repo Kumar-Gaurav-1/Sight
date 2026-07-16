@@ -56,7 +56,7 @@ struct EnhancedSettingsCard<Content: View>: View {
     }
 }
 
-struct EnhancedToggleRow: View {
+@MainActor struct EnhancedToggleRow: View {
     let title: String
     let description: String
     let icon: String
@@ -89,7 +89,7 @@ struct EnhancedToggleRow: View {
     }
 }
 
-struct EnhancedNumberRow: View {
+@MainActor struct EnhancedNumberRow: View {
     let title: String
     let description: String
     @Binding var value: Int
@@ -146,7 +146,7 @@ struct EnhancedNumberRow: View {
     }
 }
 
-struct DayPillToggle: View {
+@MainActor struct DayPillToggle: View {
     let day: String
     @Binding var isActive: Bool
 
@@ -169,7 +169,7 @@ struct DayPillToggle: View {
     }
 }
 
-struct QuickActionRow: View {
+@MainActor struct QuickActionRow: View {
     let action: String
     let description: String
 

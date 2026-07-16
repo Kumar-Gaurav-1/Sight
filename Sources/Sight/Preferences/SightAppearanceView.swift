@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Appearance Settings View
 
-struct SightAppearanceView: View {
+@MainActor struct SightAppearanceView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
     @State private var showMessageEditor = false
     @State private var newMessage = ""
@@ -658,7 +658,7 @@ struct SightAppearanceView: View {
 
 // MARK: - Background Type Card
 
-struct BackgroundTypeCard: View {
+@MainActor struct BackgroundTypeCard: View {
     let type: String
     let title: String
     let icon: String
@@ -848,7 +848,7 @@ struct BackgroundTypeCard: View {
 
 // MARK: - Alert Position Card
 
-struct AlertPositionCard: View {
+@MainActor struct AlertPositionCard: View {
     let position: String
     let title: String
     let isSelected: Bool
@@ -957,7 +957,7 @@ struct AlertPositionCard: View {
 
 // MARK: - Appearance Mode Card
 
-struct AppearanceModeCard: View {
+@MainActor struct AppearanceModeCard: View {
     let mode: String
     let title: String
     let icon: String
