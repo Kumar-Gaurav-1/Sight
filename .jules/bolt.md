@@ -1,0 +1,3 @@
+## 2024-03-24 - Avoid instantiating DateFormatter in frequently called loops or updates
+**Learning:** Instantiating `DateFormatter` is a known expensive operation in Foundation. Instantiating it inside methods that run at high frequencies (such as UI updates tied to a Timer every second, like `MenuBarViewModel`) creates significant performance overhead.
+**Action:** Always prefer the modern, lightweight `FormatStyle` API (e.g., `date.formatted(date: .omitted, time: .shortened)`) which is highly optimized, thread-safe, and dynamically respects locale/timezone without the initialization cost.
