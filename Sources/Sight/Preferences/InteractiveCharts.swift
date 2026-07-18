@@ -1,5 +1,19 @@
 import SwiftUI
 
+#if compiler(>=5.10)
+nonisolated(unsafe) private let sharedHourFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "ha"
+    return f
+}()
+#else
+private let sharedHourFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "ha"
+    return f
+}()
+#endif
+
 // MARK: - Interactive Charts for Statistics
 
 // MARK: - Wellness Gauge View
@@ -203,10 +217,8 @@ struct ActivityHeatmapView: View {
     }
 
     private func hourLabel(_ hour: Int) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "ha"
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
-        return formatter.string(from: date)
+        return sharedHourFormatter.string(from: date)
     }
 
     private func intensityColor(_ intensity: Double) -> Color {

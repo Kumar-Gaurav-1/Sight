@@ -1,0 +1,3 @@
+## 2023-10-27 - DateFormatter Optimization
+**Learning:** Found widespread inline initialization of `DateFormatter` and `ISO8601DateFormatter` throughout the Sight macOS codebase (in view updates, loops mapping stats to CSV/JSON, etc). In Swift, these formatters are notoriously expensive to initialize and can cause micro-stutters in UI threads and memory allocation spikes when processing lists.
+**Action:** Replaced inline instantiations with file-scoped lazy singletons using Swift 5.10 `nonisolated(unsafe)` (to satisfy strict concurrency). This pattern provides thread-safe access to read methods like `string(from:)` without synchronization overhead, eliminating repeated creation penalties.

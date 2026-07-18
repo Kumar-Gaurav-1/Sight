@@ -3,6 +3,12 @@ import Combine
 import Foundation
 import os.log
 
+#if compiler(>=5.10)
+nonisolated(unsafe) private let sharedISO8601Formatter: ISO8601DateFormatter = ISO8601DateFormatter()
+#else
+private let sharedISO8601Formatter: ISO8601DateFormatter = ISO8601DateFormatter()
+#endif
+
 /// Manages user preferences with UserDefaults persistence
 /// Provides JSON schema output for external tools
 public final class PreferencesManager: ObservableObject {
@@ -865,7 +871,7 @@ public final class PreferencesManager: ObservableObject {
                 "soundEnabled": soundEnabled,
             ],
             "metadata": [
-                "lastModified": ISO8601DateFormatter().string(from: Date()),
+                "lastModified": sharedISO8601Formatter.string(from: Date()),
                 "platform": "macOS",
             ],
         ]

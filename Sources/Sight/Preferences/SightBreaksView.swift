@@ -1,5 +1,19 @@
 import SwiftUI
 
+#if compiler(>=5.10)
+nonisolated(unsafe) private let sharedShortTimeFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.timeStyle = .short
+    return f
+}()
+#else
+private let sharedShortTimeFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.timeStyle = .short
+    return f
+}()
+#endif
+
 // MARK: - Breaks Settings View
 
 struct SightBreaksView: View {
@@ -235,9 +249,7 @@ struct SightBreaksView: View {
     }
 
     private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        return sharedShortTimeFormatter.string(from: date)
     }
 
     // MARK: - Reminders Section
