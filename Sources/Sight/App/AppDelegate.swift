@@ -86,7 +86,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                     let reason =
                         SmartPauseManager.shared.activeSignals.first?.description
                         ?? "activity detected"
-                    self.logger.info(
+                    strongSelf.logger.info(
                         "Smart Pause: pausing for \(reason)"
                     )
                     self.stateMachine.pause(source: .smartPause)
@@ -96,7 +96,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                     && self.stateMachine.pauseSource == .smartPause
                 {
                     // Only auto-resume if WE (SmartPause) were the one who paused it
-                    self.logger.info("Smart Pause: signals cleared, resuming")
+                    strongSelf.logger.info("Smart Pause: signals cleared, resuming")
                     self.stateMachine.resume()
                     SoundManager.shared.playSmartPause()  // Play sound on resume too
                     NotificationManager.shared.sendSmartPauseEndNotification()
@@ -140,7 +140,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                     return
                 }
 
-                self.logger.info("Break skipped via overlay")
+                strongSelf.logger.info("Break skipped via overlay")
                 self.stateMachine.skipToNext()
             }
         }
@@ -156,7 +156,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 // Resume timer if it was paused by user (manual break)
                 if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.logger.info("Manual break ended, resuming timer")
+                    strongSelf.logger.info("Manual break ended, resuming timer")
                     self.stateMachine.resume()
                 }
             }
@@ -171,7 +171,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self = self else { return }
 
             Task { @MainActor in
-                self.logger.info("Take break requested via notification")
+                strongSelf.logger.info("Take break requested via notification")
                 self.menuBarController?.viewModel.triggerShortBreak()
             }
         }
@@ -182,13 +182,13 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
-                self.logger.info("Break postponed for \(minutes) minutes via notification")
+                strongSelf.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
-                self.stateMachine.postpone(minutes: minutes)
+                strongSelf.stateMachine.postpone(minutes: minutes)
             }
         }
 
@@ -233,7 +233,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
-            self.logger.info("Onboarding completed - starting timer")
+            strongSelf.logger.info("Onboarding completed - starting timer")
             Task { @MainActor in
                 self.startTimerIfAppropriate()
             }
@@ -263,7 +263,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             self.onboardingWindow?.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
 
-            self.logger.info("Onboarding window displayed: \(self.onboardingWindow != nil)")
+            strongSelf.logger.info("Onboarding window displayed: \(self.onboardingWindow != nil)")
         }
     }
 

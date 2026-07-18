@@ -1,6 +1,20 @@
 import Foundation
 import os.log
 
+#if compiler(>=5.10)
+nonisolated(unsafe) private let sharedFullDayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "EEEE"
+    return f
+}()
+#else
+private let sharedFullDayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "EEEE"
+    return f
+}()
+#endif
+
 // MARK: - Insights Engine
 
 /// Generates personalized wellness insights based on user behavior patterns
@@ -272,12 +286,9 @@ public final class InsightsEngine {
         // Day of week analysis
         let weekStats = adherence.getDailyStats(days: 7)
         if weekStats.count >= 7 {
-            let dayFormatter = DateFormatter()
-            dayFormatter.dateFormat = "EEEE"
-
             var dayScores: [String: Double] = [:]
             for day in weekStats {
-                let dayName = dayFormatter.string(from: day.date)
+                let dayName = sharedFullDayFormatter.string(from: day.date)
                 dayScores[dayName] = day.dailyScore
             }
 

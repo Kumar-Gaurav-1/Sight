@@ -2,6 +2,20 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+#if compiler(>=5.10)
+nonisolated(unsafe) private let sharedShortDayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "EEE"
+    return f
+}()
+#else
+private let sharedShortDayFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "EEE"
+    return f
+}()
+#endif
+
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
@@ -588,11 +602,7 @@ struct AnimatedBarChart: View {
     let animate: Bool
 
     private let barMaxHeight: CGFloat = 100
-    private let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f
-    }()
+    private var dayFormatter: DateFormatter { sharedShortDayFormatter }
 
     private var maxBreaks: Int {
         max(1, dailyStats.map { $0.breaksCompleted }.max() ?? 1)

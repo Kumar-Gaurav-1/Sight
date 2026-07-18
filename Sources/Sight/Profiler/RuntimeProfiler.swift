@@ -3,6 +3,12 @@ import Foundation
 import IOKit.ps
 import os.log
 
+#if compiler(>=5.10)
+nonisolated(unsafe) private let sharedISO8601Formatter: ISO8601DateFormatter = ISO8601DateFormatter()
+#else
+private let sharedISO8601Formatter: ISO8601DateFormatter = ISO8601DateFormatter()
+#endif
+
 // MARK: - System Metrics
 
 /// Current system resource metrics
@@ -620,7 +626,7 @@ public final class RuntimeProfiler: ObservableObject {
             "session_id": sessionId,
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    "timestamp": sharedISO8601Formatter.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [
