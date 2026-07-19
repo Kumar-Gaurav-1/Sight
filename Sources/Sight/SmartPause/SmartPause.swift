@@ -342,12 +342,7 @@ public final class SmartPauseManager: ObservableObject {
     // MARK: - Fullscreen Detection
 
     private func detectFullscreen() -> PauseSignal? {
-        // Method 1: Check key window fullscreen style mask
-        // IGNORE internal windows to avoid self-pausing (e.g. Break Overlay)
-        // if let keyWindow = NSApplication.shared.keyWindow, ...
-        // We only care about OTHER apps being fullscreen
-
-        // Method 2: Check frontmost application
+        // Check frontmost application
         if let frontApp = NSWorkspace.shared.frontmostApplication,
             let bundleId = frontApp.bundleIdentifier
         {
