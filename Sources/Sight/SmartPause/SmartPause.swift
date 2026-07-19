@@ -95,6 +95,21 @@ public struct KnownMeetingApps {
     }
 }
 
+// MARK: - Known Screen Sharing Apps
+
+public struct KnownScreenSharingApps {
+    public static let bundleIdentifiers: Set<String> = [
+        "com.apple.screensharing.agent",
+        "com.apple.ScreenSharing",
+    ]
+
+    public static let processNames: Set<String> = [
+        "screensharingd",
+        "ScreensharingAgent",
+        "Screen Sharing",
+    ]
+}
+
 // MARK: - Smart Pause Configuration
 
 /// Configuration for Smart Pause behavior
@@ -493,38 +508,24 @@ public final class SmartPauseManager: ObservableObject {
     private func isScreenSharingDaemonRunning() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
 
-        // Check for screen sharing related processes by bundle ID and name
-        let screenShareBundleIds = [
-            "com.apple.screensharing.agent",
-            "com.apple.ScreenSharing",
-        ]
-
-        let screenShareProcessNames = [
-            "screensharingd",
-            "ScreensharingAgent",
-            "Screen Sharing",
-        ]
-
         for app in runningApps {
             // Check by bundle identifier (most reliable)
             if let bundleId = app.bundleIdentifier,
-                screenShareBundleIds.contains(where: { bundleId.contains($0) })
+                KnownScreenSharingApps.bundleIdentifiers.contains(bundleId)
             {
                 return true
             }
 
             // Check by localized name
             if let name = app.localizedName,
-                screenShareProcessNames.contains(where: { name.contains($0) })
+                KnownScreenSharingApps.processNames.contains(name)
             {
                 return true
             }
 
             // Check by executable name
             if let executableURL = app.executableURL,
-                screenShareProcessNames.contains(where: {
-                    executableURL.lastPathComponent.contains($0)
-                })
+                KnownScreenSharingApps.processNames.contains(executableURL.lastPathComponent)
             {
                 return true
             }
