@@ -149,6 +149,10 @@ public struct SmartPauseConfig: Codable {
 /// - Focus APIs: NSDistributedNotificationCenter for focus state changes
 public final class SmartPauseManager: ObservableObject {
 
+    // Precompiled regexes for high-performance exact and substring matching
+    private static let bundleIdRegex = try! Regex("com\\.apple\\.screensharing\\.agent|com\\.apple\\.ScreenSharing")
+    private static let processNameRegex = try! Regex("screensharingd|ScreensharingAgent|Screen Sharing")
+
     // MARK: - Published State
 
     @Published public private(set) var shouldPause: Bool = false
@@ -494,37 +498,24 @@ public final class SmartPauseManager: ObservableObject {
         let runningApps = NSWorkspace.shared.runningApplications
 
         // Check for screen sharing related processes by bundle ID and name
-        let screenShareBundleIds = [
-            "com.apple.screensharing.agent",
-            "com.apple.ScreenSharing",
-        ]
-
-        let screenShareProcessNames = [
-            "screensharingd",
-            "ScreensharingAgent",
-            "Screen Sharing",
-        ]
-
         for app in runningApps {
             // Check by bundle identifier (most reliable)
             if let bundleId = app.bundleIdentifier,
-                screenShareBundleIds.contains(where: { bundleId.contains($0) })
+                bundleId.contains(SmartPauseManager.bundleIdRegex)
             {
                 return true
             }
 
             // Check by localized name
             if let name = app.localizedName,
-                screenShareProcessNames.contains(where: { name.contains($0) })
+                name.contains(SmartPauseManager.processNameRegex)
             {
                 return true
             }
 
             // Check by executable name
             if let executableURL = app.executableURL,
-                screenShareProcessNames.contains(where: {
-                    executableURL.lastPathComponent.contains($0)
-                })
+                executableURL.lastPathComponent.contains(SmartPauseManager.processNameRegex)
             {
                 return true
             }
