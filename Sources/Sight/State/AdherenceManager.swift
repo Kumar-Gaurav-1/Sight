@@ -463,17 +463,18 @@ public final class AdherenceManager: ObservableObject {
         }
 
         var result = AggregatedStats()
+        var totalScore = 0.0
         for day in filteredStats {
             result.breaksCompleted += day.breaksCompleted
             result.breaksSkipped += day.breaksSkipped
             result.totalBreakMinutes += day.totalBreakMinutes
             result.shortBreaksCompleted += day.shortBreaksCompleted
             result.longBreaksCompleted += day.longBreaksCompleted
+            totalScore += day.dailyScore
         }
 
         result.daysTracked = filteredStats.count
-        result.averageScore =
-            filteredStats.reduce(0.0) { $0 + $1.dailyScore } / Double(filteredStats.count)
+        result.averageScore = totalScore / Double(filteredStats.count)
 
         return result
     }
@@ -619,17 +620,18 @@ public final class AdherenceManager: ObservableObject {
         }
 
         var result = AggregatedStats()
+        var totalScore = 0.0
         for day in filteredStats {
             result.breaksCompleted += day.breaksCompleted
             result.breaksSkipped += day.breaksSkipped
             result.totalBreakMinutes += day.totalBreakMinutes
             result.shortBreaksCompleted += day.shortBreaksCompleted
             result.longBreaksCompleted += day.longBreaksCompleted
+            totalScore += day.dailyScore
         }
 
         result.daysTracked = filteredStats.count
-        result.averageScore =
-            filteredStats.reduce(0.0) { $0 + $1.dailyScore } / Double(filteredStats.count)
+        result.averageScore = totalScore / Double(filteredStats.count)
 
         return result
     }
