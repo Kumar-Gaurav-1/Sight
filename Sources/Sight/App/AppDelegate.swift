@@ -1,3 +1,4 @@
+@preconcurrency import Foundation
 import AppKit
 import Combine
 import SwiftUI
@@ -181,14 +182,17 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             forName: NSNotification.Name("SightPostponeBreak"),
             object: nil,
             queue: .main
-        ) { [weak self] notification in
-            guard let self = self else { return }
+        ) { @Sendable [weak self] notification in
+            nonisolated(unsafe) let notification = notification
+            guard let strongSelf = self else { return }
+            // Safely extract before crossing isolation boundary
+            let userInfo = notification.userInfo
+            let minutes = (userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
-                self.logger.info("Break postponed for \(minutes) minutes via notification")
+                strongSelf.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
-                self.stateMachine.postpone(minutes: minutes)
+                strongSelf.stateMachine.postpone(minutes: minutes)
             }
         }
 

@@ -1,5 +1,8 @@
 import AppKit
 import SwiftUI
+import OSLog
+
+private let logger = Logger(subsystem: "com.sight.app", category: "AppearanceSettings")
 
 // MARK: - Appearance Settings View
 
@@ -806,8 +809,8 @@ struct BackgroundTypeCard: View {
         guard let provider = providers.first else { return false }
 
         provider.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, error in
-            if let error = error {
-                print("[SightAppearanceView] Drop failed: \(error.localizedDescription)")
+            if error != nil {
+                logger.error("Drop failed to load item")
                 return
             }
 
@@ -815,7 +818,7 @@ struct BackgroundTypeCard: View {
                 let url = URL(dataRepresentation: data, relativeTo: nil),
                 isImageFile(url: url)
             else {
-                print("[SightAppearanceView] Invalid drop: not an image file")
+                logger.error("Invalid drop: not an image file")
                 return
             }
 
