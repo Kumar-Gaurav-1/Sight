@@ -809,7 +809,7 @@ struct BackgroundTypeCard: View {
         guard let provider = providers.first else { return false }
 
         provider.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, error in
-            if let error = error {
+            if error != nil {
                 logger.error("Drop failed to load item")
                 return
             }
