@@ -124,11 +124,12 @@ public final class TimerStateMachine: ObservableObject {
             forName: NSWorkspace.didWakeNotification,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { @Sendable [weak self] _ in
+            guard let self = self else { return }
+            let stateMachine = self
             // SECURITY: Dispatch to MainActor for thread safety
-            guard let strongSelf = self else { return }
             Task { @MainActor in
-                strongSelf.handleSystemWake()
+                stateMachine.handleSystemWake()
             }
         }
 
@@ -137,11 +138,12 @@ public final class TimerStateMachine: ObservableObject {
             forName: NSWorkspace.willSleepNotification,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { @Sendable [weak self] _ in
+            guard let self = self else { return }
+            let stateMachine = self
             // SECURITY: Dispatch to MainActor for thread safety
-            guard let strongSelf = self else { return }
             Task { @MainActor in
-                strongSelf.handleSystemSleep()
+                stateMachine.handleSystemSleep()
             }
         }
     }
