@@ -488,45 +488,39 @@ public final class SmartPauseManager: ObservableObject {
         // This is a heuristic approximation
     }
 
+    // Pre-compiled regular expressions for faster substring matching across running apps
+    private static let screenShareBundleIdRegex = try! NSRegularExpression(pattern: "com\\.apple\\.screensharing\\.agent|com\\.apple\\.ScreenSharing")
+    private static let screenShareProcessNameRegex = try! NSRegularExpression(pattern: "screensharingd|ScreensharingAgent|Screen Sharing")
+
     /// Check if screensharingd daemon is running (indicates active screen share)
     /// SECURITY: Uses only native NSWorkspace API, no shell command execution
     private func isScreenSharingDaemonRunning() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
 
-        // Check for screen sharing related processes by bundle ID and name
-        let screenShareBundleIds = [
-            "com.apple.screensharing.agent",
-            "com.apple.ScreenSharing",
-        ]
-
-        let screenShareProcessNames = [
-            "screensharingd",
-            "ScreensharingAgent",
-            "Screen Sharing",
-        ]
-
         for app in runningApps {
             // Check by bundle identifier (most reliable)
-            if let bundleId = app.bundleIdentifier,
-                screenShareBundleIds.contains(where: { bundleId.contains($0) })
-            {
-                return true
+            if let bundleId = app.bundleIdentifier {
+                let range = NSRange(bundleId.startIndex..<bundleId.endIndex, in: bundleId)
+                if Self.screenShareBundleIdRegex.firstMatch(in: bundleId, options: [], range: range) != nil {
+                    return true
+                }
             }
 
             // Check by localized name
-            if let name = app.localizedName,
-                screenShareProcessNames.contains(where: { name.contains($0) })
-            {
-                return true
+            if let name = app.localizedName {
+                let range = NSRange(name.startIndex..<name.endIndex, in: name)
+                if Self.screenShareProcessNameRegex.firstMatch(in: name, options: [], range: range) != nil {
+                    return true
+                }
             }
 
             // Check by executable name
-            if let executableURL = app.executableURL,
-                screenShareProcessNames.contains(where: {
-                    executableURL.lastPathComponent.contains($0)
-                })
-            {
-                return true
+            if let executableURL = app.executableURL {
+                let lastPath = executableURL.lastPathComponent
+                let range = NSRange(lastPath.startIndex..<lastPath.endIndex, in: lastPath)
+                if Self.screenShareProcessNameRegex.firstMatch(in: lastPath, options: [], range: range) != nil {
+                    return true
+                }
             }
         }
 
