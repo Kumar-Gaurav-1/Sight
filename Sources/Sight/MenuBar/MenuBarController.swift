@@ -23,7 +23,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     // MARK: - Initialization
 
     public init(stateMachine: TimerStateMachine) {
-        self.viewModel = MenuBarViewModel(stateMachine: stateMachine)
+        strongSelf.viewModel = MenuBarViewModel(stateMachine: stateMachine)
         super.init()
         setupStatusItem()
         observeViewModel()
@@ -66,7 +66,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] _, _ in
-            self?.updateStatusItemUI()
+            strongSelf.updateStatusItemUI()
         }
         .store(in: &cancellables)
 
@@ -74,7 +74,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         viewModel.$currentState
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                self?.handleStateChange(state)
+                strongSelf.handleStateChange(state)
             }
             .store(in: &cancellables)
 
@@ -83,14 +83,14 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         prefs.$showInMenuBar
             .receive(on: DispatchQueue.main)
             .sink { [weak self] show in
-                self?.statusItem?.isVisible = show
+                strongSelf.statusItem?.isVisible = show
             }
             .store(in: &cancellables)
 
         prefs.$showTimerInMenuBar
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.updateStatusItemUI()
+                strongSelf.updateStatusItemUI()
             }
             .store(in: &cancellables)
     }
@@ -119,7 +119,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
             [weak self] _ in
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let self = self, let button = self.statusItem?.button else { return }
+                guard let strongSelf = self, let button = strongSelf.statusItem?.button else { return }
 
                 // Alternate between filled and empty icon
                 let iconName = toggle ? "bell.fill" : "bell"
@@ -228,8 +228,8 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(customItem)
 
         // Store references
-        self.hostingController = controller
-        self.currentMenu = menu
+        strongSelf.hostingController = controller
+        strongSelf.currentMenu = menu
 
         // Show menu
         statusItem?.menu = menu
@@ -241,9 +241,9 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     public func menuDidClose(_ menu: NSMenu) {
         // Cleanup with slight delay to ensure system is done
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.statusItem?.menu = nil
-            self?.currentMenu = nil
-            self?.hostingController = nil
+            strongSelf.statusItem?.menu = nil
+            strongSelf.currentMenu = nil
+            strongSelf.hostingController = nil
         }
     }
 
