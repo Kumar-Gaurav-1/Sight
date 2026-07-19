@@ -77,7 +77,11 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
+#if compiler(>=5.10)
     nonisolated(unsafe) public static var shared: TimerStateMachine!
+#else
+    public static var shared: TimerStateMachine!
+#endif
 
     // MARK: - Private Properties
 
@@ -121,9 +125,10 @@ public final class TimerStateMachine: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            guard let strongSelf = self else { return }
             // SECURITY: Dispatch to MainActor for thread safety
             Task { @MainActor in
-                self?.handleSystemWake()
+                strongSelf.handleSystemWake()
             }
         }
 
@@ -133,9 +138,10 @@ public final class TimerStateMachine: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            guard let strongSelf = self else { return }
             // SECURITY: Dispatch to MainActor for thread safety
             Task { @MainActor in
-                self?.handleSystemSleep()
+                strongSelf.handleSystemSleep()
             }
         }
     }
@@ -663,19 +669,21 @@ public final class TimerStateMachine: ObservableObject {
             try task.run()
             logger.debug("Screen lock command executed")
         } catch {
-            // Fallback: Try using Keychain menu bar lock
-            logger.warning("pmset failed, trying alternate method: \\(error.localizedDescription)")
+            // Fallback: Try using native API via private framework
+            logger.warning("pmset failed, trying alternate method: \(error.localizedDescription)")
 
-            // Use AppleScript as fallback (works on all macOS versions)
-            let script = NSAppleScript(
-                source: """
-                        tell application "System Events" to keystroke "q" using {control down, command down}
-                    """)
-            var scriptError: NSDictionary?
-            script?.executeAndReturnError(&scriptError)
-
-            if scriptError != nil {
-                logger.error("Screen lock AppleScript failed")
+            let libHandle = dlopen("/System/Library/PrivateFrameworks/login.framework/Versions/Current/login", RTLD_LAZY)
+            if let libHandle = libHandle {
+                if let sym = dlsym(libHandle, "SACLockScreenImmediate") {
+                    typealias SACLockScreenImmediateType = @convention(c) () -> Void
+                    let SACLockScreenImmediate = unsafeBitCast(sym, to: SACLockScreenImmediateType.self)
+                    SACLockScreenImmediate()
+                } else {
+                    logger.error("Screen lock native API symbol not found")
+                }
+                dlclose(libHandle)
+            } else {
+                logger.error("Screen lock native API framework not found")
             }
         }
     }
