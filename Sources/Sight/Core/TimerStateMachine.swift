@@ -77,7 +77,11 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
+    #if compiler(>=5.10)
     nonisolated(unsafe) public static var shared: TimerStateMachine!
+    #else
+    public static var shared: TimerStateMachine!
+    #endif
 
     // MARK: - Private Properties
 
@@ -655,28 +659,30 @@ public final class TimerStateMachine: ObservableObject {
 
         // Use the SACLockScreenImmediate function via session services
         // This is the most reliable method on modern macOS
+        let bundlePath = "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login"
+        if let handle = dlopen(bundlePath, RTLD_LAZY) {
+            if let sym = dlsym(handle, "SACLockScreenImmediate") {
+                typealias SACLockScreenImmediateType = @convention(c) () -> Void
+                let lockFunction = unsafeBitCast(sym, to: SACLockScreenImmediateType.self)
+                lockFunction()
+                dlclose(handle)
+                logger.debug("Screen locked via SACLockScreenImmediate")
+                return
+            }
+            dlclose(handle)
+        }
+
+        logger.warning("SACLockScreenImmediate failed, falling back to pmset")
+
         let task = Process()
         task.launchPath = "/usr/bin/pmset"
         task.arguments = ["displaysleepnow"]
 
         do {
             try task.run()
-            logger.debug("Screen lock command executed")
+            logger.debug("Screen lock command executed via pmset")
         } catch {
-            // Fallback: Try using Keychain menu bar lock
-            logger.warning("pmset failed, trying alternate method: \\(error.localizedDescription)")
-
-            // Use AppleScript as fallback (works on all macOS versions)
-            let script = NSAppleScript(
-                source: """
-                        tell application "System Events" to keystroke "q" using {control down, command down}
-                    """)
-            var scriptError: NSDictionary?
-            script?.executeAndReturnError(&scriptError)
-
-            if scriptError != nil {
-                logger.error("Screen lock AppleScript failed")
-            }
+            logger.error("Screen lock failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 }
