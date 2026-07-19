@@ -23,7 +23,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     // MARK: - Initialization
 
     public init(stateMachine: TimerStateMachine) {
-        strongSelf.viewModel = MenuBarViewModel(stateMachine: stateMachine)
+        self.viewModel = MenuBarViewModel(stateMachine: stateMachine)
         super.init()
         setupStatusItem()
         observeViewModel()
@@ -66,7 +66,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] _, _ in
-            strongSelf.updateStatusItemUI()
+            self?.updateStatusItemUI()
         }
         .store(in: &cancellables)
 
@@ -74,7 +74,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         viewModel.$currentState
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                strongSelf.handleStateChange(state)
+                self?.handleStateChange(state)
             }
             .store(in: &cancellables)
 
@@ -83,14 +83,14 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         prefs.$showInMenuBar
             .receive(on: DispatchQueue.main)
             .sink { [weak self] show in
-                strongSelf.statusItem?.isVisible = show
+                self?.statusItem?.isVisible = show
             }
             .store(in: &cancellables)
 
         prefs.$showTimerInMenuBar
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                strongSelf.updateStatusItemUI()
+                self?.updateStatusItemUI()
             }
             .store(in: &cancellables)
     }
@@ -228,8 +228,8 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(customItem)
 
         // Store references
-        strongSelf.hostingController = controller
-        strongSelf.currentMenu = menu
+        self.hostingController = controller
+        self.currentMenu = menu
 
         // Show menu
         statusItem?.menu = menu
@@ -241,9 +241,9 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     public func menuDidClose(_ menu: NSMenu) {
         // Cleanup with slight delay to ensure system is done
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            strongSelf.statusItem?.menu = nil
-            strongSelf.currentMenu = nil
-            strongSelf.hostingController = nil
+            self?.statusItem?.menu = nil
+            self?.currentMenu = nil
+            self?.hostingController = nil
         }
     }
 

@@ -38,17 +38,17 @@ public final class MenuBarViewModel: ObservableObject {
     // MARK: - Initialization
 
     public init(stateMachine: TimerStateMachine) {
-        strongSelf.stateMachine = stateMachine
+        self.stateMachine = stateMachine
 
         // Restore persisted strain level
-        strongSelf.strainLevel = Float(UserDefaults.standard.double(forKey: "sightStrainLevel"))
+        self.strainLevel = Float(UserDefaults.standard.double(forKey: "sightStrainLevel"))
 
         setupBindings()
         setupNotificationObservers()
 
         // Initial state
-        strongSelf.currentState = stateMachine.currentState
-        strongSelf.remainingSeconds = stateMachine.remainingSeconds
+        self.currentState = stateMachine.currentState
+        self.remainingSeconds = stateMachine.remainingSeconds
         updateDerivedProperties()
     }
 
@@ -66,10 +66,10 @@ public final class MenuBarViewModel: ObservableObject {
             .combineLatest(stateMachine.$remainingSeconds, stateMachine.$isPaused)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state, seconds, paused in
-                strongSelf.currentState = state
-                strongSelf.remainingSeconds = seconds
-                strongSelf.isPaused = paused
-                strongSelf.updateDerivedProperties()
+                self?.currentState = state
+                self?.remainingSeconds = seconds
+                self?.isPaused = paused
+                self?.updateDerivedProperties()
             }
             .store(in: &cancellables)
 
@@ -77,7 +77,7 @@ public final class MenuBarViewModel: ObservableObject {
         Timer.publish(every: 60, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
-                strongSelf.updateStrain()
+                self?.updateStrain()
             }
             .store(in: &cancellables)
 
@@ -85,7 +85,7 @@ public final class MenuBarViewModel: ObservableObject {
         AdherenceManager.shared.$todayStats
             .receive(on: DispatchQueue.main)
             .sink { [weak self] stats in
-                strongSelf.dailyBreaks = stats.breaksCompleted
+                self?.dailyBreaks = stats.breaksCompleted
             }
             .store(in: &cancellables)
     }
