@@ -380,6 +380,7 @@ struct HoverableCardModifier: ViewModifier {
 // MARK: - Custom Button Styles
 
 struct SightPrimaryButtonStyle: ButtonStyle {
+    @MainActor
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
@@ -404,6 +405,7 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
+    @MainActor
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
@@ -434,6 +436,7 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 // MARK: - Custom Toggle Style
 
 struct SightToggleStyle: ToggleStyle {
+    @MainActor
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
@@ -482,6 +485,7 @@ struct ProgressRing: View {
         self.gradient = gradient
     }
 
+    @MainActor
     var body: some View {
         let displayGradient = gradient ?? SightTheme.accentGradient
         ZStack {
@@ -546,6 +550,7 @@ struct AnimatedCheckmark: View {
         self.color = color
     }
 
+    @MainActor
     var body: some View {
         Path { path in
             path.move(to: CGPoint(x: 5, y: 12))
