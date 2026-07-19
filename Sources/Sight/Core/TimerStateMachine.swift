@@ -663,19 +663,23 @@ public final class TimerStateMachine: ObservableObject {
             try task.run()
             logger.debug("Screen lock command executed")
         } catch {
-            // Fallback: Try using Keychain menu bar lock
-            logger.warning("pmset failed, trying alternate method: \\(error.localizedDescription)")
+            // Fallback: Try using login.framework SACLockScreenImmediate
+            logger.warning("pmset failed, trying alternate method: \(error.localizedDescription)")
 
-            // Use AppleScript as fallback (works on all macOS versions)
-            let script = NSAppleScript(
-                source: """
-                        tell application "System Events" to keystroke "q" using {control down, command down}
-                    """)
-            var scriptError: NSDictionary?
-            script?.executeAndReturnError(&scriptError)
-
-            if scriptError != nil {
-                logger.error("Screen lock AppleScript failed")
+            let libHandle = dlopen("/System/Library/PrivateFrameworks/login.framework/Versions/Current/login", RTLD_LAZY)
+            if let libHandle = libHandle {
+                let sym = dlsym(libHandle, "SACLockScreenImmediate")
+                if let sym = sym {
+                    typealias SACLockScreenImmediateType = @convention(c) () -> Void
+                    let function = unsafeBitCast(sym, to: SACLockScreenImmediateType.self)
+                    function()
+                    logger.debug("Screen lock fallback executed")
+                } else {
+                    logger.error("Screen lock fallback failed: symbol not found")
+                }
+                dlclose(libHandle)
+            } else {
+                logger.error("Screen lock fallback failed: framework not found")
             }
         }
     }
