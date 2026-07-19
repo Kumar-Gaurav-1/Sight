@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - About View
 
 /// Premium about screen with app info, credits, and links
+@MainActor
 struct SightAboutView: View {
     @State private var logoHovered = false
     @State private var showVersion = false
@@ -51,6 +52,7 @@ struct SightAboutView: View {
 
     // MARK: - App Info Card
 
+    @MainActor
     private var appInfoCard: some View {
         VStack(spacing: 20) {
             // Logo
@@ -129,6 +131,7 @@ struct SightAboutView: View {
 
     // MARK: - Features Card
 
+    @MainActor
     private var featuresCard: some View {
         EnhancedSettingsCard(
             icon: "sparkles",
