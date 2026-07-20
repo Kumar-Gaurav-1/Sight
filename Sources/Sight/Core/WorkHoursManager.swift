@@ -11,7 +11,7 @@ public final class WorkHoursManager: ObservableObject {
 
     @Published public private(set) var shouldPauseForSchedule: Bool = false
     @Published public private(set) var pauseReason: String?
-    @Published public private(set) var isFullscreenAppActive: Bool = false
+    @Published public internal(set) var isFullscreenAppActive: Bool = false
 
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "WorkHours")
     private var checkTimer: Timer?
