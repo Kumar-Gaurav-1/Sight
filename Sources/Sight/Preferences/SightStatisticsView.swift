@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
+@MainActor
 struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
@@ -359,8 +360,8 @@ struct SightStatisticsView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
-                        ExportButton(label: "JSON", action: exportJSON)
-                        ExportButton(label: "CSV", action: exportCSV)
+                        ExportButton(label: "JSON", action: { exportJSON() })
+                        ExportButton(label: "CSV", action: { exportCSV() })
                     }
                 }
                 .padding(16)
@@ -405,7 +406,7 @@ struct SightStatisticsView: View {
 
     // MARK: - Export
 
-    private func exportJSON() {
+    @MainActor private func exportJSON() {
         Task.detached(priority: .userInitiated) {
             guard let data = await MainActor.run(body: { self.adherence.exportAsJSON() }) else {
                 return
@@ -423,7 +424,7 @@ struct SightStatisticsView: View {
         }
     }
 
-    private func exportCSV() {
+    @MainActor private func exportCSV() {
         Task.detached(priority: .userInitiated) {
             let csv = await MainActor.run(body: { self.adherence.exportAsCSV() })
 
@@ -442,6 +443,7 @@ struct SightStatisticsView: View {
 
 // MARK: - Mini Stat Card
 
+@MainActor
 struct MiniStatCard: View {
     let icon: String
     let value: String
@@ -495,6 +497,7 @@ struct MiniStatCard: View {
 
 // MARK: - Hero Stat Card (Legacy)
 
+@MainActor
 struct HeroStatCard: View {
     let icon: String
     let value: String
@@ -537,6 +540,7 @@ struct HeroStatCard: View {
 
 // MARK: - Detail Stat Card
 
+@MainActor
 struct DetailStatCard: View {
     let icon: String
     let title: String
@@ -583,6 +587,7 @@ struct DetailStatCard: View {
 
 // MARK: - Animated Bar Chart
 
+@MainActor
 struct AnimatedBarChart: View {
     let dailyStats: [AdherenceManager.DayStats]
     let animate: Bool
@@ -658,7 +663,7 @@ struct AnimatedBarChart: View {
         return max(12, CGFloat(breaks) / CGFloat(maxBreaks) * barMaxHeight)
     }
 
-    private func barGradient(for day: AdherenceManager.DayStats) -> LinearGradient {
+    @MainActor private func barGradient(for day: AdherenceManager.DayStats) -> LinearGradient {
         let color: Color
         if day.breaksCompleted == 0 {
             color = SightTheme.cardBackground
@@ -680,6 +685,7 @@ struct AnimatedBarChart: View {
 
 // MARK: - Supporting Views
 
+@MainActor
 struct PeriodButton: View {
     let title: String
     let isSelected: Bool
@@ -699,6 +705,7 @@ struct PeriodButton: View {
     }
 }
 
+@MainActor
 struct LegendItem: View {
     let color: Color
     let label: String
@@ -715,6 +722,7 @@ struct LegendItem: View {
     }
 }
 
+@MainActor
 struct ExportButton: View {
     let label: String
     let action: () -> Void
