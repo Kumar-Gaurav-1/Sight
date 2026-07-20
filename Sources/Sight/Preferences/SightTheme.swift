@@ -281,6 +281,7 @@ extension View {
     }
 
     /// Apply Sight card with hover effect
+    @MainActor
     func sightCardHoverable() -> some View {
         self.modifier(HoverableCardModifier())
     }
@@ -536,6 +537,7 @@ struct ShimmerModifier: ViewModifier {
 }
 
 extension View {
+    @MainActor
     func shimmer() -> some View {
         modifier(ShimmerModifier())
     }
