@@ -8,6 +8,7 @@ public final class NudgeOverlayWindowController: NSObject {
     private var window: NSWindow?
     private var dimWindow: NSWindow?
     private var hideTimer: Timer?
+    private var isNudgeVisible: Bool = false
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.ui", category: "NudgeOverlay")
 
     public static let shared = NudgeOverlayWindowController()
@@ -18,6 +19,7 @@ public final class NudgeOverlayWindowController: NSObject {
 
     public func showNudge(type: NudgeType, duration: TimeInterval = 5.0) {
         logger.info("showNudge called for type: \(type.rawValue)")
+        isNudgeVisible = true
 
         // Close existing window to ensure fresh size
         window?.close()
@@ -102,6 +104,7 @@ public final class NudgeOverlayWindowController: NSObject {
 
     public func showOvertimeNudge(elapsedMinutes: Int, duration: TimeInterval = 8.0) {
         logger.info("showOvertimeNudge called for \(elapsedMinutes) minutes")
+        isNudgeVisible = true
 
         // Close existing window to ensure fresh size
         window?.close()
@@ -173,14 +176,16 @@ public final class NudgeOverlayWindowController: NSObject {
     public func hide() {
         hideTimer?.invalidate()
         hideTimer = nil
+        isNudgeVisible = false
 
-        // Hide dim overlay immediately (fixes stuck dim bug)
+        // Synchronize dim overlay hide with the main window animation
         hideDimOverlay()
 
-        guard let window = window else { return }
+        guard let currentWindow = window else { return }
+        self.window = nil // Eagerly nil out to prevent double-hide
 
         // Get current position and calculate exit position
-        let currentOrigin = window.frame.origin
+        let currentOrigin = currentWindow.frame.origin
         let exitY = currentOrigin.y + 80  // Slide up
 
         // Smooth slide-up exit animation
@@ -188,10 +193,11 @@ public final class NudgeOverlayWindowController: NSObject {
             context.duration = 0.35
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             context.allowsImplicitAnimation = true
-            window.animator().setFrameOrigin(NSPoint(x: currentOrigin.x, y: exitY))
-            window.animator().alphaValue = 0
+            currentWindow.animator().setFrameOrigin(NSPoint(x: currentOrigin.x, y: exitY))
+            currentWindow.animator().alphaValue = 0
         } completionHandler: {
-            window.orderOut(nil)
+            currentWindow.orderOut(nil)
+            currentWindow.close()
         }
     }
 
@@ -228,13 +234,17 @@ public final class NudgeOverlayWindowController: NSObject {
         guard let dimWindow = dimWindow else { return }
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
+            context.duration = 0.35 // Match main window exit duration
+            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             dimWindow.animator().alphaValue = 0
-        } completionHandler: {
-            dimWindow.orderOut(nil)
+        } completionHandler: { [weak self] in
+            // Only order out if we didn't start showing another nudge during the animation
+            if self?.isNudgeVisible == false {
+                dimWindow.orderOut(nil)
+            }
         }
 
-        logger.debug("Dim overlay hidden")
+        logger.debug("Dim overlay hide sequence started")
     }
 
     private func createDimWindow() {
