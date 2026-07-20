@@ -694,26 +694,22 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all statistics as CSV
     public func exportAsCSV() -> String {
-        var csv =
-            "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
+        var lines = [
+            "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score"
+        ]
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
 
+        lines.reserveCapacity(stats.count + 1)
+
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(dateFormatter.string(from: day.date)),"
-            csv += "\(day.breaksCompleted),"
-            csv += "\(day.breaksSkipped),"
-            csv += "\(day.nudgesFollowed),"
-            csv += "\(day.nudgesSnoozed),"
-            csv += "\(day.totalBreakMinutes),"
-            csv += "\(day.shortBreaksCompleted),"
-            csv += "\(day.longBreaksCompleted),"
-            csv += String(format: "%.1f", day.dailyScore)
-            csv += "\n"
+            let dateString = dateFormatter.string(from: day.date)
+            let scoreString = String(format: "%.1f", day.dailyScore)
+            lines.append("\(dateString),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(day.shortBreaksCompleted),\(day.longBreaksCompleted),\(scoreString)")
         }
 
-        return csv
+        return lines.joined(separator: "\n") + "\n"
     }
 
     // MARK: - Game Theory: Strain & Penalty
