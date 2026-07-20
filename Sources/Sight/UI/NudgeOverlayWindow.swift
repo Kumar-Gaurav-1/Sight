@@ -8,6 +8,7 @@ public final class NudgeOverlayWindowController: NSObject {
     private var window: NSWindow?
     private var dimWindow: NSWindow?
     private var hideTimer: Timer?
+    private var isDimActive = false
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.ui", category: "NudgeOverlay")
 
     public static let shared = NudgeOverlayWindowController()
@@ -23,10 +24,8 @@ public final class NudgeOverlayWindowController: NSObject {
         window?.close()
         window = nil
 
-        // Show dim overlay if enabled in preferences
-        if PreferencesManager.shared.dimScreenOnReminder {
-            showDimOverlay()
-        }
+        // Update dim overlay based on preferences
+        updateDimOverlay(show: PreferencesManager.shared.dimScreenOnReminder)
 
         // Fixed window size
         let windowSize = NSSize(width: 400, height: 80)
@@ -107,10 +106,8 @@ public final class NudgeOverlayWindowController: NSObject {
         window?.close()
         window = nil
 
-        // Show dim overlay if enabled in preferences
-        if PreferencesManager.shared.dimScreenOnReminder {
-            showDimOverlay()
-        }
+        // Update dim overlay based on preferences
+        updateDimOverlay(show: PreferencesManager.shared.dimScreenOnReminder)
 
         // Fixed window size
         let windowSize = NSSize(width: 400, height: 80)
@@ -174,8 +171,7 @@ public final class NudgeOverlayWindowController: NSObject {
         hideTimer?.invalidate()
         hideTimer = nil
 
-        // Hide dim overlay immediately (fixes stuck dim bug)
-        hideDimOverlay()
+        updateDimOverlay(show: false)
 
         guard let window = window else { return }
 
@@ -197,44 +193,46 @@ public final class NudgeOverlayWindowController: NSObject {
 
     // MARK: - Dim Overlay
 
-    private func showDimOverlay() {
-        // Create dim window if needed
-        if dimWindow == nil {
-            createDimWindow()
+    private func updateDimOverlay(show: Bool) {
+        isDimActive = show
+
+        if show {
+            if dimWindow == nil {
+                createDimWindow()
+            }
+            guard let dimWindow = dimWindow else { return }
+
+            let fullRect = NSScreen.screens.reduce(NSRect.zero) { result, screen in
+                result.union(screen.frame)
+            }
+            dimWindow.setFrame(fullRect, display: true)
+
+            if !dimWindow.isVisible {
+                dimWindow.alphaValue = 0
+                dimWindow.orderFront(nil)
+            }
+
+            let dimIntensity = PreferencesManager.shared.nudgeDimIntensity
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.3
+                dimWindow.animator().alphaValue = dimIntensity
+            }
+
+            logger.debug("Dim overlay shown")
+        } else {
+            guard let dimWindow = dimWindow else { return }
+
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.25
+                dimWindow.animator().alphaValue = 0
+            } completionHandler: { [weak self] in
+                if self?.isDimActive == false {
+                    dimWindow.orderOut(nil)
+                }
+            }
+
+            logger.debug("Dim overlay hidden")
         }
-
-        guard let dimWindow = dimWindow else { return }
-
-        // Position to cover all screens
-        let fullRect = NSScreen.screens.reduce(NSRect.zero) { result, screen in
-            result.union(screen.frame)
-        }
-        dimWindow.setFrame(fullRect, display: true)
-
-        dimWindow.alphaValue = 0
-        dimWindow.orderFront(nil)
-
-        // Animate dim in (use preference for intensity, default 0.5)
-        let dimIntensity = PreferencesManager.shared.nudgeDimIntensity
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.3
-            dimWindow.animator().alphaValue = dimIntensity
-        }
-
-        logger.debug("Dim overlay shown")
-    }
-
-    private func hideDimOverlay() {
-        guard let dimWindow = dimWindow else { return }
-
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
-            dimWindow.animator().alphaValue = 0
-        } completionHandler: {
-            dimWindow.orderOut(nil)
-        }
-
-        logger.debug("Dim overlay hidden")
     }
 
     private func createDimWindow() {
