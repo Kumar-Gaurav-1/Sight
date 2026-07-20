@@ -5,12 +5,14 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
+@MainActor
 struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
 
     @State private var animatedScore: Double = 0
 
+    @MainActor
     private var scoreColor: Color {
         if score >= 80 { return SightTheme.success }
         if score >= 60 { return SightTheme.accent }
@@ -18,6 +20,7 @@ struct WellnessGaugeView: View {
         return SightTheme.danger
     }
 
+    @MainActor
     private var scoreGradient: AngularGradient {
         AngularGradient(
             gradient: Gradient(colors: [
@@ -32,6 +35,7 @@ struct WellnessGaugeView: View {
         )
     }
 
+    @MainActor
     var body: some View {
         ZStack {
             // Background arc
@@ -99,6 +103,7 @@ struct ActivityHeatmapView: View {
         max(1, hourlyDistribution.values.max() ?? 1)
     }
 
+    @MainActor
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Hour labels
@@ -209,6 +214,7 @@ struct ActivityHeatmapView: View {
         return formatter.string(from: date)
     }
 
+    @MainActor
     private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
@@ -251,6 +257,7 @@ struct HeatmapCell: View {
         }
     }
 
+    @MainActor
     var body: some View {
         RoundedRectangle(cornerRadius: 2)
             .fill(cellColor)
@@ -300,6 +307,7 @@ struct TimeBreakdownChart: View {
         ].filter { $0.value > 0 }
     }
 
+    @MainActor
     var body: some View {
         HStack(spacing: 24) {
             // Donut chart
@@ -408,6 +416,7 @@ struct ComparisonBarView: View {
         currentValue >= previousValue
     }
 
+    @MainActor
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Label and change indicator
@@ -520,6 +529,7 @@ struct TrendLineChart: View {
         max(0, (values.min() ?? 0) - 10)
     }
 
+    @MainActor
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
@@ -639,6 +649,7 @@ struct InsightCardView: View {
 
     @State private var isHovered = false
 
+    @MainActor
     var body: some View {
         HStack(spacing: 12) {
             // Icon
@@ -702,6 +713,7 @@ struct NudgeComplianceCard: View {
         return Double(postureFollowed) / Double(postureShown)
     }
 
+    @MainActor
     var body: some View {
         HStack(spacing: 20) {
             // Blink compliance
@@ -741,6 +753,7 @@ struct ComplianceRing: View {
 
     @State private var animatedValue: Double = 0
 
+    @MainActor
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
