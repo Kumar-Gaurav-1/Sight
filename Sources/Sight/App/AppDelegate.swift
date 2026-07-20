@@ -121,27 +121,27 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
 
             Task { @MainActor in
                 // SECURITY: Debounce to prevent double-skip
                 // If skipToNext was called recently (within 500ms), ignore this notification
                 let now = Date()
-                if let lastSkip = self.lastSkipTime, now.timeIntervalSince(lastSkip) < 0.5 {
-                    self.logger.debug("Ignoring duplicate SightSkipBreak notification")
+                if let lastSkip = strongSelf.lastSkipTime, now.timeIntervalSince(lastSkip) < 0.5 {
+                    strongSelf.logger.debug("Ignoring duplicate SightSkipBreak notification")
                     return
                 }
-                self.lastSkipTime = now
+                strongSelf.lastSkipTime = now
 
                 // Only skip if we're actually in break state
                 // This prevents transitioning from work->preBreak if notification arrives late
-                guard self.stateMachine.currentState == .break else {
-                    self.logger.debug("SightSkipBreak ignored - not in break state")
+                guard strongSelf.stateMachine.currentState == .break else {
+                    strongSelf.logger.debug("SightSkipBreak ignored - not in break state")
                     return
                 }
 
-                self.logger.info("Break skipped via overlay")
-                self.stateMachine.skipToNext()
+                strongSelf.logger.info("Break skipped via overlay")
+                strongSelf.stateMachine.skipToNext()
             }
         }
 
@@ -151,13 +151,13 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
 
             Task { @MainActor in
                 // Resume timer if it was paused by user (manual break)
-                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.logger.info("Manual break ended, resuming timer")
-                    self.stateMachine.resume()
+                if strongSelf.stateMachine.isPaused && strongSelf.stateMachine.pauseSource == .user {
+                    strongSelf.logger.info("Manual break ended, resuming timer")
+                    strongSelf.stateMachine.resume()
                 }
             }
         }
@@ -168,11 +168,11 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
 
             Task { @MainActor in
-                self.logger.info("Take break requested via notification")
-                self.menuBarController?.viewModel.triggerShortBreak()
+                strongSelf.logger.info("Take break requested via notification")
+                strongSelf.menuBarController?.viewModel.triggerShortBreak()
             }
         }
 
@@ -182,13 +182,14 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
+
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
-                self.logger.info("Break postponed for \(minutes) minutes via notification")
+                strongSelf.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
-                self.stateMachine.postpone(minutes: minutes)
+                strongSelf.stateMachine.postpone(minutes: minutes)
             }
         }
 
@@ -232,10 +233,10 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
-            self.logger.info("Onboarding completed - starting timer")
+            guard let strongSelf = self else { return }
+            strongSelf.logger.info("Onboarding completed - starting timer")
             Task { @MainActor in
-                self.startTimerIfAppropriate()
+                strongSelf.startTimerIfAppropriate()
             }
         }
     }
