@@ -884,18 +884,18 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all stats to CSV format
     public func exportToCSV() -> String {
-        var csv =
-            "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
+        let header =
+            "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score"
 
         let formatter = ISO8601DateFormatter()
 
-        for day in stats.sorted(by: { $0.date < $1.date }) {
-            let line =
-                "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
-            csv += line
+        let lines = stats.sorted(by: { $0.date < $1.date }).map { day in
+            "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))"
         }
 
-        return csv
+        var allLines = [header]
+        allLines.append(contentsOf: lines)
+        return allLines.joined(separator: "\n") + "\n"
     }
 
     /// Save export to file and return URL
