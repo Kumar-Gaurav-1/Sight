@@ -11,7 +11,7 @@ import SwiftUI
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     private let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
 
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             Text("About")
@@ -250,7 +250,7 @@ import SwiftUI
     let title: String
     let description: String
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 16))
@@ -282,7 +282,7 @@ import SwiftUI
 
     @State private var isHovered = false
 
-    var body: some View {
+    public var body: some View {
         Button(action: {
             if let url = URL(string: url) {
                 NSWorkspace.shared.open(url)
