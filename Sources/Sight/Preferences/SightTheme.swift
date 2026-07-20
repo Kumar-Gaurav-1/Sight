@@ -281,7 +281,7 @@ extension View {
     }
 
     /// Apply Sight card with hover effect
-    func sightCardHoverable() -> some View {
+    @MainActor func sightCardHoverable() -> some View {
         self.modifier(HoverableCardModifier())
     }
 
@@ -361,7 +361,7 @@ extension View {
 public struct HoverableCardModifier: ViewModifier {
     @State private var isHovered = false
 
-    @MainActor func body(content: Content) -> some View {
+    @MainActor public func body(content: Content) -> some View {
         content
             .padding(SightTheme.cardPadding)
             .background(isHovered ? SightTheme.elevatedBackground : SightTheme.cardBackground)
@@ -381,7 +381,7 @@ public struct HoverableCardModifier: ViewModifier {
 // MARK: - Custom Button Styles
 
 public struct SightPrimaryButtonStyle: ButtonStyle {
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    @MainActor public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -405,7 +405,7 @@ public struct SightPrimaryButtonStyle: ButtonStyle {
 public struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    @MainActor public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -435,7 +435,7 @@ public struct SightSecondaryButtonStyle: ButtonStyle {
 // MARK: - Custom Toggle Style
 
 public struct SightToggleStyle: ToggleStyle {
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    @MainActor public func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
             Spacer()
@@ -484,7 +484,7 @@ public struct ProgressRing: View {
         self.gradient = gradient
     }
 
-    var body: some View {
+    public var body: some View {
         let displayGradient = gradient ?? SightTheme.accentGradient
         ZStack {
             // Background ring
@@ -507,7 +507,7 @@ public struct ProgressRing: View {
 public struct ShimmerModifier: ViewModifier {
     @State private var phase: CGFloat = 0
 
-    @MainActor func body(content: Content) -> some View {
+    @MainActor public func body(content: Content) -> some View {
         content
             .overlay(
                 GeometryReader { geo in
@@ -550,7 +550,7 @@ public struct AnimatedCheckmark: View {
         self.color = color
     }
 
-    var body: some View {
+    public var body: some View {
         Path { path in
             path.move(to: CGPoint(x: 5, y: 12))
             path.addLine(to: CGPoint(x: 10, y: 17))
