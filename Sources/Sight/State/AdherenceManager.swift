@@ -657,8 +657,10 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
+        let isoFormatter = ISO8601DateFormatter()
+
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            "exportDate": isoFormatter.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,7 +669,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+                    "date": isoFormatter.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
