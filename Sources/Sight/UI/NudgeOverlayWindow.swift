@@ -174,7 +174,6 @@ public final class NudgeOverlayWindowController: NSObject {
         hideTimer?.invalidate()
         hideTimer = nil
 
-        // Hide dim overlay immediately (fixes stuck dim bug)
         hideDimOverlay()
 
         guard let window = window else { return }
@@ -211,8 +210,10 @@ public final class NudgeOverlayWindowController: NSObject {
         }
         dimWindow.setFrame(fullRect, display: true)
 
-        dimWindow.alphaValue = 0
-        dimWindow.orderFront(nil)
+        if !dimWindow.isVisible {
+            dimWindow.alphaValue = 0
+            dimWindow.orderFront(nil)
+        }
 
         // Animate dim in (use preference for intensity, default 0.5)
         let dimIntensity = PreferencesManager.shared.nudgeDimIntensity
@@ -230,8 +231,10 @@ public final class NudgeOverlayWindowController: NSObject {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.25
             dimWindow.animator().alphaValue = 0
-        } completionHandler: {
-            dimWindow.orderOut(nil)
+        } completionHandler: { [weak dimWindow] in
+            if dimWindow?.alphaValue == 0 {
+                dimWindow?.orderOut(nil)
+            }
         }
 
         logger.debug("Dim overlay hidden")
