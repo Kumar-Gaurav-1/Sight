@@ -360,8 +360,8 @@ struct SightStatisticsView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
-                        ExportButton(label: "JSON", action: exportJSON)
-                        ExportButton(label: "CSV", action: exportCSV)
+                        ExportButton(label: "JSON", action: { exportJSON() })
+                        ExportButton(label: "CSV", action: { exportCSV() })
                     }
                 }
                 .padding(16)
@@ -406,7 +406,7 @@ struct SightStatisticsView: View {
 
     // MARK: - Export
 
-    private func exportJSON() {
+    @MainActor private func exportJSON() {
         Task.detached(priority: .userInitiated) {
             guard let data = await MainActor.run(body: { self.adherence.exportAsJSON() }) else {
                 return
@@ -424,7 +424,7 @@ struct SightStatisticsView: View {
         }
     }
 
-    private func exportCSV() {
+    @MainActor private func exportCSV() {
         Task.detached(priority: .userInitiated) {
             let csv = await MainActor.run(body: { self.adherence.exportAsCSV() })
 
