@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
+@MainActor
 enum SightTheme {
 
     // MARK: - Colors
