@@ -5,6 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
+@MainActor
 struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
@@ -505,6 +506,7 @@ struct ComparisonBarView: View {
 // MARK: - Trend Line Chart
 
 /// Simple line chart for showing trends
+@MainActor
 struct TrendLineChart: View {
     let values: [Double]
     let labels: [String]
@@ -732,6 +734,7 @@ struct NudgeComplianceCard: View {
     }
 }
 
+@MainActor
 struct ComplianceRing: View {
     let value: Double  // 0-1
     let icon: String
