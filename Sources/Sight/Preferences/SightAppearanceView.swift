@@ -660,7 +660,7 @@ struct SightAppearanceView: View {
 // MARK: - Background Type Card
 
 struct BackgroundTypeCard: View {
-    private let logger = Logger(subsystem: "com.sight.app", category: "AppearanceView")
+    private static let logger = Logger(subsystem: "com.sight.app", category: "AppearanceView")
 
     let type: String
     let title: String
@@ -810,7 +810,7 @@ struct BackgroundTypeCard: View {
 
         provider.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, error in
             if let error = error {
-                logger.error("Drop failed: \(error.localizedDescription, privacy: .public)")
+                Self.logger.error("Drop failed: \(error.localizedDescription, privacy: .public)")
                 return
             }
 
@@ -818,7 +818,7 @@ struct BackgroundTypeCard: View {
                 let url = URL(dataRepresentation: data, relativeTo: nil),
                 isImageFile(url: url)
             else {
-                logger.error("Invalid drop: not an image file")
+                Self.logger.error("Invalid drop: not an image file")
                 return
             }
 
