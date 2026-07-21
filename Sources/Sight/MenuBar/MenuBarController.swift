@@ -19,6 +19,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     // Animation state
     private var iconAnimationTimer: Timer?
     private var isAnimatingIcon = false
+    private var isIconFilled = false
 
     // MARK: - Initialization
 
@@ -113,23 +114,23 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     private func startIconPulse() {
         guard !isAnimatingIcon else { return }
         isAnimatingIcon = true
+        isIconFilled = false
 
-        var toggle = false
-        iconAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
-            [weak self] _ in
-            // Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                guard let self = self, let button = self.statusItem?.button else { return }
+        iconAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                guard let button = self.statusItem?.button else { return }
 
                 // Alternate between filled and empty icon
-                let iconName = toggle ? "bell.fill" : "bell"
+                self.isIconFilled.toggle()
+                let iconName = self.isIconFilled ? "bell.fill" : "bell"
+
                 if let image = NSImage(
                     systemSymbolName: iconName, accessibilityDescription: "Break Soon")
                 {
                     image.isTemplate = true
                     button.image = image
                 }
-                toggle.toggle()
             }
         }
     }

@@ -657,8 +657,10 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
+        let formatter = ISO8601DateFormatter()
+
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            "exportDate": formatter.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,7 +669,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+                    "date": formatter.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -694,26 +696,18 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all statistics as CSV
     public func exportAsCSV() -> String {
-        var csv =
-            "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
+        let header = "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score"
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
 
-        for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(dateFormatter.string(from: day.date)),"
-            csv += "\(day.breaksCompleted),"
-            csv += "\(day.breaksSkipped),"
-            csv += "\(day.nudgesFollowed),"
-            csv += "\(day.nudgesSnoozed),"
-            csv += "\(day.totalBreakMinutes),"
-            csv += "\(day.shortBreaksCompleted),"
-            csv += "\(day.longBreaksCompleted),"
-            csv += String(format: "%.1f", day.dailyScore)
-            csv += "\n"
+        let rows = stats.sorted(by: { $0.date < $1.date }).map { day -> String in
+            let dateStr = dateFormatter.string(from: day.date)
+            let scoreStr = String(format: "%.1f", day.dailyScore)
+            return "\(dateStr),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(day.shortBreaksCompleted),\(day.longBreaksCompleted),\(scoreStr)"
         }
 
-        return csv
+        return ([header] + rows).joined(separator: "\n") + "\n"
     }
 
     // MARK: - Game Theory: Strain & Penalty
@@ -884,18 +878,17 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all stats to CSV format
     public func exportToCSV() -> String {
-        var csv =
-            "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
+        let header = "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score"
 
         let formatter = ISO8601DateFormatter()
 
-        for day in stats.sorted(by: { $0.date < $1.date }) {
-            let line =
-                "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
-            csv += line
+        let rows = stats.sorted(by: { $0.date < $1.date }).map { day -> String in
+            let dateStr = formatter.string(from: day.date)
+            let scoreStr = String(format: "%.1f", day.dailyScore)
+            return "\(dateStr),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(scoreStr)"
         }
 
-        return csv
+        return ([header] + rows).joined(separator: "\n") + "\n"
     }
 
     /// Save export to file and return URL
