@@ -30,12 +30,32 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application launched")
 
+        setupStateMachine()
+        setupMenuBarAndShortcuts()
+        setupManagers()
+        setupNotificationObservers()
+
+        // Hide dock icon (LSUIElement behavior)
+        NSApp.setActivationPolicy(.accessory)
+
+        logger.info("Menu bar initialized")
+
+        checkOnboardingAndStart()
+
+        // PERFORMANCE: Setup monitoring for 24/7 operation
+        setupMemoryPressureMonitoring()
+        setupAppNapPrevention()
+    }
+
+    private func setupStateMachine() {
         // Configure state machine with saved preferences
         stateMachine.configuration = PreferencesManager.shared.timerConfiguration
 
         // Set shared instance for global access (skip difficulty, etc.)
         TimerStateMachine.shared = stateMachine
+    }
 
+    private func setupMenuBarAndShortcuts() {
         // Initialize menu bar controller
         menuBarController = MenuBarController(stateMachine: stateMachine)
 
@@ -47,7 +67,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             }
             ShortcutManager.shared.startMonitoring()
         }
+    }
 
+    private func setupManagers() {
         // Setup Nudges
         MicroNudgesManager.shared.onNudge = { event in
             Renderer.showNudge(type: event.type)
@@ -114,7 +136,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 LoginItemManager.shared.setEnabled(enabled)
             }
             .store(in: &cancellables)
+    }
 
+    private func setupNotificationObservers() {
         // Observe skip break events from overlay (Escape key, Skip button)
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("SightSkipBreak"),
@@ -191,12 +215,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 self.stateMachine.postpone(minutes: minutes)
             }
         }
+    }
 
-        // Hide dock icon (LSUIElement behavior)
-        NSApp.setActivationPolicy(.accessory)
-
-        logger.info("Menu bar initialized")
-
+    private func checkOnboardingAndStart() {
         // Check Onboarding
         if !PreferencesManager.shared.hasCompletedOnboarding {
             showOnboarding()
@@ -206,10 +227,6 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             // Onboarding already done - start timer normally
             startTimerIfAppropriate()
         }
-
-        // PERFORMANCE: Setup monitoring for 24/7 operation
-        setupMemoryPressureMonitoring()
-        setupAppNapPrevention()
     }
 
     private func startTimerIfAppropriate() {
