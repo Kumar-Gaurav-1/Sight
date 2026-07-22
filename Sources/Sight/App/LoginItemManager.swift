@@ -10,8 +10,12 @@ public final class LoginItemManager {
 
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "LoginItem")
 
+    /// LaunchAgent plist path override for testing
+    internal var testLaunchAgentPath: URL?
+
     /// LaunchAgent plist path
-    private var launchAgentPath: URL {
+    internal var launchAgentPath: URL {
+        if let testLaunchAgentPath = testLaunchAgentPath { return testLaunchAgentPath }
         let libraryPath = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library")
             .appendingPathComponent("LaunchAgents")
