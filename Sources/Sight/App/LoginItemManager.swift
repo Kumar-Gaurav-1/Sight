@@ -11,12 +11,12 @@ public final class LoginItemManager {
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "LoginItem")
 
     /// LaunchAgent plist path
-    private var launchAgentPath: URL {
+    internal lazy var launchAgentPath: URL = {
         let libraryPath = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library")
             .appendingPathComponent("LaunchAgents")
         return libraryPath.appendingPathComponent("com.kumargaurav.Sight.plist")
-    }
+    }()
 
     /// Whether launch at login is currently enabled
     public var isEnabled: Bool {
