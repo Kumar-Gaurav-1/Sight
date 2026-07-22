@@ -30,12 +30,39 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application launched")
 
+        setupStateMachine()
+        setupMenuBarAndShortcuts()
+        setupNudges()
+
+        // Request notification permissions
+        NotificationManager.shared.requestAuthorization()
+
+        setupIdleDetection()
+        setupSmartPause()
+        setupLaunchAtLogin()
+        setupNotificationObservers()
+
+        // Hide dock icon (LSUIElement behavior)
+        NSApp.setActivationPolicy(.accessory)
+
+        logger.info("Menu bar initialized")
+
+        checkOnboarding()
+
+        // PERFORMANCE: Setup monitoring for 24/7 operation
+        setupMemoryPressureMonitoring()
+        setupAppNapPrevention()
+    }
+
+    private func setupStateMachine() {
         // Configure state machine with saved preferences
         stateMachine.configuration = PreferencesManager.shared.timerConfiguration
 
         // Set shared instance for global access (skip difficulty, etc.)
         TimerStateMachine.shared = stateMachine
+    }
 
+    private func setupMenuBarAndShortcuts() {
         // Initialize menu bar controller
         menuBarController = MenuBarController(stateMachine: stateMachine)
 
@@ -47,16 +74,17 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             }
             ShortcutManager.shared.startMonitoring()
         }
+    }
 
+    private func setupNudges() {
         // Setup Nudges
         MicroNudgesManager.shared.onNudge = { event in
             Renderer.showNudge(type: event.type)
         }
         MicroNudgesManager.shared.start()
+    }
 
-        // Request notification permissions
-        NotificationManager.shared.requestAuthorization()
-
+    private func setupIdleDetection() {
         // Setup Idle Detection
         IdleDetector.shared.onIdlePause = { [weak self] in
             self?.stateMachine.pause(source: .idle)
@@ -72,7 +100,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             self?.stateMachine.reset()
         }
         IdleDetector.shared.start()
+    }
 
+    private func setupSmartPause() {
         // Setup Smart Pause (screen recording, meetings, fullscreen detection)
         SmartPauseManager.shared.startMonitoring()
         SmartPauseManager.shared.$shouldPause
@@ -103,7 +133,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
+    }
 
+    private func setupLaunchAtLogin() {
         // Sync Launch at Login with system
         LoginItemManager.shared.syncWithPreferences(PreferencesManager.shared)
 
@@ -114,7 +146,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 LoginItemManager.shared.setEnabled(enabled)
             }
             .store(in: &cancellables)
+    }
 
+    private func setupNotificationObservers() {
         // Observe skip break events from overlay (Escape key, Skip button)
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("SightSkipBreak"),
@@ -191,12 +225,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 self.stateMachine.postpone(minutes: minutes)
             }
         }
+    }
 
-        // Hide dock icon (LSUIElement behavior)
-        NSApp.setActivationPolicy(.accessory)
-
-        logger.info("Menu bar initialized")
-
+    private func checkOnboarding() {
         // Check Onboarding
         if !PreferencesManager.shared.hasCompletedOnboarding {
             showOnboarding()
@@ -206,10 +237,6 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             // Onboarding already done - start timer normally
             startTimerIfAppropriate()
         }
-
-        // PERFORMANCE: Setup monitoring for 24/7 operation
-        setupMemoryPressureMonitoring()
-        setupAppNapPrevention()
     }
 
     private func startTimerIfAppropriate() {
