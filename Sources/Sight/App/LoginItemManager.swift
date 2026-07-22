@@ -60,6 +60,14 @@ public final class LoginItemManager {
             }
         }
 
+        // Validate app path to prevent command injection via malicious bundle paths
+        // Restricting purely dangerous shell metacharacters but allowing spaces and parenthesis commonly found in filenames
+        let unsafeChars = CharacterSet(charactersIn: ";|`$*?{}\n\r\"'")
+        guard appPath.rangeOfCharacter(from: unsafeChars) == nil else {
+            logger.error("Security warning: App path contains unsafe characters and will not be added to LaunchAgents: \(appPath)")
+            return
+        }
+
         // Ensure LaunchAgents directory exists
         let launchAgentsDir = launchAgentPath.deletingLastPathComponent()
         do {
