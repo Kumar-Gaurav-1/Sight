@@ -60,6 +60,14 @@ public final class LoginItemManager {
             }
         }
 
+        // Validate app path to prevent argument injection risks
+        // Since launchd uses execve, shell injection is mitigated, but we must ensure
+        // the path is absolute and not treated as a flag (e.g., starting with '-')
+        guard appPath.hasPrefix("/") else {
+            logger.error("Security warning: App path must be absolute to prevent argument injection.")
+            return
+        }
+
         // Ensure LaunchAgents directory exists
         let launchAgentsDir = launchAgentPath.deletingLastPathComponent()
         do {
