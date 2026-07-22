@@ -5,20 +5,21 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
+@MainActor
 struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
 
     @State private var animatedScore: Double = 0
 
-    private var scoreColor: Color {
+    @MainActor private var scoreColor: Color {
         if score >= 80 { return SightTheme.success }
         if score >= 60 { return SightTheme.accent }
         if score >= 40 { return SightTheme.warning }
         return SightTheme.danger
     }
 
-    private var scoreGradient: AngularGradient {
+    @MainActor private var scoreGradient: AngularGradient {
         AngularGradient(
             gradient: Gradient(colors: [
                 SightTheme.danger,
@@ -85,6 +86,7 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
+@MainActor
 struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
@@ -209,7 +211,7 @@ struct ActivityHeatmapView: View {
         return formatter.string(from: date)
     }
 
-    private func intensityColor(_ intensity: Double) -> Color {
+    @MainActor private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -224,6 +226,7 @@ struct ActivityHeatmapView: View {
     }
 }
 
+@MainActor
 struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
@@ -237,7 +240,7 @@ struct HeatmapCell: View {
         return Double(value) / Double(maxValue)
     }
 
-    private var cellColor: Color {
+    @MainActor private var cellColor: Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -278,6 +281,7 @@ struct HeatmapCell: View {
 // MARK: - Time Breakdown Chart
 
 /// Donut chart showing time distribution
+@MainActor
 struct TimeBreakdownChart: View {
     let screenTime: Int
     let breakTime: Int
@@ -291,7 +295,7 @@ struct TimeBreakdownChart: View {
         max(1, screenTime + breakTime + meetingTime + idleTime)
     }
 
-    private var segments: [(label: String, value: Int, color: Color, icon: String)] {
+    @MainActor private var segments: [(label: String, value: Int, color: Color, icon: String)] {
         [
             ("Screen", screenTime, SightTheme.accent, "display"),
             ("Breaks", breakTime, SightTheme.success, "eye.slash"),

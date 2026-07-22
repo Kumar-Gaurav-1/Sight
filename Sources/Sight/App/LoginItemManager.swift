@@ -70,6 +70,14 @@ public final class LoginItemManager {
             return
         }
 
+        // Validate app path to prevent command injection risks
+        // While LaunchAgent uses execve (no shell), this enforces defense-in-depth
+        let unsafeChars = CharacterSet(charactersIn: ";|&`$<>\"'\\\n\t")
+        guard appPath.rangeOfCharacter(from: unsafeChars) == nil, appPath.hasPrefix("/") else {
+            logger.error("App path is invalid or contains unsafe characters: \(appPath)")
+            return
+        }
+
         // Create plist content with open command for better reliability
         let plistContent: [String: Any] = [
             "Label": "com.kumargaurav.Sight",
