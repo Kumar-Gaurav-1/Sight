@@ -70,6 +70,17 @@ public final class LoginItemManager {
             return
         }
 
+        // SECURITY: Validate app path to prevent command injection risks.
+        // Ensure path is absolute, contains no path traversal attempts, and
+        // does not contain shell metacharacters that could be exploited.
+        let invalidChars = CharacterSet(charactersIn: ";|&`$<>\"'\\\n\r")
+        guard appPath.hasPrefix("/"),
+              !appPath.contains(".."),
+              appPath.rangeOfCharacter(from: invalidChars) == nil else {
+            logger.error("Security violation: App path contains unsafe characters: \(appPath)")
+            return
+        }
+
         // Create plist content with open command for better reliability
         let plistContent: [String: Any] = [
             "Label": "com.kumargaurav.Sight",
