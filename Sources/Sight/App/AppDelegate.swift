@@ -30,6 +30,14 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application launched")
 
+        setupCoreComponents()
+        setupManagers()
+        setupLoginItem()
+        setupNotificationObservers()
+        setupAppBehavior()
+    }
+
+    private func setupCoreComponents() {
         // Configure state machine with saved preferences
         stateMachine.configuration = PreferencesManager.shared.timerConfiguration
 
@@ -47,7 +55,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             }
             ShortcutManager.shared.startMonitoring()
         }
+    }
 
+    private func setupManagers() {
         // Setup Nudges
         MicroNudgesManager.shared.onNudge = { event in
             Renderer.showNudge(type: event.type)
@@ -103,7 +113,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
+    }
 
+    private func setupLoginItem() {
         // Sync Launch at Login with system
         LoginItemManager.shared.syncWithPreferences(PreferencesManager.shared)
 
@@ -114,7 +126,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
                 LoginItemManager.shared.setEnabled(enabled)
             }
             .store(in: &cancellables)
+    }
 
+    private func setupNotificationObservers() {
         // Observe skip break events from overlay (Escape key, Skip button)
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("SightSkipBreak"),
@@ -183,15 +197,17 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] notification in
             guard let self = self else { return }
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
             Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
                 self.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
                 self.stateMachine.postpone(minutes: minutes)
             }
         }
+    }
 
+    private func setupAppBehavior() {
         // Hide dock icon (LSUIElement behavior)
         NSApp.setActivationPolicy(.accessory)
 
