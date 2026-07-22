@@ -19,6 +19,15 @@ public final class IdleDetector: ObservableObject {
     public var onIdleResume: (() -> Void)?
     public var onIdleReset: (() -> Void)?
 
+    // Internal for testing
+    internal lazy var systemIdleTimeProvider: () -> Int = {
+        let mouseMovedIdle = Int(CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType: .mouseMoved))
+        let keyboardIdle = Int(CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType: .keyDown))
+        let mouseClickIdle = Int(CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType: .leftMouseDown))
+        let scrollWheelIdle = Int(CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType: .scrollWheel))
+        return min(mouseMovedIdle, keyboardIdle, mouseClickIdle, scrollWheelIdle)
+    }
+
     private init() {}
 
     deinit {
@@ -47,34 +56,9 @@ public final class IdleDetector: ObservableObject {
 
     // MARK: - Detection
 
-    private func checkIdleTime() {
-        // Get system idle time using IOKit - check multiple input types
-        let mouseMovedIdle = Int(
-            CGEventSource.secondsSinceLastEventType(
-                .hidSystemState,
-                eventType: .mouseMoved
-            ))
-
-        let keyboardIdle = Int(
-            CGEventSource.secondsSinceLastEventType(
-                .hidSystemState,
-                eventType: .keyDown
-            ))
-
-        let mouseClickIdle = Int(
-            CGEventSource.secondsSinceLastEventType(
-                .hidSystemState,
-                eventType: .leftMouseDown
-            ))
-
-        let scrollWheelIdle = Int(
-            CGEventSource.secondsSinceLastEventType(
-                .hidSystemState,
-                eventType: .scrollWheel
-            ))
-
-        // Use the smallest value (most recent activity)
-        idleSeconds = min(mouseMovedIdle, keyboardIdle, mouseClickIdle, scrollWheelIdle)
+    // Exposed for testing without relying on Timer
+    internal func checkIdleTime() {
+        idleSeconds = systemIdleTimeProvider()
 
         let pauseThreshold = PreferencesManager.shared.idlePauseMinutes * 60
         let resetThreshold = PreferencesManager.shared.idleResetMinutes * 60
