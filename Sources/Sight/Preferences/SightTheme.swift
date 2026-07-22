@@ -3,21 +3,22 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
-enum SightTheme {
+@MainActor
+public enum SightTheme {
 
     // MARK: - Colors
 
     /// Main background color (System Window Background)
-    static let background = Color(nsColor: .windowBackgroundColor)
+    public static let background = Color(nsColor: .windowBackgroundColor)
 
     /// Surface background (System Control Background)
-    static let surface = Color(nsColor: .controlBackgroundColor)
+    public static let surface = Color(nsColor: .controlBackgroundColor)
 
     /// Sidebar background (System Sidebar)
-    static let sidebarBackground = Color(nsColor: .windowBackgroundColor)  // Usually transparent/material in modern apps
+    public static let sidebarBackground = Color(nsColor: .windowBackgroundColor)  // Usually transparent/material in modern apps
 
     /// Card/container background (System Control Background)
-    static let cardBackground = Color(nsColor: .controlBackgroundColor)
+    public static let cardBackground = Color(nsColor: .controlBackgroundColor)
 
     /// Elevated card background (System Alternating Content)
     static let elevatedBackground = Color(nsColor: .alternatingContentBackgroundColors[1])
@@ -25,24 +26,22 @@ enum SightTheme {
     // MARK: - Dynamic Accent Colors
 
     /// Primary accent color - dynamic based on user preference (hue slider)
-    @MainActor
-    static var accent: Color {
+    public static var accent: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
     }
 
     /// Accent light variant - dynamic based on user preference
-    @MainActor
-    static var accentLight: Color {
+    public static var accentLight: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.4, brightness: 1.0)
     }
 
     /// Secondary text color (System Secondary)
-    static let secondaryText = Color.secondary
+    public static let secondaryText = Color.secondary
 
     /// Tertiary text color (System Tertiary)
-    static let tertiaryText = Color(nsColor: .tertiaryLabelColor)
+    public static let tertiaryText = Color(nsColor: .tertiaryLabelColor)
 
     /// Divider color (System Separator)
     static let divider = Color(nsColor: .separatorColor)
@@ -51,19 +50,18 @@ enum SightTheme {
     static let border = Color(nsColor: .separatorColor)
 
     /// Success/active indicator (green)
-    static let success = Color.green
+    public static let success = Color.green
 
     /// Warning indicator (orange)
-    static let warning = Color.orange
+    public static let warning = Color.orange
 
     /// Error/danger (red)
-    static let danger = Color.red
+    public static let danger = Color.red
 
     // MARK: - Gradients
 
     /// Primary accent gradient - dynamic based on user preference
-    @MainActor
-    static var accentGradient: LinearGradient {
+    public static var accentGradient: LinearGradient {
         LinearGradient(
             colors: [accent, accentLight],
             startPoint: .topLeading,
@@ -145,7 +143,6 @@ enum SightTheme {
     }
 
     /// Get gradient for current user preference
-    @MainActor
     static var breakGradient: LinearGradient {
         let presetName = PreferencesManager.shared.breakGradientPreset
         let preset = GradientPreset(rawValue: presetName) ?? .sunset
@@ -156,7 +153,6 @@ enum SightTheme {
     static let glassBackground = Color.white.opacity(0.08)
 
     /// Subtle glow color using accent
-    @MainActor
     static var glowColor: Color {
         accent.opacity(0.4)
     }
@@ -257,13 +253,11 @@ enum SightTheme {
 
 extension SightTheme {
     /// Check if reduced motion is enabled
-    @MainActor
     static var reduceMotion: Bool {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
     /// Get animation respecting reduce motion
-    @MainActor
     static func animation(_ animation: Animation) -> Animation? {
         reduceMotion ? nil : animation
     }
@@ -304,7 +298,6 @@ extension View {
     }
 
     /// Add glow effect
-    @MainActor
     func glowEffect(_ color: Color? = nil, radius: CGFloat = 10) -> some View {
         let effectColor = color ?? SightTheme.accent
         return self.shadow(color: effectColor.opacity(0.5), radius: radius, x: 0, y: 0)
