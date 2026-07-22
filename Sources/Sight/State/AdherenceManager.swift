@@ -699,6 +699,8 @@ public final class AdherenceManager: ObservableObject {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
 
+        // ⚡ BOLT OPTIMIZATION: Replaced O(N^2) loop string concatenation `+=` with amortized O(N) `map` and `.joined()`.
+        // This significantly reduces memory reallocations during CSV generation for users with long data histories.
         let rows = stats.sorted(by: { $0.date < $1.date }).map { day -> String in
             [
                 dateFormatter.string(from: day.date),
@@ -888,6 +890,7 @@ public final class AdherenceManager: ObservableObject {
 
         let formatter = ISO8601DateFormatter()
 
+        // ⚡ BOLT OPTIMIZATION: Replaced O(N^2) loop string concatenation `+=` with amortized O(N) `map` and `.joined()`.
         let rows = stats.sorted(by: { $0.date < $1.date }).map { day -> String in
             "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))"
         }
