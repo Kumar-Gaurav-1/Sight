@@ -9,10 +9,11 @@ public final class LoginItemManager {
     public static let shared = LoginItemManager()
 
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "LoginItem")
+    internal var fileManager: FileManager = .default
 
     /// LaunchAgent plist path
     private var launchAgentPath: URL {
-        let libraryPath = FileManager.default.homeDirectoryForCurrentUser
+        let libraryPath = fileManager.homeDirectoryForCurrentUser
             .appendingPathComponent("Library")
             .appendingPathComponent("LaunchAgents")
         return libraryPath.appendingPathComponent("com.kumargaurav.Sight.plist")
@@ -22,7 +23,7 @@ public final class LoginItemManager {
     public var isEnabled: Bool {
         get {
             // Check if LaunchAgent plist exists
-            return FileManager.default.fileExists(atPath: launchAgentPath.path)
+            return fileManager.fileExists(atPath: launchAgentPath.path)
         }
         set {
             setEnabled(newValue)
@@ -51,7 +52,7 @@ public final class LoginItemManager {
         // If running from build directory, use the expected Applications path
         if appPath.contains(".build/") || appPath.contains("/build/") {
             let installedPath = "/Applications/Sight.app"
-            if FileManager.default.fileExists(atPath: installedPath) {
+            if fileManager.fileExists(atPath: installedPath) {
                 appPath = installedPath
                 logger.info("Using installed app path: \(appPath)")
             } else {
@@ -63,7 +64,7 @@ public final class LoginItemManager {
         // Ensure LaunchAgents directory exists
         let launchAgentsDir = launchAgentPath.deletingLastPathComponent()
         do {
-            try FileManager.default.createDirectory(
+            try fileManager.createDirectory(
                 at: launchAgentsDir, withIntermediateDirectories: true)
         } catch {
             logger.error("Could not create LaunchAgents directory: \(error.localizedDescription)")
@@ -106,8 +107,8 @@ public final class LoginItemManager {
 
         // Remove plist file
         do {
-            if FileManager.default.fileExists(atPath: launchAgentPath.path) {
-                try FileManager.default.removeItem(at: launchAgentPath)
+            if fileManager.fileExists(atPath: launchAgentPath.path) {
+                try fileManager.removeItem(at: launchAgentPath)
                 logger.info("✓ LaunchAgent removed")
             }
         } catch {
@@ -136,7 +137,7 @@ public final class LoginItemManager {
 
     /// Unload the LaunchAgent using launchctl
     private func unloadLaunchAgent() {
-        guard FileManager.default.fileExists(atPath: launchAgentPath.path) else { return }
+        guard fileManager.fileExists(atPath: launchAgentPath.path) else { return }
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
