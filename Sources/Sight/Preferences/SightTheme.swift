@@ -3,7 +3,8 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
-enum SightTheme {
+@MainActor
+public enum SightTheme {
 
     // MARK: - Colors
 
@@ -88,7 +89,7 @@ enum SightTheme {
     // MARK: - Break Gradient Presets
 
     /// Available gradient presets for break screen
-    enum GradientPreset: String, CaseIterable {
+    public enum GradientPreset: String, CaseIterable {
         case sunset = "sunset"
         case ocean = "ocean"
         case forest = "forest"
