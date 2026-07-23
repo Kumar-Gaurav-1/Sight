@@ -181,6 +181,11 @@ public final class SmartPauseManager: ObservableObject {
     private var isScreenBeingCaptured = false
     private var lastDetectionTime: Date?
 
+    // Cache for expensive fullscreen detection
+    private var lastFullscreenCheckTime: TimeInterval = 0
+    private var cachedFullscreenResult: Bool = false
+    private var cachedFullscreenPID: Int32 = -1
+
     // MARK: - Singleton
 
     public static let shared = SmartPauseManager()
@@ -375,6 +380,14 @@ public final class SmartPauseManager: ObservableObject {
     }
 
     private func isAppFullscreen(_ app: NSRunningApplication) -> Bool {
+        let currentTime = ProcessInfo.processInfo.systemUptime
+        let targetPID = app.processIdentifier
+
+        // Return cached result if within 1 second and for the same app
+        if currentTime - lastFullscreenCheckTime < 1.0 && cachedFullscreenPID == targetPID {
+            return cachedFullscreenResult
+        }
+
         let options = CGWindowListOption(arrayLiteral: .optionOnScreenOnly, .excludeDesktopElements)
         guard
             let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
@@ -383,9 +396,13 @@ public final class SmartPauseManager: ObservableObject {
             return false
         }
 
+        // Use CoreGraphics for thread-safe screen bounds, hoisted outside the loop
+        let mainDisplay = CGMainDisplayID()
+        let screenBounds = CGDisplayBounds(mainDisplay)
+
         for window in windowList {
             guard let ownerPID = window[kCGWindowOwnerPID as String] as? Int32,
-                ownerPID == app.processIdentifier,
+                ownerPID == targetPID,
                 let bounds = window[kCGWindowBounds as String] as? [String: CGFloat]
             else {
                 continue
@@ -396,19 +413,21 @@ public final class SmartPauseManager: ObservableObject {
                 height: bounds["Height"] ?? 0
             )
 
-            // Use CoreGraphics for thread-safe screen bounds
-            let mainDisplay = CGMainDisplayID()
-            let screenBounds = CGDisplayBounds(mainDisplay)
-
             // Check if window fills screen
             // Allow for slight rounding errors or menu bar exclusion
             if windowSize.width >= screenBounds.width
                 && windowSize.height >= (screenBounds.height - 50)
             {  // Approx menu bar allowance
+                cachedFullscreenResult = true
+                cachedFullscreenPID = targetPID
+                lastFullscreenCheckTime = currentTime
                 return true
             }
         }
 
+        cachedFullscreenResult = false
+        cachedFullscreenPID = targetPID
+        lastFullscreenCheckTime = currentTime
         return false
     }
 

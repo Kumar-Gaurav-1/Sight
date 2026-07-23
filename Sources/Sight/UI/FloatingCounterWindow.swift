@@ -138,6 +138,12 @@ public final class FloatingCounterWindow: NSPanel {
     /// SECURITY: Flag to prevent CVDisplayLink callbacks after deallocation
     private var displayLinkActive = false
 
+    // Cache for expensive checks
+    private var lastFullscreenCheckTime: TimeInterval = 0
+    private var cachedFullscreenResult: Bool = false
+    private var lastDndCheckTime: TimeInterval = 0
+    private var cachedDndResult: Bool = false
+
     // MARK: - Initialization
 
     public init(config: FloatingWindowConfig = .default) {
@@ -329,7 +335,14 @@ public final class FloatingCounterWindow: NSPanel {
     }
 
     private func isInFullscreenApp() -> Bool {
+        let currentTime = ProcessInfo.processInfo.systemUptime
+        if currentTime - lastFullscreenCheckTime < 1.0 {
+            return cachedFullscreenResult
+        }
+
         guard let frontApp = NSWorkspace.shared.frontmostApplication else {
+            cachedFullscreenResult = false
+            lastFullscreenCheckTime = currentTime
             return false
         }
 
@@ -340,8 +353,12 @@ public final class FloatingCounterWindow: NSPanel {
             let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
                 as? [[String: Any]]
         else {
+            cachedFullscreenResult = false
+            lastFullscreenCheckTime = currentTime
             return false
         }
+
+        let mainScreenSize = NSScreen.main?.frame.size
 
         for window in windowList {
             guard let ownerPID = window[kCGWindowOwnerPID as String] as? Int32,
@@ -352,7 +369,7 @@ public final class FloatingCounterWindow: NSPanel {
             }
 
             // Check if window fills entire screen
-            if let screen = NSScreen.main {
+            if let screenSize = mainScreenSize {
                 let windowFrame = CGRect(
                     x: bounds["X"] ?? 0,
                     y: bounds["Y"] ?? 0,
@@ -360,12 +377,16 @@ public final class FloatingCounterWindow: NSPanel {
                     height: bounds["Height"] ?? 0
                 )
 
-                if windowFrame.size == screen.frame.size {
+                if windowFrame.size == screenSize {
+                    cachedFullscreenResult = true
+                    lastFullscreenCheckTime = currentTime
                     return true
                 }
             }
         }
 
+        cachedFullscreenResult = false
+        lastFullscreenCheckTime = currentTime
         return false
     }
 
@@ -378,10 +399,19 @@ public final class FloatingCounterWindow: NSPanel {
     }
 
     private func isDoNotDisturbEnabled() -> Bool {
+        let currentTime = ProcessInfo.processInfo.systemUptime
+        if currentTime - lastDndCheckTime < 1.0 {
+            return cachedDndResult
+        }
+
         // Check Do Not Disturb via defaults
         // Note: This is a heuristic as direct API requires entitlements
         let dndDefaults = UserDefaults(suiteName: "com.apple.ncprefs")
-        return dndDefaults?.bool(forKey: "doNotDisturb") ?? false
+        let result = dndDefaults?.bool(forKey: "doNotDisturb") ?? false
+
+        cachedDndResult = result
+        lastDndCheckTime = currentTime
+        return result
     }
 
     // MARK: - Tracking Control

@@ -17,6 +17,10 @@ public final class WorkHoursManager: ObservableObject {
     private var checkTimer: Timer?
     private var fullscreenObserver: Any?
 
+    // Cache for expensive checks
+    private var lastFullscreenCheckTime: TimeInterval = 0
+    private var cachedFullscreenResult: Bool = false
+
     private init() {
         startMonitoring()
     }
@@ -111,8 +115,16 @@ public final class WorkHoursManager: ObservableObject {
     // MARK: - Fullscreen Detection
 
     private func checkFullscreenApps() {
+        let currentTime = ProcessInfo.processInfo.systemUptime
+        if currentTime - lastFullscreenCheckTime < 1.0 {
+            isFullscreenAppActive = cachedFullscreenResult
+            return
+        }
+
         guard PreferencesManager.shared.pauseForFullscreenApps else {
             isFullscreenAppActive = false
+            cachedFullscreenResult = false
+            lastFullscreenCheckTime = currentTime
             return
         }
 
@@ -123,6 +135,8 @@ public final class WorkHoursManager: ObservableObject {
                 as? [[String: Any]]
         else {
             isFullscreenAppActive = false
+            cachedFullscreenResult = false
+            lastFullscreenCheckTime = currentTime
             return
         }
 
@@ -144,6 +158,8 @@ public final class WorkHoursManager: ObservableObject {
                     ownerName != "Finder" && ownerName != "Dock" && ownerName != "Sight"
                 {
                     isFullscreenAppActive = true
+                    cachedFullscreenResult = true
+                    lastFullscreenCheckTime = currentTime
                     logger.debug("Fullscreen app detected: \(ownerName)")
                     return
                 }
@@ -151,6 +167,8 @@ public final class WorkHoursManager: ObservableObject {
         }
 
         isFullscreenAppActive = false
+        cachedFullscreenResult = false
+        lastFullscreenCheckTime = currentTime
     }
 
     // MARK: - Monitoring
