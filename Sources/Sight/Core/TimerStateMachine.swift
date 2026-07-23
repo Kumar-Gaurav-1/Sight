@@ -28,6 +28,9 @@ public final class TimerStateMachine: ObservableObject {
     /// Track if overtime nudge was already shown this work period
     private var overtimeNudgeShown: Bool = false
 
+    /// Forces the next break to be a long break (used for manual long breaks)
+    private var forceNextBreakLong: Bool = false
+
     /// Who triggered the pause
     public enum PauseSource: String {
         case user  // Manual pause via UI
@@ -309,6 +312,22 @@ public final class TimerStateMachine: ObservableObject {
         }
     }
 
+    /// Start a break manually
+    public func startManualBreak(forceLong: Bool = false) {
+        guard currentState != .idle else { return }
+
+        if forceLong {
+            forceNextBreakLong = true
+        }
+
+        if currentState != .break {
+            if isPaused {
+                resume()
+            }
+            transitionTo(.break)
+        }
+    }
+
     public func reset() {
         logger.info("Resetting timer cycle")
         stop()
@@ -449,11 +468,12 @@ public final class TimerStateMachine: ObservableObject {
             overtimeNudgeShown = false
 
             // Use longer duration if this is a long break
-            if isLongBreak {
+            if isLongBreak || forceNextBreakLong {
                 duration = PreferencesManager.shared.longBreakDurationSeconds
                 logger.info(
                     "Starting LONG break #\(self.breakCount) (every \(PreferencesManager.shared.longBreakInterval)th)"
                 )
+                forceNextBreakLong = false // Consume the flag
             } else {
                 duration = configuration.breakDurationSeconds
             }

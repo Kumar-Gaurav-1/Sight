@@ -145,21 +145,14 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // Observe break ended events (for manual breaks to resume timer)
+        // Observe break ended events
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("SightBreakEnded"),
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
-
-            Task { @MainActor in
-                // Resume timer if it was paused by user (manual break)
-                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.logger.info("Manual break ended, resuming timer")
-                    self.stateMachine.resume()
-                }
-            }
+            // Handle any break-end specific side effects here if needed
+            // Manual break resumption is now handled directly by TimerStateMachine
         }
 
         // Observe take break requests (from Statistics view or other UI)
