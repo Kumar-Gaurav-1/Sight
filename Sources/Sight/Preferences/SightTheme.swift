@@ -3,67 +3,65 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
-enum SightTheme {
+@MainActor
+public enum SightTheme {
 
     // MARK: - Colors
 
     /// Main background color (System Window Background)
-    static let background = Color(nsColor: .windowBackgroundColor)
+    public static let background = Color(nsColor: .windowBackgroundColor)
 
     /// Surface background (System Control Background)
-    static let surface = Color(nsColor: .controlBackgroundColor)
+    public static let surface = Color(nsColor: .controlBackgroundColor)
 
     /// Sidebar background (System Sidebar)
-    static let sidebarBackground = Color(nsColor: .windowBackgroundColor)  // Usually transparent/material in modern apps
+    public static let sidebarBackground = Color(nsColor: .windowBackgroundColor)  // Usually transparent/material in modern apps
 
     /// Card/container background (System Control Background)
-    static let cardBackground = Color(nsColor: .controlBackgroundColor)
+    public static let cardBackground = Color(nsColor: .controlBackgroundColor)
 
     /// Elevated card background (System Alternating Content)
-    static let elevatedBackground = Color(nsColor: .alternatingContentBackgroundColors[1])
+    public static let elevatedBackground = Color(nsColor: .alternatingContentBackgroundColors[1])
 
     // MARK: - Dynamic Accent Colors
 
     /// Primary accent color - dynamic based on user preference (hue slider)
-    @MainActor
-    static var accent: Color {
+    public static var accent: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
     }
 
     /// Accent light variant - dynamic based on user preference
-    @MainActor
-    static var accentLight: Color {
+    public static var accentLight: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.4, brightness: 1.0)
     }
 
     /// Secondary text color (System Secondary)
-    static let secondaryText = Color.secondary
+    public static let secondaryText = Color.secondary
 
     /// Tertiary text color (System Tertiary)
-    static let tertiaryText = Color(nsColor: .tertiaryLabelColor)
+    public static let tertiaryText = Color(nsColor: .tertiaryLabelColor)
 
     /// Divider color (System Separator)
-    static let divider = Color(nsColor: .separatorColor)
+    public static let divider = Color(nsColor: .separatorColor)
 
     /// Border color for cards (System Separator/Grid)
-    static let border = Color(nsColor: .separatorColor)
+    public static let border = Color(nsColor: .separatorColor)
 
     /// Success/active indicator (green)
-    static let success = Color.green
+    public static let success = Color.green
 
     /// Warning indicator (orange)
-    static let warning = Color.orange
+    public static let warning = Color.orange
 
     /// Error/danger (red)
-    static let danger = Color.red
+    public static let danger = Color.red
 
     // MARK: - Gradients
 
     /// Primary accent gradient - dynamic based on user preference
-    @MainActor
-    static var accentGradient: LinearGradient {
+    public static var accentGradient: LinearGradient {
         LinearGradient(
             colors: [accent, accentLight],
             startPoint: .topLeading,
@@ -72,14 +70,14 @@ enum SightTheme {
     }
 
     /// Success gradient
-    static let successGradient = LinearGradient(
+    public static let successGradient = LinearGradient(
         colors: [success, Color(red: 0.3, green: 0.85, blue: 0.5)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     /// Warning gradient
-    static let warningGradient = LinearGradient(
+    public static let warningGradient = LinearGradient(
         colors: [warning, Color(red: 1.0, green: 0.7, blue: 0.2)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -145,92 +143,90 @@ enum SightTheme {
     }
 
     /// Get gradient for current user preference
-    @MainActor
-    static var breakGradient: LinearGradient {
+    public static var breakGradient: LinearGradient {
         let presetName = PreferencesManager.shared.breakGradientPreset
         let preset = GradientPreset(rawValue: presetName) ?? .sunset
         return preset.gradient
     }
 
     /// Glassmorphism background
-    static let glassBackground = Color.white.opacity(0.08)
+    public static let glassBackground = Color.white.opacity(0.08)
 
     /// Subtle glow color using accent
-    @MainActor
-    static var glowColor: Color {
+    public static var glowColor: Color {
         accent.opacity(0.4)
     }
 
     // MARK: - Dimensions
 
-    static let sidebarWidth: CGFloat = 240
-    static let cardCornerRadius: CGFloat = 12
-    static let smallCornerRadius: CGFloat = 8
-    static let cardPadding: CGFloat = 16
-    static let sectionSpacing: CGFloat = 24
-    static let itemSpacing: CGFloat = 12
+    public static let sidebarWidth: CGFloat = 240
+    public static let cardCornerRadius: CGFloat = 12
+    public static let smallCornerRadius: CGFloat = 8
+    public static let cardPadding: CGFloat = 16
+    public static let sectionSpacing: CGFloat = 24
+    public static let itemSpacing: CGFloat = 12
 
     // MARK: - Shadows
 
-    static let shadowSoft = Color.black.opacity(0.2)
-    static let shadowMedium = Color.black.opacity(0.35)
-    static let shadowHard = Color.black.opacity(0.5)
+    public static let shadowSoft = Color.black.opacity(0.2)
+    public static let shadowMedium = Color.black.opacity(0.35)
+    public static let shadowHard = Color.black.opacity(0.5)
 
     // MARK: - Typography
 
-    static let titleFont = Font.system(size: 24, weight: .bold)
-    static let headingFont = Font.system(size: 16, weight: .semibold)
-    static let bodyFont = Font.system(size: 14)
-    static let captionFont = Font.system(size: 12)
-    static let smallFont = Font.system(size: 11)
-    static let largeValueFont = Font.system(size: 48, weight: .medium)
-    static let countdownFont = Font.system(size: 120, weight: .ultraLight, design: .rounded)
+    public static let titleFont = Font.system(size: 24, weight: .bold)
+    public static let headingFont = Font.system(size: 16, weight: .semibold)
+    public static let bodyFont = Font.system(size: 14)
+    public static let captionFont = Font.system(size: 12)
+    public static let smallFont = Font.system(size: 11)
+    public static let largeValueFont = Font.system(size: 48, weight: .medium)
+    public static let countdownFont = Font.system(size: 120, weight: .ultraLight, design: .rounded)
 
     // MARK: - Animation Curves
 
     /// Snappy spring for buttons
-    static let springSnappy = Animation.spring(response: 0.3, dampingFraction: 0.7)
+    public static let springSnappy = Animation.spring(response: 0.3, dampingFraction: 0.7)
 
     /// Smooth spring for transitions
-    static let springSmooth = Animation.spring(response: 0.5, dampingFraction: 0.8)
+    public static let springSmooth = Animation.spring(response: 0.5, dampingFraction: 0.8)
 
     /// Bouncy spring for emphasis
-    static let springBouncy = Animation.spring(response: 0.4, dampingFraction: 0.6)
+    public static let springBouncy = Animation.spring(response: 0.4, dampingFraction: 0.6)
 
     /// Quick ease for micro-interactions
-    static let easeQuick = Animation.easeOut(duration: 0.15)
+    public static let easeQuick = Animation.easeOut(duration: 0.15)
 
     /// Standard ease for normal transitions
-    static let easeStandard = Animation.easeInOut(duration: 0.25)
+    public static let easeStandard = Animation.easeInOut(duration: 0.25)
 
     /// Slow ease for dramatic transitions
-    static let easeSlow = Animation.easeInOut(duration: 0.5)
+    public static let easeSlow = Animation.easeInOut(duration: 0.5)
 
     /// Breathing animation (for relaxation)
-    static let breathingAnimation = Animation.easeInOut(duration: 4).repeatForever(
+    public static let breathingAnimation = Animation.easeInOut(duration: 4).repeatForever(
         autoreverses: true)
 
     /// Pulse animation
-    static let pulseAnimation = Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)
+    public static let pulseAnimation = Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)
 
     // MARK: - Materials (Liquid Glass)
 
     /// Light glass material for subtle blur
-    static let lightGlass = Material.ultraThinMaterial
+    public static let lightGlass = Material.ultraThinMaterial
 
     /// Regular glass material for standard blur
-    static let regularGlass = Material.regularMaterial
+    public static let regularGlass = Material.regularMaterial
 
     /// Thick glass material for strong blur
-    static let thickGlass = Material.thickMaterial
+    public static let thickGlass = Material.thickMaterial
 
     /// Thin glass material for barely-there blur
-    static let thinGlass = Material.thinMaterial
+    public static let thinGlass = Material.thinMaterial
 
     // MARK: - Glass Layer Styles
 
     /// Floating glass card style
-    static func floatingGlass(cornerRadius: CGFloat = 16) -> some View {
+    public static func floatingGlass(cornerRadius: CGFloat = 16) -> some View {
         EmptyView()
             .background(lightGlass)
             .cornerRadius(cornerRadius)
@@ -242,7 +238,7 @@ enum SightTheme {
     }
 
     /// Inset glass section style
-    static func insetGlass(cornerRadius: CGFloat = 12) -> some View {
+    public static func insetGlass(cornerRadius: CGFloat = 12) -> some View {
         EmptyView()
             .background(thinGlass)
             .cornerRadius(cornerRadius)
@@ -257,14 +253,12 @@ enum SightTheme {
 
 extension SightTheme {
     /// Check if reduced motion is enabled
-    @MainActor
-    static var reduceMotion: Bool {
+    public static var reduceMotion: Bool {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
     /// Get animation respecting reduce motion
-    @MainActor
-    static func animation(_ animation: Animation) -> Animation? {
+    public static func animation(_ animation: Animation) -> Animation? {
         reduceMotion ? nil : animation
     }
 }
