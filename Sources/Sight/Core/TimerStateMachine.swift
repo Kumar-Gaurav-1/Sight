@@ -111,8 +111,10 @@ public final class TimerStateMachine: ObservableObject {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
         }
     }
+}
 
-    // MARK: - System Observers
+// MARK: - System Observers
+extension TimerStateMachine {
 
     private func setupSystemObservers() {
         // Wake from sleep - resume timer if needed
@@ -173,8 +175,10 @@ public final class TimerStateMachine: ObservableObject {
             pause(source: .system)
         }
     }
+}
 
-    // MARK: - Preferences Binding
+// MARK: - Preferences Binding
+extension TimerStateMachine {
 
     private func setupPreferencesBinding() {
         PreferencesManager.shared.$workIntervalSeconds
@@ -214,8 +218,10 @@ public final class TimerStateMachine: ObservableObject {
             }
             .store(in: &cancellables)
     }
+}
 
-    // MARK: - Public API
+// MARK: - Public API
+extension TimerStateMachine {
 
     public func start() {
         guard currentState == .idle else {
@@ -398,8 +404,10 @@ public final class TimerStateMachine: ObservableObject {
             remainingSeconds += additionalSeconds
         }
     }
+}
 
-    // MARK: - State Transitions
+// MARK: - State Transitions
+extension TimerStateMachine {
 
     private func transitionTo(_ newState: TimerState) {
         let oldState = currentState
@@ -628,8 +636,10 @@ public final class TimerStateMachine: ObservableObject {
 
         transitionTo(.work)
     }
+}
 
-    // MARK: - State Persistence
+// MARK: - State Persistence
+extension TimerStateMachine {
 
     /// Save current timer state for crash recovery
     private func saveCurrentState() {
@@ -646,8 +656,10 @@ public final class TimerStateMachine: ObservableObject {
             configuration: configuration
         )
     }
+}
 
-    // MARK: - Screen Lock
+// MARK: - Screen Lock
+extension TimerStateMachine {
 
     /// Lock the screen to force user to step away during break
     private func lockScreen() {
