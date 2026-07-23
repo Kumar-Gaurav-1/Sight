@@ -689,7 +689,7 @@ struct AnimatedBarChart: View {
 struct PeriodButton: View {
     let title: String
     let isSelected: Bool
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     var body: some View {
         Button(action: action) {
@@ -725,7 +725,7 @@ struct LegendItem: View {
 @MainActor
 struct ExportButton: View {
     let label: String
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     @State private var isHovered = false
 
