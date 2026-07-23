@@ -884,6 +884,16 @@ public final class PreferencesManager: ObservableObject {
 
     /// Reset all preferences to defaults
     public func resetToDefaults() {
+        resetTimerAndStartupDefaults()
+        resetWellnessAndAppearanceDefaults()
+        resetBreakDefaults()
+        resetScheduleAndAutomationDefaults()
+        resetSoundAndMiscDefaults()
+
+        logger.info("Preferences reset to defaults")
+    }
+
+    private func resetTimerAndStartupDefaults() {
         // Timer intervals
         workIntervalSeconds = 20 * 60
         preBreakSeconds = 10
@@ -898,7 +908,9 @@ public final class PreferencesManager: ObservableObject {
         // Idle behavior
         idlePauseMinutes = 1
         idleResetMinutes = 5
+    }
 
+    private func resetWellnessAndAppearanceDefaults() {
         // Wellness Reminders
         blinkReminderEnabled = true
         blinkReminderIntervalSeconds = 120
@@ -924,7 +936,9 @@ public final class PreferencesManager: ObservableObject {
         // Menu Bar
         showInMenuBar = true
         showTimerInMenuBar = true
+    }
 
+    private func resetBreakDefaults() {
         // Break Behavior
         allowSkipBreak = true
         allowPostponeBreak = true
@@ -939,6 +953,21 @@ public final class PreferencesManager: ObservableObject {
         longBreakInterval = 4
         longBreakDurationSeconds = 5 * 60
 
+        // Break Screen Appearance
+        breakBackgroundType = "wallpaper"
+        breakCustomImagePath = ""
+        breakBlurBackground = true
+        breakCustomMessages = []
+        breakHideMessages = false
+        breakAlertPosition = "topCenter"
+        breakGradientPreset = "sunset"
+
+        // More Options
+        endBreakEarly = false
+        lockMacOnBreak = false
+    }
+
+    private func resetScheduleAndAutomationDefaults() {
         // Office Hours
         officeHoursEnabled = false
         let calendar = Calendar.current
@@ -953,19 +982,16 @@ public final class PreferencesManager: ObservableObject {
         overtimeNudgeEnabled = false
         overtimeShowWhenPaused = false
 
-        // More Options
-        endBreakEarly = false
-        lockMacOnBreak = false
+        // Automation
+        quietHoursEnabled = false
+        quietHoursStart = 22
+        quietHoursEnd = 8
+        weekendModeEnabled = false
+        pauseForFullscreenApps = false
+        activeDays = [true, true, true, true, true, false, false]
+    }
 
-        // Break Screen Appearance
-        breakBackgroundType = "wallpaper"
-        breakCustomImagePath = ""
-        breakBlurBackground = true
-        breakCustomMessages = []
-        breakHideMessages = false
-        breakAlertPosition = "topCenter"
-        breakGradientPreset = "sunset"
-
+    private func resetSoundAndMiscDefaults() {
         // Sounds
         soundVolume = 0.7
         breakStartSoundEnabled = true
@@ -981,14 +1007,6 @@ public final class PreferencesManager: ObservableObject {
         activeAfterIdleSoundEnabled = false
         overtimeNudgeSoundEnabled = true
 
-        // Automation
-        quietHoursEnabled = false
-        quietHoursStart = 22
-        quietHoursEnd = 8
-        weekendModeEnabled = false
-        pauseForFullscreenApps = false
-        activeDays = [true, true, true, true, true, false, false]
-
         // Shortcuts
         shortcutsEnabled = true
         shortcutToggleTimer = "cmd+ctrl:35"
@@ -999,8 +1017,6 @@ public final class PreferencesManager: ObservableObject {
         // Profile
         activeProfile = .custom
         meetingDetectionEnabled = true
-
-        logger.info("Preferences reset to defaults")
     }
 
 }
