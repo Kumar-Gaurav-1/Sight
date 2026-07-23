@@ -33,7 +33,6 @@ public final class MenuBarViewModel: ObservableObject {
 
     private let stateMachine: TimerStateMachine
     private var cancellables = Set<AnyCancellable>()
-    private var breakEndedObserver: NSObjectProtocol?
 
     // MARK: - Initialization
 
@@ -44,7 +43,6 @@ public final class MenuBarViewModel: ObservableObject {
         self.strainLevel = Float(UserDefaults.standard.double(forKey: "sightStrainLevel"))
 
         setupBindings()
-        setupNotificationObservers()
 
         // Initial state
         self.currentState = stateMachine.currentState
@@ -53,9 +51,6 @@ public final class MenuBarViewModel: ObservableObject {
     }
 
     deinit {
-        if let observer = breakEndedObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
     }
 
     // MARK: - Bindings
@@ -90,24 +85,7 @@ public final class MenuBarViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Setup notification observers for break events
-    private func setupNotificationObservers() {
-        // Resume timer after manual break ends (fixes timer desync issue)
-        breakEndedObserver = NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("SightBreakEnded"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            // Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                guard let self = self else { return }
-                // Resume timer if we paused it for a manual break
-                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.stateMachine.resume()
-                }
-            }
-        }
-    }
+
 
     // MARK: - Logic
 
@@ -220,15 +198,7 @@ public final class MenuBarViewModel: ObservableObject {
     }
 
     public func triggerShortBreak() {
-        // Pause the timer while taking manual break to prevent desync
-        // The timer will resume when the break overlay is dismissed
-        if stateMachine.currentState == .work && !stateMachine.isPaused {
-            stateMachine.pause(source: .user)
-        }
-
-        // Use user's configured break duration instead of hardcoded 20s
-        let duration = stateMachine.configuration.breakDurationSeconds
-        Renderer.showBreak(durationSeconds: duration)
+        stateMachine.startManualBreak(isLong: false)
 
         // Reset strain slightly for manual break
         strainLevel = max(0.0, strainLevel - 0.1)
@@ -236,17 +206,10 @@ public final class MenuBarViewModel: ObservableObject {
 
     /// Trigger a long break (5 minutes)
     public func triggerLongBreak() {
-        // Pause the timer while taking manual break to prevent desync
-        if stateMachine.currentState == .work && !stateMachine.isPaused {
-            stateMachine.pause(source: .user)
-        }
+        stateMachine.startManualBreak(isLong: true)
 
-        let longBreakDuration = PreferencesManager.shared.longBreakDurationSeconds
-        Renderer.showBreak(durationSeconds: longBreakDuration)
         // More strain relief for long break
         strainLevel = max(0.0, strainLevel - 0.3)
-        // Play special sound
-        SoundManager.shared.playFocusEnd()
     }
 
     /// Postpone the next break by 5 minutes

@@ -52,8 +52,11 @@ public final class TimerStateMachine: ObservableObject {
         }
     }
 
+    private var isManualLongBreak: Bool = false
+
     /// Whether the current break is a long break
     public var isLongBreak: Bool {
+        if isManualLongBreak { return true }
         guard PreferencesManager.shared.longBreakEnabled else { return false }
         let interval = PreferencesManager.shared.longBreakInterval
         return breakCount > 0 && breakCount % interval == 0
@@ -315,6 +318,12 @@ public final class TimerStateMachine: ObservableObject {
         start()
     }
 
+    public func startManualBreak(isLong: Bool = false) {
+        logger.info("Starting manual break (isLong: \(isLong))")
+        isManualLongBreak = isLong
+        transitionTo(.break)
+    }
+
     public func skipToNext() {
         // Cancel any pending timer immediately
         timerCancellable?.cancel()
@@ -404,6 +413,11 @@ public final class TimerStateMachine: ObservableObject {
     private func transitionTo(_ newState: TimerState) {
         let oldState = currentState
         logger.info("Transitioning: \(oldState.rawValue) → \(newState.rawValue)")
+
+        // Reset manual long break flag when transitioning out of break
+        if newState != .break {
+            isManualLongBreak = false
+        }
 
         timerCancellable?.cancel()
         currentState = newState
