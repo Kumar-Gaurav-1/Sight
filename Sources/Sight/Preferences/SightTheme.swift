@@ -382,7 +382,7 @@ struct HoverableCardModifier: ViewModifier {
 
 @MainActor
 public struct SightPrimaryButtonStyle: ButtonStyle {
-    public func makeBody(configuration: Configuration) -> some View {
+    nonisolated public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -407,7 +407,7 @@ public struct SightPrimaryButtonStyle: ButtonStyle {
 public struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
-    public func makeBody(configuration: Configuration) -> some View {
+    nonisolated public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -438,7 +438,7 @@ public struct SightSecondaryButtonStyle: ButtonStyle {
 
 @MainActor
 public struct SightToggleStyle: ToggleStyle {
-    public func makeBody(configuration: Configuration) -> some View {
+    nonisolated public func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
             Spacer()
