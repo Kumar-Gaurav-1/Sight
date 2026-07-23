@@ -3,7 +3,8 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
-enum SightTheme {
+@MainActor
+public enum SightTheme {
 
     // MARK: - Colors
 
@@ -379,8 +380,10 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-struct SightPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
+struct SightPrimaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
+
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -401,10 +404,17 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-struct SightSecondaryButtonStyle: ButtonStyle {
+public struct SightPrimaryButtonStyle: ButtonStyle {
+    public func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonBody(configuration: configuration)
+    }
+}
+
+struct SightSecondaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -431,10 +441,18 @@ struct SightSecondaryButtonStyle: ButtonStyle {
     }
 }
 
+public struct SightSecondaryButtonStyle: ButtonStyle {
+    public func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonBody(configuration: configuration)
+    }
+}
+
 // MARK: - Custom Toggle Style
 
-struct SightToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
+struct SightToggleBody: View {
+    let configuration: ToggleStyle.Configuration
+
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
@@ -460,9 +478,16 @@ struct SightToggleStyle: ToggleStyle {
             }
             .animation(SightTheme.springSnappy, value: configuration.isOn)
             .onTapGesture {
-                configuration.isOn.toggle()
+                var mutableConfig = configuration
+                mutableConfig.isOn.toggle()
             }
         }
+    }
+}
+
+public struct SightToggleStyle: ToggleStyle {
+    public func makeBody(configuration: Configuration) -> some View {
+        SightToggleBody(configuration: configuration)
     }
 }
 
