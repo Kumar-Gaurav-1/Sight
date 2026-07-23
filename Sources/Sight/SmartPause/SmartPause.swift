@@ -173,6 +173,12 @@ public final class SmartPauseManager: ObservableObject {
     private var appActivationObserver: NSObjectProtocol?
     private var spaceChangeObserver: NSObjectProtocol?
 
+    // Caching for expensive window list operations
+    private var cachedWindowList: [[String: Any]]?
+    private var lastWindowListCacheTime: Date?
+    private let windowListCacheDuration: TimeInterval = 1.0
+    private let windowListCacheLock = NSLock()
+
     // Dedicated queue for detection to avoid blocking main thread
     private let detectionQueue = DispatchQueue(
         label: "com.sight.smartpause.detection", qos: .userInitiated)
@@ -374,12 +380,31 @@ public final class SmartPauseManager: ObservableObject {
         return nil
     }
 
-    private func isAppFullscreen(_ app: NSRunningApplication) -> Bool {
+    private func getWindowList() -> [[String: Any]]? {
+        windowListCacheLock.lock()
+        defer { windowListCacheLock.unlock() }
+
+        let now = Date()
+
+        // Return cached list if still valid
+        if let cache = cachedWindowList,
+           let cacheTime = lastWindowListCacheTime,
+           now.timeIntervalSince(cacheTime) < windowListCacheDuration {
+            return cache
+        }
+
+        // Otherwise fetch and cache
         let options = CGWindowListOption(arrayLiteral: .optionOnScreenOnly, .excludeDesktopElements)
-        guard
-            let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
-                as? [[String: Any]]
-        else {
+        let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]]
+
+        cachedWindowList = windowList
+        lastWindowListCacheTime = now
+
+        return windowList
+    }
+
+    private func isAppFullscreen(_ app: NSRunningApplication) -> Bool {
+        guard let windowList = getWindowList() else {
             return false
         }
 
