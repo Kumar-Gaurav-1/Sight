@@ -92,21 +92,9 @@ public final class MenuBarViewModel: ObservableObject {
 
     /// Setup notification observers for break events
     private func setupNotificationObservers() {
-        // Resume timer after manual break ends (fixes timer desync issue)
-        breakEndedObserver = NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("SightBreakEnded"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            // Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                guard let self = self else { return }
-                // Resume timer if we paused it for a manual break
-                if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
-                    self.stateMachine.resume()
-                }
-            }
-        }
+        // Now handled entirely by StateMachine natively. Keeping empty implementation
+        // temporarily if other parts are still transitioning or observing.
+        breakEndedObserver = nil
     }
 
     // MARK: - Logic
@@ -220,33 +208,17 @@ public final class MenuBarViewModel: ObservableObject {
     }
 
     public func triggerShortBreak() {
-        // Pause the timer while taking manual break to prevent desync
-        // The timer will resume when the break overlay is dismissed
-        if stateMachine.currentState == .work && !stateMachine.isPaused {
-            stateMachine.pause(source: .user)
-        }
-
-        // Use user's configured break duration instead of hardcoded 20s
-        let duration = stateMachine.configuration.breakDurationSeconds
-        Renderer.showBreak(durationSeconds: duration)
-
+        stateMachine.startManualBreak(forceLong: false)
         // Reset strain slightly for manual break
         strainLevel = max(0.0, strainLevel - 0.1)
     }
 
     /// Trigger a long break (5 minutes)
     public func triggerLongBreak() {
-        // Pause the timer while taking manual break to prevent desync
-        if stateMachine.currentState == .work && !stateMachine.isPaused {
-            stateMachine.pause(source: .user)
-        }
-
-        let longBreakDuration = PreferencesManager.shared.longBreakDurationSeconds
-        Renderer.showBreak(durationSeconds: longBreakDuration)
+        stateMachine.startManualBreak(forceLong: true)
         // More strain relief for long break
         strainLevel = max(0.0, strainLevel - 0.3)
-        // Play special sound
-        SoundManager.shared.playFocusEnd()
+        // Note: Sound is played by StateMachine on transition
     }
 
     /// Postpone the next break by 5 minutes
