@@ -357,13 +357,17 @@ public final class SmartPauseManager: ObservableObject {
                 return nil
             }
 
+            // Fetch window list once to avoid redundant expensive CGWindowListCopyWindowInfo calls
+            let options = CGWindowListOption(arrayLiteral: .optionOnScreenOnly, .excludeDesktopElements)
+            let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]]
+
             // Check if app is in presentation mode
-            if isAppInPresentationMode(bundleId) {
+            if isAppInPresentationMode(bundleId, windowList: windowList) {
                 return .presentationMode
             }
 
             // Check if fullscreen via CGWindow
-            if isAppFullscreen(frontApp) {
+            if isAppFullscreen(frontApp, windowList: windowList) {
                 if KnownMeetingApps.isVideoApp(bundleId) {
                     return .fullscreenVideo
                 }
@@ -374,16 +378,20 @@ public final class SmartPauseManager: ObservableObject {
         return nil
     }
 
-    private func isAppFullscreen(_ app: NSRunningApplication) -> Bool {
+    private func isAppFullscreen(_ app: NSRunningApplication, windowList: [[String: Any]]? = nil) -> Bool {
         let options = CGWindowListOption(arrayLiteral: .optionOnScreenOnly, .excludeDesktopElements)
-        guard
-            let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
-                as? [[String: Any]]
-        else {
-            return false
+
+        let listToSearch: [[String: Any]]
+        if let providedList = windowList {
+            listToSearch = providedList
+        } else {
+            guard let fetchedList = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else {
+                return false
+            }
+            listToSearch = fetchedList
         }
 
-        for window in windowList {
+        for window in listToSearch {
             guard let ownerPID = window[kCGWindowOwnerPID as String] as? Int32,
                 ownerPID == app.processIdentifier,
                 let bounds = window[kCGWindowBounds as String] as? [String: CGFloat]
@@ -412,7 +420,7 @@ public final class SmartPauseManager: ObservableObject {
         return false
     }
 
-    private func isAppInPresentationMode(_ bundleId: String) -> Bool {
+    private func isAppInPresentationMode(_ bundleId: String, windowList: [[String: Any]]? = nil) -> Bool {
         // Keynote/PowerPoint presentation detection
         let presentationApps = ["com.apple.Keynote", "com.microsoft.Powerpoint"]
         if presentationApps.contains(bundleId) {
@@ -421,7 +429,7 @@ public final class SmartPauseManager: ObservableObject {
             guard let frontApp = NSWorkspace.shared.frontmostApplication else {
                 return false
             }
-            return isAppFullscreen(frontApp)
+            return isAppFullscreen(frontApp, windowList: windowList)
         }
         return false
     }
