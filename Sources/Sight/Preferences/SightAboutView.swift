@@ -3,7 +3,8 @@ import SwiftUI
 // MARK: - About View
 
 /// Premium about screen with app info, credits, and links
-@MainActor struct SightAboutView: View {
+struct SightAboutView: View {
+
     @State private var logoHovered = false
     @State private var showVersion = false
 
@@ -11,7 +12,7 @@ import SwiftUI
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     private let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
 
-    var body: some View {
+    @MainActor var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             Text("About")
@@ -250,7 +251,7 @@ struct FeatureRow: View {
     let title: String
     let description: String
 
-    var body: some View {
+    @MainActor var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 16))
@@ -282,7 +283,7 @@ struct LinkRow: View {
 
     @State private var isHovered = false
 
-    var body: some View {
+    @MainActor var body: some View {
         Button(action: {
             if let url = URL(string: url) {
                 NSWorkspace.shared.open(url)

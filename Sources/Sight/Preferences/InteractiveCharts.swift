@@ -11,7 +11,7 @@ struct WellnessGaugeView: View {
 
     @State private var animatedScore: Double = 0
 
-    private var scoreColor: Color {
+    @MainActor private var scoreColor: Color {
         if score >= 80 { return SightTheme.success }
         if score >= 60 { return SightTheme.accent }
         if score >= 40 { return SightTheme.warning }
@@ -32,7 +32,7 @@ struct WellnessGaugeView: View {
         )
     }
 
-    var body: some View {
+    @MainActor var body: some View {
         ZStack {
             // Background arc
             Circle()
@@ -99,7 +99,7 @@ struct ActivityHeatmapView: View {
         max(1, hourlyDistribution.values.max() ?? 1)
     }
 
-    var body: some View {
+    @MainActor var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Hour labels
             HStack(spacing: 0) {
@@ -209,7 +209,7 @@ struct ActivityHeatmapView: View {
         return formatter.string(from: date)
     }
 
-    private func intensityColor(_ intensity: Double) -> Color {
+    @MainActor private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -251,7 +251,7 @@ struct HeatmapCell: View {
         }
     }
 
-    var body: some View {
+    @MainActor var body: some View {
         RoundedRectangle(cornerRadius: 2)
             .fill(cellColor)
             .frame(width: 16, height: 16)
@@ -300,7 +300,7 @@ struct TimeBreakdownChart: View {
         ].filter { $0.value > 0 }
     }
 
-    var body: some View {
+    @MainActor var body: some View {
         HStack(spacing: 24) {
             // Donut chart
             ZStack {
@@ -408,7 +408,7 @@ struct ComparisonBarView: View {
         currentValue >= previousValue
     }
 
-    var body: some View {
+    @MainActor var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Label and change indicator
             HStack {
@@ -520,7 +520,7 @@ struct TrendLineChart: View {
         max(0, (values.min() ?? 0) - 10)
     }
 
-    var body: some View {
+    @MainActor var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
@@ -639,7 +639,7 @@ struct InsightCardView: View {
 
     @State private var isHovered = false
 
-    var body: some View {
+    @MainActor var body: some View {
         HStack(spacing: 12) {
             // Icon
             Image(systemName: insight.icon)
@@ -702,7 +702,7 @@ struct NudgeComplianceCard: View {
         return Double(postureFollowed) / Double(postureShown)
     }
 
-    var body: some View {
+    @MainActor var body: some View {
         HStack(spacing: 20) {
             // Blink compliance
             ComplianceRing(
@@ -741,7 +741,7 @@ struct ComplianceRing: View {
 
     @State private var animatedValue: Double = 0
 
-    var body: some View {
+    @MainActor var body: some View {
         VStack(spacing: 8) {
             ZStack {
                 // Background
