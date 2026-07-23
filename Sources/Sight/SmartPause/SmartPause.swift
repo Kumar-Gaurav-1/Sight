@@ -181,6 +181,11 @@ public final class SmartPauseManager: ObservableObject {
     private var isScreenBeingCaptured = false
     private var lastDetectionTime: Date?
 
+    // Cached window state
+    // Accessed only from detectionQueue
+    private var cachedWindowList: [[String: Any]]?
+    private var lastWindowListCacheTime: TimeInterval = 0
+
     // MARK: - Singleton
 
     public static let shared = SmartPauseManager()
@@ -375,12 +380,23 @@ public final class SmartPauseManager: ObservableObject {
     }
 
     private func isAppFullscreen(_ app: NSRunningApplication) -> Bool {
-        let options = CGWindowListOption(arrayLiteral: .optionOnScreenOnly, .excludeDesktopElements)
-        guard
-            let windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
-                as? [[String: Any]]
-        else {
-            return false
+        let windowList: [[String: Any]]
+        let currentTime = ProcessInfo.processInfo.systemUptime
+
+        // Use cached window list if it's less than 1 second old
+        if let cached = cachedWindowList, (currentTime - lastWindowListCacheTime) < 1.0 {
+            windowList = cached
+        } else {
+            let options = CGWindowListOption(arrayLiteral: .optionOnScreenOnly, .excludeDesktopElements)
+            guard
+                let newList = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
+                    as? [[String: Any]]
+            else {
+                return false
+            }
+            windowList = newList
+            cachedWindowList = newList
+            lastWindowListCacheTime = currentTime
         }
 
         for window in windowList {
