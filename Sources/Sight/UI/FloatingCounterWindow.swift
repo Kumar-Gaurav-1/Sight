@@ -308,24 +308,21 @@ public final class FloatingCounterWindow: NSPanel {
         }
     }
 
+    private var lastVisibilityCheckTime: TimeInterval = 0
+    private var cachedExpensiveHideChecks: Bool = false
+
     /// Determine if window should auto-hide based on context
     public func shouldAutoHide() -> Bool {
-        // Check fullscreen
-        if isInFullscreenApp() {
-            return true
+        let now = ProcessInfo.processInfo.systemUptime
+
+        // Update expensive checks (fullscreen, DND) at most once every 0.5 seconds
+        if now - lastVisibilityCheckTime >= 0.5 {
+            lastVisibilityCheckTime = now
+            cachedExpensiveHideChecks = isInFullscreenApp() || isDoNotDisturbEnabled()
         }
 
-        // Check cursor near menubar
-        if isCursorNearMenubar() {
-            return true
-        }
-
-        // Check Do Not Disturb / Focus mode
-        if isDoNotDisturbEnabled() {
-            return true
-        }
-
-        return false
+        // Always check cursor near menubar instantly as it's a cheap operation
+        return isCursorNearMenubar() || cachedExpensiveHideChecks
     }
 
     private func isInFullscreenApp() -> Bool {
