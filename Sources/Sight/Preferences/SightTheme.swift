@@ -379,9 +379,15 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-@MainActor public struct SightPrimaryButtonStyle: ButtonStyle {
-    public init() {}
-    public func makeBody(configuration: Configuration) -> some View {
+struct SightPrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        _SightPrimaryButtonBody(configuration: configuration)
+    }
+}
+
+@MainActor private struct _SightPrimaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -402,11 +408,17 @@ struct HoverableCardModifier: ViewModifier {
     }
 }
 
-@MainActor public struct SightSecondaryButtonStyle: ButtonStyle {
-    public init() {}
+struct SightSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        _SightSecondaryButtonBody(configuration: configuration)
+    }
+}
+
+@MainActor private struct _SightSecondaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    public func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -435,9 +447,15 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Toggle Style
 
-@MainActor public struct SightToggleStyle: ToggleStyle {
-    public init() {}
-    public func makeBody(configuration: Configuration) -> some View {
+struct SightToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        _SightToggleBody(configuration: configuration)
+    }
+}
+
+@MainActor private struct _SightToggleBody: View {
+    let configuration: ToggleStyle.Configuration
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
