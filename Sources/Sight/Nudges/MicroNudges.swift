@@ -345,7 +345,15 @@ public final class MicroNudgesManager: ObservableObject {
         setupNotificationObservers()
     }
 
-    // MARK: - Notification Observers
+    deinit {
+        stop()
+    }
+
+}
+
+// MARK: - Notification Observers
+extension MicroNudgesManager {
+
 
     private func setupNotificationObservers() {
         // Handle snooze action from system notification
@@ -376,7 +384,11 @@ public final class MicroNudgesManager: ObservableObject {
         }
     }
 
-    // MARK: - Preferences Integration
+}
+
+// MARK: - Preferences Integration
+extension MicroNudgesManager {
+
 
     private func setupPreferencesObservation() {
         let preferences = PreferencesManager.shared
@@ -406,7 +418,11 @@ public final class MicroNudgesManager: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // MARK: - Break Completion Integration
+}
+
+// MARK: - Break Completion Integration
+extension MicroNudgesManager {
+
 
     /// Reset nudge timers after a break completes (if enabled in preferences)
     public func resetAfterBreak() {
@@ -473,11 +489,11 @@ public final class MicroNudgesManager: ObservableObject {
             soundEnabled: prefs.postureSoundEnabled)
     }
 
-    deinit {
-        stop()
-    }
+}
 
-    // MARK: - Persistence
+// MARK: - Persistence
+extension MicroNudgesManager {
+
 
     private static func loadSavedConfig() -> MicroNudgesConfig? {
         guard let data = UserDefaults.standard.data(forKey: "MicroNudgesConfig"),
@@ -505,7 +521,11 @@ public final class MicroNudgesManager: ObservableObject {
         }
     }
 
-    // MARK: - Public API
+}
+
+// MARK: - Public API
+extension MicroNudgesManager {
+
 
     /// Start nudge scheduling
     public func start() {
@@ -569,7 +589,11 @@ public final class MicroNudgesManager: ObservableObject {
         currentNudge = nil
     }
 
-    // MARK: - Timer Management
+}
+
+// MARK: - Timer Management
+extension MicroNudgesManager {
+
 
     private func startTimers() {
         // Blink timer using Combine
@@ -658,7 +682,11 @@ public final class MicroNudgesManager: ObservableObject {
         exerciseDispatchTimer?.resume()
     }
 
-    // MARK: - Nudge Triggering
+}
+
+// MARK: - Nudge Triggering
+extension MicroNudgesManager {
+
 
     private func triggerNudge(_ type: NudgeType) {
         guard config.enabled else { return }
@@ -723,7 +751,11 @@ public final class MicroNudgesManager: ObservableObject {
         logger.info("Triggered \(type.rawValue): \(event.message)")
     }
 
-    // MARK: - Escalation
+}
+
+// MARK: - Escalation
+extension MicroNudgesManager {
+
 
     private func handleEscalation(for type: NudgeType, snoozeCount: Int) {
         guard config.escalation.enabled else { return }
@@ -758,7 +790,11 @@ public final class MicroNudgesManager: ObservableObject {
         NotificationManager.shared.sendEscalationNotification(snoozeCount: totalSnoozes)
     }
 
-    // MARK: - Daily Reset
+}
+
+// MARK: - Daily Reset
+extension MicroNudgesManager {
+
 
     private func scheduleDailyReset() {
         // Calculate time until midnight
