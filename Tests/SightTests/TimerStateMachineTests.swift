@@ -102,4 +102,31 @@ final class TimerStateMachineTests: XCTestCase {
         XCTAssertEqual(TimerState.preBreak.iconName, "eye.trianglebadge.exclamationmark")
         XCTAssertEqual(TimerState.break.iconName, "eye.slash.fill")
     }
+
+    // MARK: - Screen Lock Tests
+
+    func testLockScreenFallback() {
+        enum DummyError: Error {
+            case executionFailed
+        }
+
+        var fallbackAppleScriptCalled = false
+
+        // Inject a failing primary command
+        stateMachine.runScreenLockCommand = {
+            throw DummyError.executionFailed
+        }
+
+        // Inject mock fallback script to verify it was executed
+        stateMachine.runFallbackAppleScript = { source in
+            fallbackAppleScriptCalled = true
+            return nil
+        }
+
+        // Execute
+        stateMachine.lockScreen()
+
+        // Verify fallback was triggered
+        XCTAssertTrue(fallbackAppleScriptCalled, "Fallback AppleScript should be called when pmset fails")
+    }
 }

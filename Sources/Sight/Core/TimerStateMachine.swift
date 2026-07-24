@@ -92,6 +92,24 @@ public final class TimerStateMachine: ObservableObject {
     private var wakeObserver: NSObjectProtocol?
     private var sleepObserver: NSObjectProtocol?
 
+    // MARK: - Testing Hooks
+
+    /// Execution closure for pmset. Internal to allow testing fallback.
+    internal lazy var runScreenLockCommand: () throws -> Void = {
+        let task = Process()
+        task.launchPath = "/usr/bin/pmset"
+        task.arguments = ["displaysleepnow"]
+        try task.run()
+    }
+
+    /// Execution closure for AppleScript. Internal to allow mocking in tests.
+    internal lazy var runFallbackAppleScript: (String) -> NSDictionary? = { source in
+        let script = NSAppleScript(source: source)
+        var scriptError: NSDictionary?
+        script?.executeAndReturnError(&scriptError)
+        return scriptError
+    }
+
     // MARK: - Initialization
 
     public init(configuration: TimerConfiguration = .default, rendererEnabled: Bool = true) {
@@ -650,29 +668,23 @@ public final class TimerStateMachine: ObservableObject {
     // MARK: - Screen Lock
 
     /// Lock the screen to force user to step away during break
-    private func lockScreen() {
+    internal func lockScreen() {
         logger.info("Locking screen for break")
 
         // Use the SACLockScreenImmediate function via session services
         // This is the most reliable method on modern macOS
-        let task = Process()
-        task.launchPath = "/usr/bin/pmset"
-        task.arguments = ["displaysleepnow"]
-
         do {
-            try task.run()
+            try runScreenLockCommand()
             logger.debug("Screen lock command executed")
         } catch {
             // Fallback: Try using Keychain menu bar lock
-            logger.warning("pmset failed, trying alternate method: \\(error.localizedDescription)")
+            logger.warning("pmset failed, trying alternate method: \(error.localizedDescription)")
 
             // Use AppleScript as fallback (works on all macOS versions)
-            let script = NSAppleScript(
-                source: """
-                        tell application "System Events" to keystroke "q" using {control down, command down}
-                    """)
-            var scriptError: NSDictionary?
-            script?.executeAndReturnError(&scriptError)
+            let source = """
+                    tell application "System Events" to keystroke "q" using {control down, command down}
+                """
+            let scriptError = runFallbackAppleScript(source)
 
             if scriptError != nil {
                 logger.error("Screen lock AppleScript failed")
