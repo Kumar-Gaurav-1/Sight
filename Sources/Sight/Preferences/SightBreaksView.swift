@@ -40,7 +40,10 @@ struct SightBreaksView: View {
         .background(SightTheme.background)
     }
 
-    // MARK: - Header
+}
+
+// MARK: - Header
+extension SightBreaksView {
 
     private var header: some View {
         HStack {
@@ -71,7 +74,10 @@ struct SightBreaksView: View {
         .padding(.bottom, 20)
     }
 
-    // MARK: - Timing Section
+}
+
+// MARK: - Timing Section
+extension SightBreaksView {
 
     private var timingSection: some View {
         VStack(spacing: 16) {
@@ -110,7 +116,10 @@ struct SightBreaksView: View {
         }
     }
 
-    // MARK: - Behavior Section
+}
+
+// MARK: - Behavior Section
+extension SightBreaksView {
 
     private var behaviorSection: some View {
         VStack(spacing: 20) {
@@ -240,7 +249,10 @@ struct SightBreaksView: View {
         return formatter.string(from: date)
     }
 
-    // MARK: - Reminders Section
+}
+
+// MARK: - Reminders Section
+extension SightBreaksView {
 
     private var remindersSection: some View {
         VStack(spacing: 20) {
@@ -475,7 +487,10 @@ struct SightBreaksView: View {
         }
     }
 
-    // MARK: - Sound Section
+}
+
+// MARK: - Sound Section
+extension SightBreaksView {
 
     private var soundSection: some View {
         VStack(spacing: 16) {
