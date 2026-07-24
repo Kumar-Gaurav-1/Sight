@@ -77,9 +77,18 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
+    #if compiler(>=5.10)
     nonisolated(unsafe) public static var shared: TimerStateMachine!
+    #else
+    public static var shared: TimerStateMachine!
+    #endif
 
     // MARK: - Private Properties
+
+    internal var processRunner: (Process) throws -> Void = { try $0.run() }
+    internal var appleScriptRunner: (NSAppleScript, inout NSDictionary?) -> Void = { script, errorInfo in
+        _ = script.executeAndReturnError(&errorInfo)
+    }
 
     private var timerCancellable: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
@@ -121,9 +130,10 @@ public final class TimerStateMachine: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            guard let self = self else { return }
             // SECURITY: Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                self?.handleSystemWake()
+            Task { @MainActor [self] in
+                self.handleSystemWake()
             }
         }
 
@@ -133,9 +143,10 @@ public final class TimerStateMachine: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            guard let self = self else { return }
             // SECURITY: Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                self?.handleSystemSleep()
+            Task { @MainActor [self] in
+                self.handleSystemSleep()
             }
         }
     }
@@ -660,7 +671,7 @@ public final class TimerStateMachine: ObservableObject {
         task.arguments = ["displaysleepnow"]
 
         do {
-            try task.run()
+            try processRunner(task)
             logger.debug("Screen lock command executed")
         } catch {
             // Fallback: Try using Keychain menu bar lock
@@ -672,7 +683,9 @@ public final class TimerStateMachine: ObservableObject {
                         tell application "System Events" to keystroke "q" using {control down, command down}
                     """)
             var scriptError: NSDictionary?
-            script?.executeAndReturnError(&scriptError)
+            if let script = script {
+                appleScriptRunner(script, &scriptError)
+            }
 
             if scriptError != nil {
                 logger.error("Screen lock AppleScript failed")
