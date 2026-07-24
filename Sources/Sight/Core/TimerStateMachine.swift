@@ -77,7 +77,11 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
+    #if compiler(>=5.10)
     nonisolated(unsafe) public static var shared: TimerStateMachine!
+    #else
+    public static var shared: TimerStateMachine!
+    #endif
 
     // MARK: - Private Properties
 
@@ -139,9 +143,10 @@ public final class TimerStateMachine: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            guard let self = self else { return }
             // SECURITY: Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                self?.handleSystemWake()
+            Task { @MainActor [self] in
+                self.handleSystemWake()
             }
         }
 
@@ -151,9 +156,10 @@ public final class TimerStateMachine: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
+            guard let self = self else { return }
             // SECURITY: Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                self?.handleSystemSleep()
+            Task { @MainActor [self] in
+                self.handleSystemSleep()
             }
         }
     }
