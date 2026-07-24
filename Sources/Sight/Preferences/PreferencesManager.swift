@@ -7,181 +7,6 @@ import os.log
 /// Provides JSON schema output for external tools
 public final class PreferencesManager: ObservableObject {
 
-    // MARK: - UserDefaults Keys
-
-    private enum Keys {
-        static let workInterval = "workIntervalSeconds"
-        static let preBreak = "preBreakSeconds"
-        static let breakDuration = "breakDurationSeconds"
-        static let launchAtLogin = "launchAtLogin"
-        static let soundEnabled = "soundEnabled"
-        static let idlePauseMinutes = "idlePauseMinutes"
-        static let idleResetMinutes = "idleResetMinutes"
-
-        // Wellness Reminders
-        static let blinkReminderEnabled = "blinkReminderEnabled"
-        static let blinkReminderInterval = "blinkReminderIntervalSeconds"
-        static let blinkSoundEnabled = "blinkSoundEnabled"
-        static let flashDuration = "flashDurationMs"
-        static let flashColor = "flashColor"
-        static let postureReminderEnabled = "postureReminderEnabled"
-        static let postureReminderInterval = "postureReminderIntervalSeconds"
-        static let postureSoundEnabled = "postureSoundEnabled"
-        static let dimScreenOnReminder = "dimScreenOnReminder"
-        static let showRemindersDuringPauses = "showRemindersDuringPauses"
-        static let resetTimersAfterBreak = "resetTimersAfterBreak"
-        static let nudgeDimIntensity = "nudgeDimIntensity"
-
-        // Appearance
-        static let appearanceMode = "appearanceMode"
-        static let accentColor = "accentColor"
-        static let accentHue = "accentHue"
-        static let overlayOpacity = "overlayOpacity"
-        static let blurBackground = "blurBackground"
-        static let particleEffects = "particleEffects"
-
-        // Menu Bar
-        static let showInMenuBar = "showInMenuBar"
-        static let showTimerInMenuBar = "showTimerInMenuBar"
-
-        // Automation / Working Hours
-        static let quietHoursEnabled = "quietHoursEnabled"
-        static let quietHoursStart = "quietHoursStart"
-        static let quietHoursEnd = "quietHoursEnd"
-        static let weekendModeEnabled = "weekendModeEnabled"
-        static let activeDays = "activeDays"
-
-        // Break Behavior
-        static let allowSkipBreak = "allowSkipBreak"
-        static let allowPostponeBreak = "allowPostponeBreak"
-        static let maxPostpones = "maxPostpones"
-        static let enforcementLevel = "enforcementLevel"
-        static let showBreakPreview = "showBreakPreview"
-
-        // Break Skip Difficulty
-        static let breakSkipDifficulty = "breakSkipDifficulty"
-        static let dontShowWhileTyping = "dontShowWhileTyping"
-
-        // Long Breaks
-        static let longBreakEnabled = "longBreakEnabled"
-        static let longBreakInterval = "longBreakInterval"
-
-        // Office Hours
-        static let officeHoursEnabled = "officeHoursEnabled"
-        static let officeHoursStart = "officeHoursStart"
-        static let officeHoursEnd = "officeHoursEnd"
-
-        // Countdown Before Break
-        static let countdownEnabled = "countdownEnabled"
-        static let countdownDuration = "countdownDuration"
-
-        // Overtime Nudge
-        static let overtimeNudgeEnabled = "overtimeNudgeEnabled"
-        static let overtimeShowWhenPaused = "overtimeShowWhenPaused"
-
-        // More Options
-        static let endBreakEarly = "endBreakEarly"
-        static let lockMacOnBreak = "lockMacOnBreak"
-
-        // Break Screen Appearance
-        static let breakBackgroundType = "breakBackgroundType"
-        static let breakCustomImagePath = "breakCustomImagePath"
-        static let breakBlurBackground = "breakBlurBackground"
-        static let breakCustomMessages = "breakCustomMessages"
-        static let breakHideMessages = "breakHideMessages"
-        static let breakAlertPosition = "breakAlertPosition"
-        static let breakGradientPreset = "breakGradientPreset"
-
-        // Session Behavior
-        static let autoStartOnLaunch = "autoStartOnLaunch"
-        static let rememberLastState = "rememberLastState"
-
-        // Sounds
-        static let breakStartSoundEnabled = "breakStartSoundEnabled"
-        static let breakEndSoundEnabled = "breakEndSoundEnabled"
-        static let breakStartSoundType = "breakStartSoundType"
-        static let breakEndSoundType = "breakEndSoundType"
-        static let nudgeSoundType = "nudgeSoundType"
-        static let soundVolume = "soundVolume"
-        static let soundPair = "soundPair"
-        static let wellnessReminderVolume = "wellnessReminderVolume"
-        static let breakReminderSoundEnabled = "breakReminderSoundEnabled"
-        static let smartPauseSoundEnabled = "smartPauseSoundEnabled"
-        static let smartPauseNotificationEnabled = "smartPauseNotificationEnabled"
-        static let activeAfterIdleSoundEnabled = "activeAfterIdleSoundEnabled"
-        static let overtimeNudgeSoundEnabled = "overtimeNudgeSoundEnabled"
-
-        // Profiles
-        static let activeProfile = "activeProfile"
-
-        // Meeting Detection
-        static let meetingDetectionEnabled = "meetingDetectionEnabled"
-
-        // Long Break
-        static let longBreakDurationSeconds = "longBreakDurationSeconds"
-
-        // Shortcuts
-        static let shortcutToggleTimer = "shortcutToggleTimer"
-        static let shortcutTakeBreak = "shortcutTakeBreak"
-        static let shortcutSkipBreak = "shortcutSkipBreak"
-        static let shortcutPreferences = "shortcutPreferences"
-        static let shortcutsEnabled = "shortcutsEnabled"
-        static let pauseForFullscreenApps = "pauseForFullscreenApps"
-    }
-
-    // MARK: - Enforcement Level
-
-    /// Enforcement level for break compliance
-    public enum EnforcementLevel: String, CaseIterable, Codable {
-        case gentle = "gentle"
-        case balanced = "balanced"
-        case strict = "strict"
-        case zenMaster = "zenMaster"
-
-        public var displayName: String {
-            switch self {
-            case .gentle: return "Gentle"
-            case .balanced: return "Balanced"
-            case .strict: return "Strict"
-            case .zenMaster: return "Zen Master"
-            }
-        }
-
-        public var allowSkip: Bool {
-            switch self {
-            case .gentle, .balanced: return true
-            case .strict, .zenMaster: return false
-            }
-        }
-
-        public var maxPostpones: Int {
-            switch self {
-            case .gentle: return 99  // Unlimited
-            case .balanced: return 2
-            case .strict: return 1
-            case .zenMaster: return 0
-            }
-        }
-
-        public var preWarningSeconds: Int {
-            switch self {
-            case .gentle: return 30
-            case .balanced: return 15
-            case .strict: return 5
-            case .zenMaster: return 0
-            }
-        }
-
-        public var description: String {
-            switch self {
-            case .gentle: return "Flexible - Skip and postpone freely"
-            case .balanced: return "Moderate - Limited postpones"
-            case .strict: return "Focused - No skipping, 1 postpone"
-            case .zenMaster: return "Maximum commitment - No escape"
-            }
-        }
-    }
-
     // MARK: - Published Properties
 
     @Published public var workIntervalSeconds: Int {
@@ -840,6 +665,187 @@ public final class PreferencesManager: ObservableObject {
         applyAppearanceMode()
     }
 
+}
+
+extension PreferencesManager {
+    // MARK: - UserDefaults Keys
+
+    private enum Keys {
+        static let workInterval = "workIntervalSeconds"
+        static let preBreak = "preBreakSeconds"
+        static let breakDuration = "breakDurationSeconds"
+        static let launchAtLogin = "launchAtLogin"
+        static let soundEnabled = "soundEnabled"
+        static let idlePauseMinutes = "idlePauseMinutes"
+        static let idleResetMinutes = "idleResetMinutes"
+
+        // Wellness Reminders
+        static let blinkReminderEnabled = "blinkReminderEnabled"
+        static let blinkReminderInterval = "blinkReminderIntervalSeconds"
+        static let blinkSoundEnabled = "blinkSoundEnabled"
+        static let flashDuration = "flashDurationMs"
+        static let flashColor = "flashColor"
+        static let postureReminderEnabled = "postureReminderEnabled"
+        static let postureReminderInterval = "postureReminderIntervalSeconds"
+        static let postureSoundEnabled = "postureSoundEnabled"
+        static let dimScreenOnReminder = "dimScreenOnReminder"
+        static let showRemindersDuringPauses = "showRemindersDuringPauses"
+        static let resetTimersAfterBreak = "resetTimersAfterBreak"
+        static let nudgeDimIntensity = "nudgeDimIntensity"
+
+        // Appearance
+        static let appearanceMode = "appearanceMode"
+        static let accentColor = "accentColor"
+        static let accentHue = "accentHue"
+        static let overlayOpacity = "overlayOpacity"
+        static let blurBackground = "blurBackground"
+        static let particleEffects = "particleEffects"
+
+        // Menu Bar
+        static let showInMenuBar = "showInMenuBar"
+        static let showTimerInMenuBar = "showTimerInMenuBar"
+
+        // Automation / Working Hours
+        static let quietHoursEnabled = "quietHoursEnabled"
+        static let quietHoursStart = "quietHoursStart"
+        static let quietHoursEnd = "quietHoursEnd"
+        static let weekendModeEnabled = "weekendModeEnabled"
+        static let activeDays = "activeDays"
+
+        // Break Behavior
+        static let allowSkipBreak = "allowSkipBreak"
+        static let allowPostponeBreak = "allowPostponeBreak"
+        static let maxPostpones = "maxPostpones"
+        static let enforcementLevel = "enforcementLevel"
+        static let showBreakPreview = "showBreakPreview"
+
+        // Break Skip Difficulty
+        static let breakSkipDifficulty = "breakSkipDifficulty"
+        static let dontShowWhileTyping = "dontShowWhileTyping"
+
+        // Long Breaks
+        static let longBreakEnabled = "longBreakEnabled"
+        static let longBreakInterval = "longBreakInterval"
+
+        // Office Hours
+        static let officeHoursEnabled = "officeHoursEnabled"
+        static let officeHoursStart = "officeHoursStart"
+        static let officeHoursEnd = "officeHoursEnd"
+
+        // Countdown Before Break
+        static let countdownEnabled = "countdownEnabled"
+        static let countdownDuration = "countdownDuration"
+
+        // Overtime Nudge
+        static let overtimeNudgeEnabled = "overtimeNudgeEnabled"
+        static let overtimeShowWhenPaused = "overtimeShowWhenPaused"
+
+        // More Options
+        static let endBreakEarly = "endBreakEarly"
+        static let lockMacOnBreak = "lockMacOnBreak"
+
+        // Break Screen Appearance
+        static let breakBackgroundType = "breakBackgroundType"
+        static let breakCustomImagePath = "breakCustomImagePath"
+        static let breakBlurBackground = "breakBlurBackground"
+        static let breakCustomMessages = "breakCustomMessages"
+        static let breakHideMessages = "breakHideMessages"
+        static let breakAlertPosition = "breakAlertPosition"
+        static let breakGradientPreset = "breakGradientPreset"
+
+        // Session Behavior
+        static let autoStartOnLaunch = "autoStartOnLaunch"
+        static let rememberLastState = "rememberLastState"
+
+        // Sounds
+        static let breakStartSoundEnabled = "breakStartSoundEnabled"
+        static let breakEndSoundEnabled = "breakEndSoundEnabled"
+        static let breakStartSoundType = "breakStartSoundType"
+        static let breakEndSoundType = "breakEndSoundType"
+        static let nudgeSoundType = "nudgeSoundType"
+        static let soundVolume = "soundVolume"
+        static let soundPair = "soundPair"
+        static let wellnessReminderVolume = "wellnessReminderVolume"
+        static let breakReminderSoundEnabled = "breakReminderSoundEnabled"
+        static let smartPauseSoundEnabled = "smartPauseSoundEnabled"
+        static let smartPauseNotificationEnabled = "smartPauseNotificationEnabled"
+        static let activeAfterIdleSoundEnabled = "activeAfterIdleSoundEnabled"
+        static let overtimeNudgeSoundEnabled = "overtimeNudgeSoundEnabled"
+
+        // Profiles
+        static let activeProfile = "activeProfile"
+
+        // Meeting Detection
+        static let meetingDetectionEnabled = "meetingDetectionEnabled"
+
+        // Long Break
+        static let longBreakDurationSeconds = "longBreakDurationSeconds"
+
+        // Shortcuts
+        static let shortcutToggleTimer = "shortcutToggleTimer"
+        static let shortcutTakeBreak = "shortcutTakeBreak"
+        static let shortcutSkipBreak = "shortcutSkipBreak"
+        static let shortcutPreferences = "shortcutPreferences"
+        static let shortcutsEnabled = "shortcutsEnabled"
+        static let pauseForFullscreenApps = "pauseForFullscreenApps"
+    }
+
+    // MARK: - Enforcement Level
+
+    /// Enforcement level for break compliance
+    public enum EnforcementLevel: String, CaseIterable, Codable {
+        case gentle = "gentle"
+        case balanced = "balanced"
+        case strict = "strict"
+        case zenMaster = "zenMaster"
+
+        public var displayName: String {
+            switch self {
+            case .gentle: return "Gentle"
+            case .balanced: return "Balanced"
+            case .strict: return "Strict"
+            case .zenMaster: return "Zen Master"
+            }
+        }
+
+        public var allowSkip: Bool {
+            switch self {
+            case .gentle, .balanced: return true
+            case .strict, .zenMaster: return false
+            }
+        }
+
+        public var maxPostpones: Int {
+            switch self {
+            case .gentle: return 99  // Unlimited
+            case .balanced: return 2
+            case .strict: return 1
+            case .zenMaster: return 0
+            }
+        }
+
+        public var preWarningSeconds: Int {
+            switch self {
+            case .gentle: return 30
+            case .balanced: return 15
+            case .strict: return 5
+            case .zenMaster: return 0
+            }
+        }
+
+        public var description: String {
+            switch self {
+            case .gentle: return "Flexible - Skip and postpone freely"
+            case .balanced: return "Moderate - Limited postpones"
+            case .strict: return "Focused - No skipping, 1 postpone"
+            case .zenMaster: return "Maximum commitment - No escape"
+            }
+        }
+    }
+
+}
+
+extension PreferencesManager {
     // MARK: - Configuration Bridge
 
     /// Convert preferences to TimerConfiguration
