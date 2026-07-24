@@ -5,6 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
+@MainActor
 struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
@@ -85,6 +86,7 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
+@MainActor
 struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
@@ -389,6 +391,7 @@ struct TimeBreakdownChart: View {
 // MARK: - Comparison Bar View
 
 /// Week-over-week comparison visualization
+@MainActor
 struct ComparisonBarView: View {
     let currentValue: Double
     let previousValue: Double
@@ -634,6 +637,7 @@ struct TrendLineChart: View {
 // MARK: - Insight Card View
 
 /// Card displaying a wellness insight
+@MainActor
 struct InsightCardView: View {
     let insight: WellnessInsight
 
