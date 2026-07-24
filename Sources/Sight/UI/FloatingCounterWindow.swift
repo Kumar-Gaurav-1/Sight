@@ -108,14 +108,11 @@ public final class FloatingCounterWindow: NSPanel {
     /// Spring physics engine
     private var physics: SpringPhysics
 
-    /// Display link for physics updates
-    private var displayLink: CVDisplayLink?
+    /// Display link manager for physics updates
+    private var displayLinkManager: FloatingWindowDisplayLink?
 
     /// Global mouse event monitor
     private var mouseMonitor: Any?
-
-    /// Timer for fallback updates when display link unavailable
-    private var fallbackTimer: Timer?
 
     /// Low power mode observer
     private var lowPowerObserver: NSObjectProtocol?
@@ -135,9 +132,6 @@ public final class FloatingCounterWindow: NSPanel {
     /// Cancellables for Combine subscriptions
     private var cancellables = Set<AnyCancellable>()
 
-    /// SECURITY: Flag to prevent CVDisplayLink callbacks after deallocation
-    private var displayLinkActive = false
-
     // MARK: - Initialization
 
     public init(config: FloatingWindowConfig = .default) {
@@ -151,6 +145,11 @@ public final class FloatingCounterWindow: NSPanel {
             defer: false
         )
 
+        self.displayLinkManager = FloatingWindowDisplayLink(
+            targetFrameRate: { [weak self] in self?.config.targetFrameRate ?? 30 },
+            updateAction: { [weak self] in self?.updatePhysics() }
+        )
+
         setupWindow()
         setupAccessibility()
         setupObservers()
@@ -159,8 +158,6 @@ public final class FloatingCounterWindow: NSPanel {
     }
 
     deinit {
-        // SECURITY: Mark display link as inactive BEFORE stopping to prevent race
-        displayLinkActive = false
         stopTracking()
         removeObservers()
     }
@@ -268,12 +265,12 @@ public final class FloatingCounterWindow: NSPanel {
 
         if isLowPowerMode {
             logger.info("Low power mode - switching to static corner position")
-            stopDisplayLink()
+            displayLinkManager?.stop()
             moveToStaticCorner()
         } else {
             logger.info("Normal power mode - resuming cursor tracking")
             if isTracking {
-                startDisplayLink()
+                displayLinkManager?.start()
             }
         }
     }
@@ -398,7 +395,7 @@ public final class FloatingCounterWindow: NSPanel {
 
         // Start display link for physics updates
         if !isLowPowerMode {
-            startDisplayLink()
+            displayLinkManager?.start()
         } else {
             moveToStaticCorner()
         }
@@ -417,8 +414,7 @@ public final class FloatingCounterWindow: NSPanel {
         logger.info("Stopping cursor tracking")
 
         stopMouseMonitor()
-        stopDisplayLink()
-        stopFallbackTimer()
+        displayLinkManager?.stop()
         orderOut(nil)
     }
 
@@ -475,80 +471,6 @@ public final class FloatingCounterWindow: NSPanel {
                 targetPosition.y,
                 visibleFrame.maxY - windowSize.height - margin - config.menubarHeight)
         )
-    }
-
-    // MARK: - Display Link (CVDisplayLink for macOS)
-
-    private func startDisplayLink() {
-        guard displayLink == nil else { return }
-
-        var link: CVDisplayLink?
-        CVDisplayLinkCreateWithActiveCGDisplays(&link)
-
-        guard let displayLink = link else {
-            logger.warning("Failed to create CVDisplayLink, using fallback timer")
-            startFallbackTimer()
-            return
-        }
-
-        self.displayLink = displayLink
-
-        // SECURITY: Mark as active before starting
-        displayLinkActive = true
-
-        // Set up callback with weak self capture pattern
-        // We use a class wrapper to safely check if window is still valid
-        let outputCallback: CVDisplayLinkOutputCallback = {
-            displayLink, inNow, inOutputTime, flagsIn, flagsOut, displayLinkContext -> CVReturn in
-
-            guard let context = displayLinkContext else { return kCVReturnSuccess }
-
-            // SECURITY: Get unretained reference but immediately dispatch to main
-            // where we'll check the active flag
-            let window = Unmanaged<FloatingCounterWindow>.fromOpaque(context).takeUnretainedValue()
-
-            // Check if still active before dispatching
-            guard window.displayLinkActive else { return kCVReturnSuccess }
-
-            DispatchQueue.main.async { [weak window] in
-                // Double-check: use weak reference in async block
-                guard let window = window, window.displayLinkActive else { return }
-                window.updatePhysics()
-            }
-
-            return kCVReturnSuccess
-        }
-
-        let selfPointer = Unmanaged.passUnretained(self).toOpaque()
-        CVDisplayLinkSetOutputCallback(displayLink, outputCallback, selfPointer)
-
-        // Start the display link
-        CVDisplayLinkStart(displayLink)
-
-        logger.info("CVDisplayLink started")
-    }
-
-    private func stopDisplayLink() {
-        // SECURITY: Mark as inactive BEFORE stopping to prevent race
-        displayLinkActive = false
-
-        if let link = displayLink {
-            CVDisplayLinkStop(link)
-            displayLink = nil
-        }
-    }
-
-    private func startFallbackTimer() {
-        let interval = 1.0 / Double(config.targetFrameRate)
-        fallbackTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) {
-            [weak self] _ in
-            self?.updatePhysics()
-        }
-    }
-
-    private func stopFallbackTimer() {
-        fallbackTimer?.invalidate()
-        fallbackTimer = nil
     }
 
     // MARK: - Physics Update
