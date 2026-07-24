@@ -81,6 +81,11 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Private Properties
 
+    internal var processRunner: (Process) throws -> Void = { try $0.run() }
+    internal var appleScriptRunner: (NSAppleScript, inout NSDictionary?) -> Void = { script, errorInfo in
+        _ = script.executeAndReturnError(&errorInfo)
+    }
+
     private var timerCancellable: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
     private var stateStartTime: Date?
@@ -660,7 +665,7 @@ public final class TimerStateMachine: ObservableObject {
         task.arguments = ["displaysleepnow"]
 
         do {
-            try task.run()
+            try processRunner(task)
             logger.debug("Screen lock command executed")
         } catch {
             // Fallback: Try using Keychain menu bar lock
@@ -672,7 +677,9 @@ public final class TimerStateMachine: ObservableObject {
                         tell application "System Events" to keystroke "q" using {control down, command down}
                     """)
             var scriptError: NSDictionary?
-            script?.executeAndReturnError(&scriptError)
+            if let script = script {
+                appleScriptRunner(script, &scriptError)
+            }
 
             if scriptError != nil {
                 logger.error("Screen lock AppleScript failed")

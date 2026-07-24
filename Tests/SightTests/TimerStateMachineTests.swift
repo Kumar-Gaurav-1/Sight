@@ -74,6 +74,37 @@ final class TimerStateMachineTests: XCTestCase {
         XCTAssertEqual(stateMachine.currentState, .work)
     }
     
+    // MARK: - Screen Lock Fallback Tests
+
+    func testLockScreenFallback() {
+        // Setup preferences for this test
+        let originalLockMacOnBreak = PreferencesManager.shared.lockMacOnBreak
+        PreferencesManager.shared.lockMacOnBreak = true
+        defer {
+            PreferencesManager.shared.lockMacOnBreak = originalLockMacOnBreak
+        }
+
+        var appleScriptFallbackCalled = false
+
+        // Mock process execution to fail
+        stateMachine.processRunner = { _ in
+            throw NSError(domain: "TestError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock process failure"])
+        }
+
+        // Mock AppleScript execution to track if fallback is called
+        stateMachine.appleScriptRunner = { _, errorInfo in
+            appleScriptFallbackCalled = true
+            // Optionally simulate AppleScript failure:
+            // errorInfo = ["NSAppleScriptErrorMessage": "Mock AppleScript error"]
+        }
+
+        stateMachine.start()
+        stateMachine.skipToNext() // work -> preBreak
+        stateMachine.skipToNext() // preBreak -> break, triggers lockScreen()
+
+        XCTAssertTrue(appleScriptFallbackCalled, "AppleScript fallback should be called when process runner fails")
+    }
+
     // MARK: - Configuration Tests
     
     func testConfigurationChangeSetsRemainingSeconds() {
