@@ -357,6 +357,7 @@ extension View {
 
 // MARK: - Hoverable Card Modifier
 
+@MainActor
 struct HoverableCardModifier: ViewModifier {
     @State private var isHovered = false
 
@@ -379,8 +380,9 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-struct SightPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
+@MainActor
+public struct SightPrimaryButtonStyle: ButtonStyle {
+    public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -401,10 +403,11 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-struct SightSecondaryButtonStyle: ButtonStyle {
+@MainActor
+public struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -433,8 +436,9 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 // MARK: - Custom Toggle Style
 
-struct SightToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
+@MainActor
+public struct SightToggleStyle: ToggleStyle {
+    public func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
             Spacer()
@@ -468,6 +472,7 @@ struct SightToggleStyle: ToggleStyle {
 
 // MARK: - Progress Ring View
 
+@MainActor
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
@@ -501,6 +506,7 @@ struct ProgressRing: View {
 
 // MARK: - Shimmer Effect
 
+@MainActor
 struct ShimmerModifier: ViewModifier {
     @State private var phase: CGFloat = 0
 
@@ -538,6 +544,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
+@MainActor
 struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color

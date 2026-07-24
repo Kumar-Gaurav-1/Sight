@@ -165,7 +165,12 @@ public final class FloatingCounterWindow: NSPanel {
         removeObservers()
     }
 
-    // MARK: - Setup
+}
+
+// MARK: - Setup
+
+extension FloatingCounterWindow {
+
 
     private func setupWindow() {
         // Transparent, borderless, floating
@@ -296,7 +301,12 @@ public final class FloatingCounterWindow: NSPanel {
         }
     }
 
-    // MARK: - Visibility Logic
+}
+
+// MARK: - Visibility Logic
+
+extension FloatingCounterWindow {
+
 
     private func updateVisibilityForContext() {
         let shouldHide = shouldAutoHide()
@@ -384,7 +394,12 @@ public final class FloatingCounterWindow: NSPanel {
         return dndDefaults?.bool(forKey: "doNotDisturb") ?? false
     }
 
-    // MARK: - Tracking Control
+}
+
+// MARK: - Tracking Control
+
+extension FloatingCounterWindow {
+
 
     /// Start tracking cursor movement
     public func startTracking() {
@@ -422,7 +437,12 @@ public final class FloatingCounterWindow: NSPanel {
         orderOut(nil)
     }
 
-    // MARK: - Mouse Monitoring
+}
+
+// MARK: - Mouse Monitoring
+
+extension FloatingCounterWindow {
+
 
     private func startMouseMonitor() {
         // Global mouse moved event monitor
@@ -477,7 +497,12 @@ public final class FloatingCounterWindow: NSPanel {
         )
     }
 
-    // MARK: - Display Link (CVDisplayLink for macOS)
+}
+
+// MARK: - Display Link (CVDisplayLink for macOS)
+
+extension FloatingCounterWindow {
+
 
     private func startDisplayLink() {
         guard displayLink == nil else { return }
@@ -551,7 +576,12 @@ public final class FloatingCounterWindow: NSPanel {
         fallbackTimer = nil
     }
 
-    // MARK: - Physics Update
+}
+
+// MARK: - Physics Update
+
+extension FloatingCounterWindow {
+
 
     private func updatePhysics() {
         guard isTracking, !isLowPowerMode, !shouldAutoHide() else { return }
@@ -574,7 +604,12 @@ public final class FloatingCounterWindow: NSPanel {
         }
     }
 
-    // MARK: - Public API
+}
+
+// MARK: - Public API
+
+extension FloatingCounterWindow {
+
 
     /// Update the content view
     public func setContent(_ view: NSView) {
