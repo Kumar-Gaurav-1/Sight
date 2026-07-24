@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
+@MainActor
 enum SightTheme {
 
     // MARK: - Colors
@@ -379,8 +380,15 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-struct SightPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
+public struct SightPrimaryButtonStyle: ButtonStyle {
+    public func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonBody(configuration: configuration)
+    }
+}
+
+private struct SightPrimaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
+    @MainActor var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -401,10 +409,17 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-struct SightSecondaryButtonStyle: ButtonStyle {
+public struct SightSecondaryButtonStyle: ButtonStyle {
+    public func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonBody(configuration: configuration)
+    }
+}
+
+private struct SightSecondaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    @MainActor var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -433,8 +448,16 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 // MARK: - Custom Toggle Style
 
-struct SightToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
+public struct SightToggleStyle: ToggleStyle {
+    public func makeBody(configuration: Configuration) -> some View {
+        SightToggleBody(configuration: configuration)
+    }
+}
+
+private struct SightToggleBody: View {
+    let configuration: ToggleStyle.Configuration
+
+    @MainActor var body: some View {
         HStack {
             configuration.label
             Spacer()
