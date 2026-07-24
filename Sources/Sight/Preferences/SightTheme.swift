@@ -385,6 +385,7 @@ public struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
+@MainActor
 private struct MainActorButtonStyleView: View {
     let configuration: ButtonStyleConfiguration
     @Environment(\.isEnabled) private var isEnabled
@@ -416,6 +417,7 @@ public struct SightSecondaryButtonStyle: ButtonStyle {
     }
 }
 
+@MainActor
 private struct MainActorSecondaryButtonStyleView: View {
     let configuration: ButtonStyleConfiguration
     @State private var isHovered = false
@@ -455,6 +457,7 @@ public struct SightToggleStyle: ToggleStyle {
     }
 }
 
+@MainActor
 private struct MainActorToggleStyleView: View {
     let configuration: ToggleStyleConfiguration
 
