@@ -345,7 +345,16 @@ public final class MicroNudgesManager: ObservableObject {
         setupNotificationObservers()
     }
 
-    // MARK: - Notification Observers
+
+
+    deinit {
+        stop()
+    }
+}
+
+// MARK: - Notification Observers
+
+extension MicroNudgesManager {
 
     private func setupNotificationObservers() {
         // Handle snooze action from system notification
@@ -374,9 +383,12 @@ public final class MicroNudgesManager: ObservableObject {
             self.logger.info("Dismissing nudge via notification")
             self.currentNudge = nil
         }
-    }
+}
+}
 
-    // MARK: - Preferences Integration
+// MARK: - Preferences Integration
+
+extension MicroNudgesManager {
 
     private func setupPreferencesObservation() {
         let preferences = PreferencesManager.shared
@@ -404,9 +416,12 @@ public final class MicroNudgesManager: ObservableObject {
                     enabled: enabled, interval: interval, soundEnabled: soundEnabled)
             }
             .store(in: &cancellables)
-    }
+}
+}
 
-    // MARK: - Break Completion Integration
+// MARK: - Break Completion Integration
+
+extension MicroNudgesManager {
 
     /// Reset nudge timers after a break completes (if enabled in preferences)
     public func resetAfterBreak() {
@@ -436,76 +451,78 @@ public final class MicroNudgesManager: ObservableObject {
             // Restart timers fresh
             startTimers()
         }
-    }
+}
 
-    private func updateBlinkConfig(enabled: Bool, interval: Int, soundEnabled: Bool) {
-        var newConfig = config
-        newConfig.blink.enabled = enabled
-        newConfig.blink.intervalSeconds = TimeInterval(interval)
-        newConfig.blink.soundEnabled = soundEnabled
-        config = newConfig
-        logger.info(
-            "Blink config updated: enabled=\(enabled), interval=\(interval)s, sound=\(soundEnabled)"
-        )
-    }
+private func updateBlinkConfig(enabled: Bool, interval: Int, soundEnabled: Bool) {
+    var newConfig = config
+    newConfig.blink.enabled = enabled
+    newConfig.blink.intervalSeconds = TimeInterval(interval)
+    newConfig.blink.soundEnabled = soundEnabled
+    config = newConfig
+    logger.info(
+        "Blink config updated: enabled=\(enabled), interval=\(interval)s, sound=\(soundEnabled)"
+    )
+}
 
-    private func updatePostureConfig(enabled: Bool, interval: Int, soundEnabled: Bool) {
-        var newConfig = config
-        newConfig.posture.enabled = enabled
-        newConfig.posture.intervalSeconds = TimeInterval(interval)
-        newConfig.posture.soundEnabled = soundEnabled
-        config = newConfig
-        logger.info(
-            "Posture config updated: enabled=\(enabled), interval=\(interval)s, sound=\(soundEnabled)"
-        )
-    }
+private func updatePostureConfig(enabled: Bool, interval: Int, soundEnabled: Bool) {
+    var newConfig = config
+    newConfig.posture.enabled = enabled
+    newConfig.posture.intervalSeconds = TimeInterval(interval)
+    newConfig.posture.soundEnabled = soundEnabled
+    config = newConfig
+    logger.info(
+        "Posture config updated: enabled=\(enabled), interval=\(interval)s, sound=\(soundEnabled)"
+    )
+}
 
-    /// Sync config from preferences (useful for initial sync)
-    public func syncFromPreferences() {
-        let prefs = PreferencesManager.shared
-        updateBlinkConfig(
-            enabled: prefs.blinkReminderEnabled,
-            interval: prefs.blinkReminderIntervalSeconds,
-            soundEnabled: prefs.blinkSoundEnabled)
-        updatePostureConfig(
-            enabled: prefs.postureReminderEnabled,
-            interval: prefs.postureReminderIntervalSeconds,
-            soundEnabled: prefs.postureSoundEnabled)
-    }
+/// Sync config from preferences (useful for initial sync)
+public func syncFromPreferences() {
+    let prefs = PreferencesManager.shared
+    updateBlinkConfig(
+        enabled: prefs.blinkReminderEnabled,
+        interval: prefs.blinkReminderIntervalSeconds,
+        soundEnabled: prefs.blinkSoundEnabled)
+    updatePostureConfig(
+        enabled: prefs.postureReminderEnabled,
+        interval: prefs.postureReminderIntervalSeconds,
+        soundEnabled: prefs.postureSoundEnabled)
+}
+}
 
-    deinit {
-        stop()
-    }
+// MARK: - Persistence
 
-    // MARK: - Persistence
+extension MicroNudgesManager {
 
     private static func loadSavedConfig() -> MicroNudgesConfig? {
         guard let data = UserDefaults.standard.data(forKey: "MicroNudgesConfig"),
             let config = try? JSONDecoder().decode(MicroNudgesConfig.self, from: data)
         else { return nil }
         return config
-    }
+}
 
-    public func saveConfig() {
-        if let data = try? JSONEncoder().encode(config) {
-            UserDefaults.standard.set(data, forKey: "MicroNudgesConfig")
-        }
+public func saveConfig() {
+    if let data = try? JSONEncoder().encode(config) {
+        UserDefaults.standard.set(data, forKey: "MicroNudgesConfig")
     }
+}
 
-    private static func loadSnoozeStates() -> [NudgeType: SnoozeState]? {
-        guard let data = UserDefaults.standard.data(forKey: "NudgeSnoozeStates"),
-            let states = try? JSONDecoder().decode([NudgeType: SnoozeState].self, from: data)
-        else { return nil }
-        return states
+private static func loadSnoozeStates() -> [NudgeType: SnoozeState]? {
+    guard let data = UserDefaults.standard.data(forKey: "NudgeSnoozeStates"),
+        let states = try? JSONDecoder().decode([NudgeType: SnoozeState].self, from: data)
+    else { return nil }
+    return states
+}
+
+private func saveSnoozeStates() {
+    if let data = try? JSONEncoder().encode(snoozeStates) {
+        UserDefaults.standard.set(data, forKey: "NudgeSnoozeStates")
     }
+}
+}
 
-    private func saveSnoozeStates() {
-        if let data = try? JSONEncoder().encode(snoozeStates) {
-            UserDefaults.standard.set(data, forKey: "NudgeSnoozeStates")
-        }
-    }
+// MARK: - Public API
 
-    // MARK: - Public API
+extension MicroNudgesManager {
 
     /// Start nudge scheduling
     public func start() {
@@ -515,61 +532,64 @@ public final class MicroNudgesManager: ObservableObject {
         logger.info("Starting micro-nudges")
 
         startTimers()
+}
+
+/// Stop all nudges
+public func stop() {
+    isRunning = false
+
+    blinkTimer?.cancel()
+    postureTimer?.cancel()
+    exerciseTimer?.cancel()
+
+    blinkDispatchTimer?.cancel()
+    postureDispatchTimer?.cancel()
+    exerciseDispatchTimer?.cancel()
+
+    logger.info("Stopped micro-nudges")
+}
+
+/// Snooze current nudge
+public func snooze(_ type: NudgeType, for minutes: Int? = nil) {
+    let duration = minutes ?? config.defaultSnoozeDuration
+
+    snoozeStates[type]?.snooze(for: duration)
+    dailySnoozeCount += 1
+    saveSnoozeStates()  // Persist
+
+    logger.info("Snoozed \(type.rawValue) for \(duration) minutes")
+
+    // Check for escalation
+    if let state = snoozeStates[type], state.snoozeCount >= config.escalation.thresholdSnoozes {
+        handleEscalation(for: type, snoozeCount: state.snoozeCount)
     }
 
-    /// Stop all nudges
-    public func stop() {
-        isRunning = false
+    currentNudge = nil
+}
 
-        blinkTimer?.cancel()
-        postureTimer?.cancel()
-        exerciseTimer?.cancel()
+/// Dismiss current nudge (completed)
+public func dismiss() {
+    if let nudge = currentNudge {
+        // Track nudge followed for statistics
+        switch nudge.type {
+        case .blink:
+            AdherenceManager.shared.recordBlinkNudge(shown: false, followed: true)
+        case .posture:
+            AdherenceManager.shared.recordPostureNudge(shown: false, followed: true)
+        case .miniExercise:
+            break  // Not tracked separately
+        }
 
-        blinkDispatchTimer?.cancel()
-        postureDispatchTimer?.cancel()
-        exerciseDispatchTimer?.cancel()
-
-        logger.info("Stopped micro-nudges")
-    }
-
-    /// Snooze current nudge
-    public func snooze(_ type: NudgeType, for minutes: Int? = nil) {
-        let duration = minutes ?? config.defaultSnoozeDuration
-
-        snoozeStates[type]?.snooze(for: duration)
-        dailySnoozeCount += 1
+        snoozeStates[nudge.type]?.reset()
         saveSnoozeStates()  // Persist
-
-        logger.info("Snoozed \(type.rawValue) for \(duration) minutes")
-
-        // Check for escalation
-        if let state = snoozeStates[type], state.snoozeCount >= config.escalation.thresholdSnoozes {
-            handleEscalation(for: type, snoozeCount: state.snoozeCount)
-        }
-
-        currentNudge = nil
     }
+    currentNudge = nil
+}
+}
 
-    /// Dismiss current nudge (completed)
-    public func dismiss() {
-        if let nudge = currentNudge {
-            // Track nudge followed for statistics
-            switch nudge.type {
-            case .blink:
-                AdherenceManager.shared.recordBlinkNudge(shown: false, followed: true)
-            case .posture:
-                AdherenceManager.shared.recordPostureNudge(shown: false, followed: true)
-            case .miniExercise:
-                break  // Not tracked separately
-            }
+// MARK: - Timer Management
 
-            snoozeStates[nudge.type]?.reset()
-            saveSnoozeStates()  // Persist
-        }
-        currentNudge = nil
-    }
-
-    // MARK: - Timer Management
+extension MicroNudgesManager {
 
     private func startTimers() {
         // Blink timer using Combine
@@ -586,17 +606,20 @@ public final class MicroNudgesManager: ObservableObject {
         if config.miniExercise.enabled {
             scheduleExerciseTimer()
         }
-    }
+}
 
-    private func updateTimers() {
-        saveConfig()  // Persist on change
-        stop()
-        if config.enabled {
-            start()
-        }
+private func updateTimers() {
+    saveConfig()  // Persist on change
+    stop()
+    if config.enabled {
+        start()
     }
+}
+}
 
-    // MARK: - Combine Timer (Blink)
+// MARK: - Combine Timer (Blink)
+
+extension MicroNudgesManager {
 
     private func startBlinkTimer() {
         blinkTimer = Timer.publish(
@@ -608,9 +631,12 @@ public final class MicroNudgesManager: ObservableObject {
         .sink { [weak self] _ in
             self?.triggerNudge(.blink)
         }
-    }
+}
+}
 
-    // MARK: - DispatchSourceTimer (Posture/Exercise)
+// MARK: - DispatchSourceTimer (Posture/Exercise)
+
+extension MicroNudgesManager {
 
     private func schedulePostureTimer() {
         let interval = config.posture.effectiveInterval
@@ -633,32 +659,35 @@ public final class MicroNudgesManager: ObservableObject {
             }
         }
         postureDispatchTimer?.resume()
-    }
+}
 
-    private func scheduleExerciseTimer() {
-        let interval = config.miniExercise.effectiveInterval
+private func scheduleExerciseTimer() {
+    let interval = config.miniExercise.effectiveInterval
 
-        // SECURITY: Increment generation to invalidate any pending callbacks
-        exerciseTimerGeneration += 1
-        let currentGeneration = exerciseTimerGeneration
+    // SECURITY: Increment generation to invalidate any pending callbacks
+    exerciseTimerGeneration += 1
+    let currentGeneration = exerciseTimerGeneration
 
-        exerciseDispatchTimer?.cancel()
-        exerciseDispatchTimer = DispatchSource.makeTimerSource(queue: timerQueue)
-        exerciseDispatchTimer?.schedule(deadline: .now() + interval)
-        exerciseDispatchTimer?.setEventHandler { [weak self] in
-            DispatchQueue.main.async {
-                // SECURITY: Only fire if generation matches (timer wasn't replaced)
-                guard let self = self, self.exerciseTimerGeneration == currentGeneration else {
-                    return
-                }
-                self.triggerNudge(.miniExercise)
-                self.scheduleExerciseTimer()  // Reschedule with variance
+    exerciseDispatchTimer?.cancel()
+    exerciseDispatchTimer = DispatchSource.makeTimerSource(queue: timerQueue)
+    exerciseDispatchTimer?.schedule(deadline: .now() + interval)
+    exerciseDispatchTimer?.setEventHandler { [weak self] in
+        DispatchQueue.main.async {
+            // SECURITY: Only fire if generation matches (timer wasn't replaced)
+            guard let self = self, self.exerciseTimerGeneration == currentGeneration else {
+                return
             }
+            self.triggerNudge(.miniExercise)
+            self.scheduleExerciseTimer()  // Reschedule with variance
         }
-        exerciseDispatchTimer?.resume()
     }
+    exerciseDispatchTimer?.resume()
+}
+}
 
-    // MARK: - Nudge Triggering
+// MARK: - Nudge Triggering
+
+extension MicroNudgesManager {
 
     private func triggerNudge(_ type: NudgeType) {
         guard config.enabled else { return }
@@ -721,9 +750,12 @@ public final class MicroNudgesManager: ObservableObject {
         }
 
         logger.info("Triggered \(type.rawValue): \(event.message)")
-    }
+}
+}
 
-    // MARK: - Escalation
+// MARK: - Escalation
+
+extension MicroNudgesManager {
 
     private func handleEscalation(for type: NudgeType, snoozeCount: Int) {
         guard config.escalation.enabled else { return }
@@ -742,23 +774,26 @@ public final class MicroNudgesManager: ObservableObject {
         case .notify:
             sendEscalationNotification()
         }
+}
+
+private func sendEscalationNotification() {
+    // Skip if running without bundle ID (dev mode)
+    guard Bundle.main.bundleIdentifier != nil else {
+        logger.warning("Escalation notification skipped (no bundle ID)")
+        return
     }
 
-    private func sendEscalationNotification() {
-        // Skip if running without bundle ID (dev mode)
-        guard Bundle.main.bundleIdentifier != nil else {
-            logger.warning("Escalation notification skipped (no bundle ID)")
-            return
-        }
+    // Get total snooze count for this escalation
+    let totalSnoozes = snoozeStates.values.reduce(0) { $0 + $1.snoozeCount }
 
-        // Get total snooze count for this escalation
-        let totalSnoozes = snoozeStates.values.reduce(0) { $0 + $1.snoozeCount }
+    // Use central NotificationManager for consistent handling with actions
+    NotificationManager.shared.sendEscalationNotification(snoozeCount: totalSnoozes)
+}
+}
 
-        // Use central NotificationManager for consistent handling with actions
-        NotificationManager.shared.sendEscalationNotification(snoozeCount: totalSnoozes)
-    }
+// MARK: - Daily Reset
 
-    // MARK: - Daily Reset
+extension MicroNudgesManager {
 
     private func scheduleDailyReset() {
         // Calculate time until midnight
@@ -786,16 +821,16 @@ public final class MicroNudgesManager: ObservableObject {
             self?.resetDailyCounts()
             self?.scheduleDailyReset()  // Schedule next reset
         }
-    }
+}
 
-    private func resetDailyCounts() {
-        dailySnoozeCount = 0
-        for type in NudgeType.allCases {
-            snoozeStates[type]?.reset()
-        }
-        saveSnoozeStates()  // Persist
-        logger.info("Daily nudge counts reset")
+private func resetDailyCounts() {
+    dailySnoozeCount = 0
+    for type in NudgeType.allCases {
+        snoozeStates[type]?.reset()
     }
+    saveSnoozeStates()  // Persist
+    logger.info("Daily nudge counts reset")
+}
 }
 
 // MARK: - Testing Scenarios
