@@ -99,8 +99,10 @@ public final class MenuBarViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                guard let self = self else { return }
+
+            guard let self = self else { return }
+            Task { @MainActor [self] in
+
                 // Resume timer if we paused it for a manual break
                 if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
                     self.stateMachine.resume()
