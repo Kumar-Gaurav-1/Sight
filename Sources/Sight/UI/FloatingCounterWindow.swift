@@ -138,6 +138,12 @@ public final class FloatingCounterWindow: NSPanel {
     /// SECURITY: Flag to prevent CVDisplayLink callbacks after deallocation
     private var displayLinkActive = false
 
+    /// Cached expensive visibility state to avoid CPU spikes
+    private var cachedExpensiveVisibilityState: Bool = false
+
+    /// Last time expensive visibility state was checked
+    private var lastVisibilityCheckTime: TimeInterval = 0
+
     // MARK: - Initialization
 
     public init(config: FloatingWindowConfig = .default) {
@@ -310,22 +316,27 @@ public final class FloatingCounterWindow: NSPanel {
 
     /// Determine if window should auto-hide based on context
     public func shouldAutoHide() -> Bool {
-        // Check fullscreen
-        if isInFullscreenApp() {
-            return true
-        }
-
-        // Check cursor near menubar
+        // Cheap check: cursor near menubar (keep real-time)
         if isCursorNearMenubar() {
             return true
         }
 
-        // Check Do Not Disturb / Focus mode
-        if isDoNotDisturbEnabled() {
-            return true
+        // Throttle expensive checks (fullscreen, DND) to once per second
+        let now = ProcessInfo.processInfo.systemUptime
+        if now - lastVisibilityCheckTime > 1.0 {
+            lastVisibilityCheckTime = now
+
+            // Evaluate expensive checks
+            if isInFullscreenApp() {
+                cachedExpensiveVisibilityState = true
+            } else if isDoNotDisturbEnabled() {
+                cachedExpensiveVisibilityState = true
+            } else {
+                cachedExpensiveVisibilityState = false
+            }
         }
 
-        return false
+        return cachedExpensiveVisibilityState
     }
 
     private func isInFullscreenApp() -> Bool {
