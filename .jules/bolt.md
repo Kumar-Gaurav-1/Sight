@@ -1,0 +1,3 @@
+## 2024-07-26 - Throttling Expensive macOS APIs in DisplayLink
+**Learning:** Found a severe performance bottleneck where `CGWindowListCopyWindowInfo` and `UserDefaults` were being called inside a `CVDisplayLink` frame update loop (up to 120Hz). This causes massive CPU spikes and UI jank because `CGWindowListCopyWindowInfo` is a synchronous, expensive C-level API.
+**Action:** Always throttle expensive state checks (like `isInFullscreenApp` or `isDoNotDisturbEnabled`) using `ProcessInfo.processInfo.systemUptime` when evaluating visibility or state within high-frequency loops, while keeping cheap checks (like mouse position) real-time. Use dedicated variables for the cached expensive state to avoid flickering.
