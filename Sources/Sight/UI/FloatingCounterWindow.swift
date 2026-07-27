@@ -138,6 +138,13 @@ public final class FloatingCounterWindow: NSPanel {
     /// SECURITY: Flag to prevent CVDisplayLink callbacks after deallocation
     private var displayLinkActive = false
 
+    // Performance Optimization: Cache expensive context checks
+    private var lastFullscreenCheckTime: TimeInterval = 0
+    private var cachedFullscreenState: Bool = false
+    private var lastDNDCheckTime: TimeInterval = 0
+    private var cachedDNDState: Bool = false
+    private let contextCheckThrottleInterval: TimeInterval = 1.0 // 1 second
+
     // MARK: - Initialization
 
     public init(config: FloatingWindowConfig = .default) {
@@ -329,8 +336,16 @@ public final class FloatingCounterWindow: NSPanel {
     }
 
     private func isInFullscreenApp() -> Bool {
+        let now = ProcessInfo.processInfo.systemUptime
+        if now - lastFullscreenCheckTime < contextCheckThrottleInterval {
+            return cachedFullscreenState
+        }
+
+        lastFullscreenCheckTime = now
+        cachedFullscreenState = false
+
         guard let frontApp = NSWorkspace.shared.frontmostApplication else {
-            return false
+            return cachedFullscreenState
         }
 
         // Check if any window of the app is fullscreen
@@ -361,12 +376,13 @@ public final class FloatingCounterWindow: NSPanel {
                 )
 
                 if windowFrame.size == screen.frame.size {
-                    return true
+                    cachedFullscreenState = true
+                    return cachedFullscreenState
                 }
             }
         }
 
-        return false
+        return cachedFullscreenState
     }
 
     private func isCursorNearMenubar() -> Bool {
@@ -378,10 +394,18 @@ public final class FloatingCounterWindow: NSPanel {
     }
 
     private func isDoNotDisturbEnabled() -> Bool {
+        let now = ProcessInfo.processInfo.systemUptime
+        if now - lastDNDCheckTime < contextCheckThrottleInterval {
+            return cachedDNDState
+        }
+
+        lastDNDCheckTime = now
+
         // Check Do Not Disturb via defaults
         // Note: This is a heuristic as direct API requires entitlements
         let dndDefaults = UserDefaults(suiteName: "com.apple.ncprefs")
-        return dndDefaults?.bool(forKey: "doNotDisturb") ?? false
+        cachedDNDState = dndDefaults?.bool(forKey: "doNotDisturb") ?? false
+        return cachedDNDState
     }
 
     // MARK: - Tracking Control

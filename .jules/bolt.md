@@ -1,0 +1,3 @@
+## 2024-05-13 - [AppKit Performance Pattern] Avoid Expensive CGWindowList API in High-Frequency Loops
+**Learning:** Found that `FloatingCounterWindow` calls `shouldAutoHide()`, which internally evaluates `isInFullscreenApp()` that uses `CGWindowListCopyWindowInfo`. Since `shouldAutoHide()` is called repeatedly (within `updatePhysics()`, driven by a 60FPS `CVDisplayLink`), this leads to an extreme performance bottleneck by invoking `CGWindowListCopyWindowInfo` 60 times a second on the main thread.
+**Action:** Throttle expensive APIs like `CGWindowListCopyWindowInfo` in high-frequency update loops using `ProcessInfo.processInfo.systemUptime` to cache results for 1-2 seconds, while keeping cheap checks (like DND defaults) real-time.
