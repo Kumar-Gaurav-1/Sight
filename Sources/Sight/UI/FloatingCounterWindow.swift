@@ -132,6 +132,12 @@ public final class FloatingCounterWindow: NSPanel {
     /// Static corner position for low power mode
     private var staticCornerPosition: CGPoint?
 
+    // Cache for expensive visibility checks
+    private var lastExpensiveCheckTime: TimeInterval = 0
+    private var cachedExpensiveChecks: Bool = false
+    private let expensiveCheckThrottle: TimeInterval = 1.0
+    private let expensiveCheckLock = NSLock()
+
     /// Cancellables for Combine subscriptions
     private var cancellables = Set<AnyCancellable>()
 
@@ -310,22 +316,33 @@ public final class FloatingCounterWindow: NSPanel {
 
     /// Determine if window should auto-hide based on context
     public func shouldAutoHide() -> Bool {
-        // Check fullscreen
-        if isInFullscreenApp() {
-            return true
-        }
-
-        // Check cursor near menubar
+        // 1. Cheap real-time checks (e.g., cursor position)
         if isCursorNearMenubar() {
             return true
         }
 
-        // Check Do Not Disturb / Focus mode
-        if isDoNotDisturbEnabled() {
-            return true
+        // 2. Throttled expensive checks (e.g., CGWindowList, UserDefaults)
+        let currentTime = ProcessInfo.processInfo.systemUptime
+
+        expensiveCheckLock.lock()
+        let needsUpdate = (currentTime - lastExpensiveCheckTime) > expensiveCheckThrottle
+        expensiveCheckLock.unlock()
+
+        if needsUpdate {
+            let isFullscreen = isInFullscreenApp()
+            let isDND = isDoNotDisturbEnabled()
+
+            expensiveCheckLock.lock()
+            cachedExpensiveChecks = isFullscreen || isDND
+            lastExpensiveCheckTime = currentTime
+            expensiveCheckLock.unlock()
         }
 
-        return false
+        expensiveCheckLock.lock()
+        let cached = cachedExpensiveChecks
+        expensiveCheckLock.unlock()
+
+        return cached
     }
 
     private func isInFullscreenApp() -> Bool {
