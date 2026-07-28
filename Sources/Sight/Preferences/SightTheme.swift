@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
+@MainActor
 enum SightTheme {
 
     // MARK: - Colors
@@ -357,6 +358,7 @@ extension View {
 
 // MARK: - Hoverable Card Modifier
 
+@MainActor
 struct HoverableCardModifier: ViewModifier {
     @State private var isHovered = false
 
@@ -385,8 +387,8 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-@MainActor
-private struct SightPrimaryButtonStyleBody: View {
+private @MainActor
+struct SightPrimaryButtonStyleBody: View {
     let configuration: ButtonStyleConfiguration
     var body: some View {
         configuration.label
@@ -415,8 +417,8 @@ struct SightSecondaryButtonStyle: ButtonStyle {
     }
 }
 
-@MainActor
-private struct SightSecondaryButtonStyleBody: View {
+private @MainActor
+struct SightSecondaryButtonStyleBody: View {
     let configuration: ButtonStyleConfiguration
     @State private var isHovered = false
 
@@ -455,8 +457,8 @@ struct SightToggleStyle: ToggleStyle {
     }
 }
 
-@MainActor
-private struct SightToggleStyleBody: View {
+private @MainActor
+struct SightToggleStyleBody: View {
     let configuration: ToggleStyleConfiguration
     var body: some View {
         HStack {
@@ -492,6 +494,7 @@ private struct SightToggleStyleBody: View {
 
 // MARK: - Progress Ring View
 
+@MainActor
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
@@ -525,6 +528,7 @@ struct ProgressRing: View {
 
 // MARK: - Shimmer Effect
 
+@MainActor
 struct ShimmerModifier: ViewModifier {
     @State private var phase: CGFloat = 0
 
@@ -562,6 +566,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
+@MainActor
 struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color
