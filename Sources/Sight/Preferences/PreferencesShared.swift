@@ -4,6 +4,7 @@ import SwiftUI
 // These components match the "Premium" look used in other tabs.
 // Ideally, these should be replaced by native Forms over time.
 
+@MainActor
 struct EnhancedSettingsCard<Content: View>: View {
     let icon: String
     let iconColor: Color
@@ -56,6 +57,7 @@ struct EnhancedSettingsCard<Content: View>: View {
     }
 }
 
+@MainActor
 struct EnhancedToggleRow: View {
     let title: String
     let description: String
@@ -89,6 +91,7 @@ struct EnhancedToggleRow: View {
     }
 }
 
+@MainActor
 struct EnhancedNumberRow: View {
     let title: String
     let description: String
@@ -146,6 +149,7 @@ struct EnhancedNumberRow: View {
     }
 }
 
+@MainActor
 struct DayPillToggle: View {
     let day: String
     @Binding var isActive: Bool
@@ -169,6 +173,7 @@ struct DayPillToggle: View {
     }
 }
 
+@MainActor
 struct QuickActionRow: View {
     let action: String
     let description: String
