@@ -829,7 +829,7 @@ struct BackgroundTypeCard: View {
         return true
     }
 
-    private func isImageFile(url: URL) -> Bool {
+    nonisolated private func isImageFile(url: URL) -> Bool {
         let imageExtensions = [
             "jpg", "jpeg", "png", "gif", "heic", "heif", "webp", "tiff", "tif", "bmp",
         ]
