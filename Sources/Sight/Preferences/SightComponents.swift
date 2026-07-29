@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Settings Card
 
 /// A glass card container for settings sections
+@MainActor
 struct SettingsCard<Content: View>: View {
     let content: Content
 
@@ -34,6 +35,7 @@ struct SettingsCard<Content: View>: View {
 // MARK: - Settings Toggle Row
 
 /// A toggle row with title, description, and switch
+@MainActor
 struct SettingsToggleRow: View {
     let title: String
     let description: String
@@ -66,6 +68,7 @@ struct SettingsToggleRow: View {
 // MARK: - Settings Dropdown Row
 
 /// A dropdown/picker row with title and description
+@MainActor
 struct SettingsDropdownRow<T: Hashable>: View {
     let title: String
     let description: String
@@ -103,6 +106,7 @@ struct SettingsDropdownRow<T: Hashable>: View {
 // MARK: - Large Value Slider
 
 /// A slider with a large value display above it
+@MainActor
 struct LargeValueSlider: View {
     let title: String
     let description: String
@@ -180,6 +184,7 @@ struct LargeValueSlider: View {
 // MARK: - Tab Bar
 
 /// A horizontal tab bar for section navigation
+@MainActor
 struct SightTabBar: View {
     let tabs: [String]
     @Binding var selectedTab: String
@@ -223,6 +228,7 @@ struct SightTabBar: View {
 // MARK: - Sidebar Navigation Item
 
 /// A sidebar navigation item with icon
+@MainActor
 struct SidebarNavItem: View {
     let icon: String
     let title: String
@@ -276,6 +282,7 @@ struct SidebarNavItem: View {
 // MARK: - Assigned Exercise Row
 
 /// A row showing an assigned exercise
+@MainActor
 struct AssignedExerciseRow: View {
     let number: Int
     let name: String
@@ -312,6 +319,7 @@ struct AssignedExerciseRow: View {
 // MARK: - Exercise Table Row
 
 /// A table row for the exercises list
+@MainActor
 struct ExerciseTableRow: View {
     let name: String
     let title: String
@@ -374,6 +382,7 @@ struct ExerciseTableRow: View {
 // MARK: - Section Divider
 
 /// A divider for settings sections
+@MainActor
 struct SettingsDivider: View {
     var body: some View {
         Rectangle()
@@ -386,6 +395,7 @@ struct SettingsDivider: View {
 // MARK: - Primary Action Button
 
 /// A blue primary action button
+@MainActor
 struct SightPrimaryButton: View {
     let title: String
     let icon: String?
@@ -428,6 +438,7 @@ struct SightPrimaryButton: View {
 // MARK: - Search Bar
 
 /// A search input field
+@MainActor
 struct SightSearchBar: View {
     @Binding var text: String
     let placeholder: String
