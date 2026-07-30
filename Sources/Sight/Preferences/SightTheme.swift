@@ -380,7 +380,15 @@ struct HoverableCardModifier: ViewModifier {
 // MARK: - Custom Button Styles
 
 struct SightPrimaryButtonStyle: ButtonStyle {
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonStyleView(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightPrimaryButtonStyleView: View {
+    let configuration: ButtonStyle.Configuration
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -402,9 +410,17 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonStyleView(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightSecondaryButtonStyleView: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -434,7 +450,15 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 // MARK: - Custom Toggle Style
 
 struct SightToggleStyle: ToggleStyle {
-    @MainActor func makeBody(configuration: Configuration) -> some View {
+    func makeBody(configuration: Configuration) -> some View {
+        SightToggleStyleView(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightToggleStyleView: View {
+    let configuration: ToggleStyle.Configuration
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
