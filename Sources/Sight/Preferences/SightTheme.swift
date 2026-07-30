@@ -358,9 +358,17 @@ extension View {
 // MARK: - Hoverable Card Modifier
 
 struct HoverableCardModifier: ViewModifier {
+    nonisolated func body(content: Content) -> some View {
+        HoverableCardModifierBody(content: content)
+    }
+}
+
+@MainActor
+private struct HoverableCardModifierBody: View {
+    let content: HoverableCardModifier.Content
     @State private var isHovered = false
 
-    func body(content: Content) -> some View {
+    var body: some View {
         content
             .padding(SightTheme.cardPadding)
             .background(isHovered ? SightTheme.elevatedBackground : SightTheme.cardBackground)
@@ -380,7 +388,16 @@ struct HoverableCardModifier: ViewModifier {
 // MARK: - Custom Button Styles
 
 struct SightPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
+    nonisolated func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonStyleBody(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightPrimaryButtonStyleBody: View {
+    let configuration: ButtonStyle.Configuration
+
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -402,9 +419,17 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
+    nonisolated func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonStyleBody(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightSecondaryButtonStyleBody: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -434,7 +459,16 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 // MARK: - Custom Toggle Style
 
 struct SightToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
+    nonisolated func makeBody(configuration: Configuration) -> some View {
+        SightToggleStyleBody(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightToggleStyleBody: View {
+    let configuration: ToggleStyle.Configuration
+
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
@@ -468,6 +502,7 @@ struct SightToggleStyle: ToggleStyle {
 
 // MARK: - Progress Ring View
 
+@MainActor
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
@@ -502,9 +537,17 @@ struct ProgressRing: View {
 // MARK: - Shimmer Effect
 
 struct ShimmerModifier: ViewModifier {
+    nonisolated func body(content: Content) -> some View {
+        ShimmerModifierBody(content: content)
+    }
+}
+
+@MainActor
+private struct ShimmerModifierBody: View {
+    let content: ShimmerModifier.Content
     @State private var phase: CGFloat = 0
 
-    func body(content: Content) -> some View {
+    var body: some View {
         content
             .overlay(
                 GeometryReader { geo in
@@ -538,6 +581,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
+@MainActor
 struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color
