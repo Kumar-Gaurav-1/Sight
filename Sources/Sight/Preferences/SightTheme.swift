@@ -483,7 +483,7 @@ struct SightToggleStyle: ToggleStyle {
                 }
                 .animation(SightTheme.springSnappy, value: configuration.isOn)
                 .onTapGesture {
-                    configuration.isOn.wrappedValue.toggle()
+                    configuration.isOn.toggle()
                 }
             }
         }
