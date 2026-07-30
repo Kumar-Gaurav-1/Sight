@@ -9,6 +9,10 @@ struct SightAppearanceView: View {
     @State private var newMessage = ""
     @State private var isDropTargeted = false
 
+    private static let rainbowColors: [Color] = (0..<12).map {
+        Color(hue: Double($0) / 12.0, saturation: 0.7, brightness: 0.8)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
@@ -179,12 +183,7 @@ struct SightAppearanceView: View {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(
                                 LinearGradient(
-                                    gradient: Gradient(
-                                        colors: (0..<12).map {
-                                            Color(
-                                                hue: Double($0) / 12.0, saturation: 0.7,
-                                                brightness: 0.8)
-                                        }),
+                                    gradient: Gradient(colors: Self.rainbowColors),
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
