@@ -342,7 +342,7 @@ public final class InsightsEngine {
     }
 
     /// Predict if user will meet their daily goal
-    public func predictGoalCompletion() -> (likely: Bool, reason: String) {
+    public func predictGoalCompletion(currentDate: Date = Date()) -> (likely: Bool, reason: String) {
         let adherence = AdherenceManager.shared
         let todayStats = adherence.todayStats
         let goal = adherence.dailyBreakGoal
@@ -355,7 +355,7 @@ public final class InsightsEngine {
         }
 
         // Check time of day
-        let hour = Calendar.current.component(.hour, from: Date())
+        let hour = Calendar.current.component(.hour, from: currentDate)
 
         if hour >= 22 {
             return (remaining <= 1, remaining <= 1 ? "Almost there!" : "Time is running short")
