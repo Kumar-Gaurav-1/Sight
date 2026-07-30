@@ -360,8 +360,8 @@ struct SightStatisticsView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
-                        ExportButton(label: "JSON", action: exportJSON)
-                        ExportButton(label: "CSV", action: exportCSV)
+                        ExportButton(label: "JSON", action: { exportJSON() })
+                        ExportButton(label: "CSV", action: { exportCSV() })
                     }
                 }
                 .padding(16)
@@ -716,9 +716,10 @@ struct LegendItem: View {
     }
 }
 
+@MainActor
 struct ExportButton: View {
     let label: String
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     @State private var isHovered = false
 
