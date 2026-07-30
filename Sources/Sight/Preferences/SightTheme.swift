@@ -381,53 +381,69 @@ struct HoverableCardModifier: ViewModifier {
 
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Group {
-                    if configuration.isPressed {
-                        SightTheme.accent.opacity(0.8)
-                    } else {
-                        SightTheme.accentGradient
+        PrimaryButtonBody(configuration: configuration)
+    }
+
+    @MainActor
+    private struct PrimaryButtonBody: View {
+        let configuration: Configuration
+        var body: some View {
+            configuration.label
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Group {
+                        if configuration.isPressed {
+                            SightTheme.accent.opacity(0.8)
+                        } else {
+                            SightTheme.accentGradient
+                        }
                     }
-                }
-            )
-            .cornerRadius(8)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(SightTheme.springSnappy, value: configuration.isPressed)
+                )
+                .cornerRadius(8)
+                .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+                .animation(SightTheme.springSnappy, value: configuration.isPressed)
+        }
     }
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
-    @State private var isHovered = false
-
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                isHovered
-                    ? SightTheme.elevatedBackground.opacity(1.2) : SightTheme.elevatedBackground
-            )
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(
-                        isHovered ? SightTheme.accent.opacity(0.5) : SightTheme.border, lineWidth: 1
-                    )
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(SightTheme.springSnappy, value: configuration.isPressed)
-            .onHover { hovering in
-                withAnimation(SightTheme.easeQuick) {
-                    isHovered = hovering
+        SecondaryButtonBody(configuration: configuration)
+    }
+
+    @MainActor
+    private struct SecondaryButtonBody: View {
+        let configuration: Configuration
+        @State private var isHovered = false
+
+        var body: some View {
+            configuration.label
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    isHovered
+                        ? SightTheme.elevatedBackground.opacity(1.2) : SightTheme.elevatedBackground
+                )
+                .cornerRadius(6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(
+                            isHovered ? SightTheme.accent.opacity(0.5) : SightTheme.border, lineWidth: 1
+                        )
+                )
+                .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+                .animation(SightTheme.springSnappy, value: configuration.isPressed)
+                .onHover { hovering in
+                    withAnimation(SightTheme.easeQuick) {
+                        isHovered = hovering
+                    }
                 }
-            }
+        }
     }
 }
 
@@ -435,32 +451,40 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
-        HStack {
-            configuration.label
-            Spacer()
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        configuration.isOn
-                            ? SightTheme.accentGradient
-                            : LinearGradient(
-                                colors: [SightTheme.elevatedBackground], startPoint: .leading,
-                                endPoint: .trailing)
-                    )
-                    .frame(width: 44, height: 26)
-                    .shadow(
-                        color: configuration.isOn ? SightTheme.accent.opacity(0.3) : .clear,
-                        radius: 4, x: 0, y: 0)
+        ToggleBody(configuration: configuration)
+    }
 
-                Circle()
-                    .fill(.white)
-                    .frame(width: 22, height: 22)
-                    .shadow(color: SightTheme.shadowSoft, radius: 2, x: 0, y: 1)
-                    .offset(x: configuration.isOn ? 9 : -9)
-            }
-            .animation(SightTheme.springSnappy, value: configuration.isOn)
-            .onTapGesture {
-                configuration.isOn.toggle()
+    @MainActor
+    private struct ToggleBody: View {
+        let configuration: Configuration
+        var body: some View {
+            HStack {
+                configuration.label
+                Spacer()
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            configuration.isOn
+                                ? SightTheme.accentGradient
+                                : LinearGradient(
+                                    colors: [SightTheme.elevatedBackground], startPoint: .leading,
+                                    endPoint: .trailing)
+                        )
+                        .frame(width: 44, height: 26)
+                        .shadow(
+                            color: configuration.isOn ? SightTheme.accent.opacity(0.3) : .clear,
+                            radius: 4, x: 0, y: 0)
+
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 22, height: 22)
+                        .shadow(color: SightTheme.shadowSoft, radius: 2, x: 0, y: 1)
+                        .offset(x: configuration.isOn ? 9 : -9)
+                }
+                .animation(SightTheme.springSnappy, value: configuration.isOn)
+                .onTapGesture {
+                    configuration.isOn.wrappedValue.toggle()
+                }
             }
         }
     }
