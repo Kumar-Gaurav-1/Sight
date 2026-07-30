@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
+@MainActor
 struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
@@ -359,8 +360,8 @@ struct SightStatisticsView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
-                        ExportButton(label: "JSON", action: exportJSON)
-                        ExportButton(label: "CSV", action: exportCSV)
+                        ExportButton(label: "JSON", action: { exportJSON() })
+                        ExportButton(label: "CSV", action: { exportCSV() })
                     }
                 }
                 .padding(16)
