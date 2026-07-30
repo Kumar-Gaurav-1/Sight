@@ -358,9 +358,17 @@ extension View {
 // MARK: - Hoverable Card Modifier
 
 struct HoverableCardModifier: ViewModifier {
+    nonisolated func body(content: Content) -> some View {
+        HoverableCardHelper(content: content)
+    }
+}
+
+@MainActor
+private struct HoverableCardHelper<Content: View>: View {
+    let content: Content
     @State private var isHovered = false
 
-    func body(content: Content) -> some View {
+    var body: some View {
         content
             .padding(SightTheme.cardPadding)
             .background(isHovered ? SightTheme.elevatedBackground : SightTheme.cardBackground)
@@ -494,6 +502,7 @@ private struct SightToggleHelper: View {
 
 // MARK: - Progress Ring View
 
+@MainActor
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
