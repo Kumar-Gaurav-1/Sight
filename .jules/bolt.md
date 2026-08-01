@@ -5,3 +5,7 @@
 ## 2024-08-01 - Swift Enum Initialization and kCGAnyInputEventType
 **Learning:** Initializing `CGEventType(rawValue: ~0)!` crashes at runtime in Swift because `~0` (`UInt32.max`) is not a valid predefined case in the `CGEventType` strict enum.
 **Action:** Use `unsafeBitCast(UInt32.max, to: CGEventType.self)` to safely bridge the `kCGAnyInputEventType` macro from C to Swift without runtime crashes.
+
+## 2024-08-01 - Swift Strict Concurrency and Backward Compatibility
+**Learning:** Fixing strict concurrency warnings with `nonisolated(unsafe)` can break compilation on older Swift compilers (pre 5.10). Also, SwiftUI Views need explicit `@MainActor` when using static isolated properties.
+**Action:** Use `#if compiler(>=5.10)` for `nonisolated(unsafe)`. Explicitly add `@MainActor` to SwiftUI view structs that access `@MainActor` static theme colors. Always unwrap `[weak self]` outside the main block of a `Task` before re-capturing.
