@@ -48,33 +48,13 @@ public final class IdleDetector: ObservableObject {
     // MARK: - Detection
 
     private func checkIdleTime() {
-        // Get system idle time using IOKit - check multiple input types
-        let mouseMovedIdle = Int(
+        // Get system idle time using IOKit - check all input types at once for better performance
+        // unsafeBitCast(UInt32.max, to: CGEventType.self) correctly maps to kCGAnyInputEventType without crashing
+        idleSeconds = Int(
             CGEventSource.secondsSinceLastEventType(
                 .hidSystemState,
-                eventType: .mouseMoved
+                eventType: unsafeBitCast(UInt32.max, to: CGEventType.self)
             ))
-
-        let keyboardIdle = Int(
-            CGEventSource.secondsSinceLastEventType(
-                .hidSystemState,
-                eventType: .keyDown
-            ))
-
-        let mouseClickIdle = Int(
-            CGEventSource.secondsSinceLastEventType(
-                .hidSystemState,
-                eventType: .leftMouseDown
-            ))
-
-        let scrollWheelIdle = Int(
-            CGEventSource.secondsSinceLastEventType(
-                .hidSystemState,
-                eventType: .scrollWheel
-            ))
-
-        // Use the smallest value (most recent activity)
-        idleSeconds = min(mouseMovedIdle, keyboardIdle, mouseClickIdle, scrollWheelIdle)
 
         let pauseThreshold = PreferencesManager.shared.idlePauseMinutes * 60
         let resetThreshold = PreferencesManager.shared.idleResetMinutes * 60
