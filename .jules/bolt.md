@@ -1,0 +1,15 @@
+## 2024-08-01 - Global system idle time
+**Learning:** Checking idle time by individual event types (mouseMoved, keyDown, etc.) requires multiple C-bridge calls.
+**Action:** Use `CGEventType(rawValue: ~0)!` (kCGAnyInputEventType) to efficiently get global system idle time in a single CoreGraphics call.
+
+## 2024-08-01 - Swift Enum Initialization and kCGAnyInputEventType
+**Learning:** Initializing `CGEventType(rawValue: ~0)!` crashes at runtime in Swift because `~0` (`UInt32.max`) is not a valid predefined case in the `CGEventType` strict enum.
+**Action:** Use `unsafeBitCast(UInt32.max, to: CGEventType.self)` to safely bridge the `kCGAnyInputEventType` macro from C to Swift without runtime crashes.
+
+## 2024-08-01 - Swift Strict Concurrency and Backward Compatibility
+**Learning:** Fixing strict concurrency warnings with `nonisolated(unsafe)` can break compilation on older Swift compilers (pre 5.10). Also, SwiftUI Views need explicit `@MainActor` when using static isolated properties.
+**Action:** Use `#if compiler(>=5.10)` for `nonisolated(unsafe)`. Explicitly add `@MainActor` to SwiftUI view structs that access `@MainActor` static theme colors. Always unwrap `[weak self]` outside the main block of a `Task` before re-capturing.
+
+## 2024-08-01 - Swift Strict Concurrency in Unit Tests
+**Learning:** Testing `@MainActor`-isolated classes or properties (`ObservableObject`s, `@Published` variables) from an `XCTestCase` throws "synchronous nonisolated context" errors in Swift 6.
+**Action:** Annotate the entire `XCTestCase` class with `@MainActor` to ensure `setUp`, `tearDown`, and all test methods run on the main thread and avoid strict concurrency compile failures.
