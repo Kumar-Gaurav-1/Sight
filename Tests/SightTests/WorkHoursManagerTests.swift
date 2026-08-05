@@ -28,9 +28,8 @@ final class WorkHoursManagerTests: XCTestCase {
         let calendar = Calendar.current
 
         // 8 AM is outside working hours
-        var components = DateComponents()
-        components.hour = 8
-        let outsideTime = calendar.date(from: components)!
+        let now = Date()
+        let outsideTime = calendar.date(bySettingHour: 8, minute: 0, second: 0, of: now) ?? now
 
         // ensure active day to avoid failing on rest day
         let originalActiveDays = prefs.activeDays
@@ -46,8 +45,7 @@ final class WorkHoursManagerTests: XCTestCase {
         XCTAssertTrue(manager.shouldPauseForSchedule)
 
         // 10 AM is within working hours
-        components.hour = 10
-        let insideTime = calendar.date(from: components)!
+        let insideTime = calendar.date(bySettingHour: 10, minute: 0, second: 0, of: now) ?? now
 
         XCTAssertFalse(manager.shouldPause(currentDate: insideTime))
         XCTAssertNil(manager.pauseReason)
