@@ -673,15 +673,16 @@ public final class PreferencesManager: ObservableObject {
         // Wellness Reminders defaults
         self.blinkReminderEnabled =
             defaults.object(forKey: Keys.blinkReminderEnabled) as? Bool ?? true
-        self.blinkReminderIntervalSeconds =
-            defaults.object(forKey: Keys.blinkReminderInterval) as? Int ?? 120  // 2 minutes default
+        let rawBlinkReminder = defaults.object(forKey: Keys.blinkReminderInterval) as? Int ?? 120
+        self.blinkReminderIntervalSeconds = min(max(rawBlinkReminder, 10), 3600)
         self.blinkSoundEnabled = defaults.object(forKey: Keys.blinkSoundEnabled) as? Bool ?? false
-        self.flashDurationMs = defaults.object(forKey: Keys.flashDuration) as? Int ?? 700
+        let rawFlashDuration = defaults.object(forKey: Keys.flashDuration) as? Int ?? 700
+        self.flashDurationMs = min(max(rawFlashDuration, 100), 5000)
         self.flashColor = defaults.string(forKey: Keys.flashColor) ?? "cyan"
         self.postureReminderEnabled =
             defaults.object(forKey: Keys.postureReminderEnabled) as? Bool ?? true
-        self.postureReminderIntervalSeconds =
-            defaults.object(forKey: Keys.postureReminderInterval) as? Int ?? 25 * 60
+        let rawPostureReminder = defaults.object(forKey: Keys.postureReminderInterval) as? Int ?? 25 * 60
+        self.postureReminderIntervalSeconds = min(max(rawPostureReminder, 60), 7200)
         self.postureSoundEnabled =
             defaults.object(forKey: Keys.postureSoundEnabled) as? Bool ?? true
 
@@ -692,14 +693,16 @@ public final class PreferencesManager: ObservableObject {
             defaults.object(forKey: Keys.showRemindersDuringPauses) as? Bool ?? false
         self.resetTimersAfterBreak =
             defaults.object(forKey: Keys.resetTimersAfterBreak) as? Bool ?? true
-        self.nudgeDimIntensity =
-            defaults.object(forKey: Keys.nudgeDimIntensity) as? CGFloat ?? 0.5
+        let rawNudgeDim = defaults.object(forKey: Keys.nudgeDimIntensity) as? CGFloat ?? 0.5
+        self.nudgeDimIntensity = min(max(rawNudgeDim, 0.0), 1.0)
 
         // Appearance defaults
         self.appearanceMode = defaults.string(forKey: Keys.appearanceMode) ?? "system"
         self.accentColor = defaults.string(forKey: Keys.accentColor) ?? "cyan"
-        self.accentHue = defaults.object(forKey: Keys.accentHue) as? Double ?? 0.52  // Cyan default
-        self.overlayOpacity = defaults.object(forKey: Keys.overlayOpacity) as? Double ?? 0.9
+        let rawAccentHue = defaults.object(forKey: Keys.accentHue) as? Double ?? 0.52
+        self.accentHue = min(max(rawAccentHue, 0.0), 1.0)
+        let rawOverlayOpacity = defaults.object(forKey: Keys.overlayOpacity) as? Double ?? 0.9
+        self.overlayOpacity = min(max(rawOverlayOpacity, 0.1), 1.0)
         self.blurBackground = defaults.object(forKey: Keys.blurBackground) as? Bool ?? true
         self.particleEffects = defaults.object(forKey: Keys.particleEffects) as? Bool ?? true
 
@@ -710,7 +713,8 @@ public final class PreferencesManager: ObservableObject {
         // Break Behavior defaults
         self.allowSkipBreak = defaults.object(forKey: Keys.allowSkipBreak) as? Bool ?? true
         self.allowPostponeBreak = defaults.object(forKey: Keys.allowPostponeBreak) as? Bool ?? true
-        self.maxPostpones = defaults.object(forKey: Keys.maxPostpones) as? Int ?? 3
+        let rawMaxPostpones = defaults.object(forKey: Keys.maxPostpones) as? Int ?? 3
+        self.maxPostpones = min(max(rawMaxPostpones, 0), 10)
         self.showBreakPreview = defaults.object(forKey: Keys.showBreakPreview) as? Bool ?? true
 
         // Enforcement Level
@@ -727,7 +731,8 @@ public final class PreferencesManager: ObservableObject {
         self.rememberLastState = defaults.object(forKey: Keys.rememberLastState) as? Bool ?? true
 
         // Sound defaults
-        self.soundVolume = defaults.object(forKey: Keys.soundVolume) as? Double ?? 0.7
+        let rawSoundVolume = defaults.object(forKey: Keys.soundVolume) as? Double ?? 0.7
+        self.soundVolume = min(max(rawSoundVolume, 0.0), 1.0)
         self.breakStartSoundType = defaults.string(forKey: Keys.breakStartSoundType) ?? "Chime"
         self.breakEndSoundType = defaults.string(forKey: Keys.breakEndSoundType) ?? "Bell"
         self.nudgeSoundType = defaults.string(forKey: Keys.nudgeSoundType) ?? "Gentle"
@@ -764,8 +769,10 @@ public final class PreferencesManager: ObservableObject {
 
         // Automation defaults
         self.quietHoursEnabled = defaults.bool(forKey: Keys.quietHoursEnabled)
-        self.quietHoursStart = defaults.object(forKey: Keys.quietHoursStart) as? Int ?? 22
-        self.quietHoursEnd = defaults.object(forKey: Keys.quietHoursEnd) as? Int ?? 8
+        let rawQuietStart = defaults.object(forKey: Keys.quietHoursStart) as? Int ?? 22
+        self.quietHoursStart = min(max(rawQuietStart, 0), 23)
+        let rawQuietEnd = defaults.object(forKey: Keys.quietHoursEnd) as? Int ?? 8
+        self.quietHoursEnd = min(max(rawQuietEnd, 0), 23)
         self.weekendModeEnabled = defaults.bool(forKey: Keys.weekendModeEnabled)
         self.pauseForFullscreenApps =
             defaults.object(forKey: Keys.pauseForFullscreenApps) as? Bool ?? false
@@ -777,8 +784,8 @@ public final class PreferencesManager: ObservableObject {
 
         // Additional sound settings
         self.soundPair = defaults.string(forKey: Keys.soundPair) ?? "Default"
-        self.wellnessReminderVolume =
-            defaults.object(forKey: Keys.wellnessReminderVolume) as? Double ?? 0.7
+        let rawWellnessVolume = defaults.object(forKey: Keys.wellnessReminderVolume) as? Double ?? 0.7
+        self.wellnessReminderVolume = min(max(rawWellnessVolume, 0.0), 1.0)
         self.breakReminderSoundEnabled =
             defaults.object(forKey: Keys.breakReminderSoundEnabled) as? Bool ?? true
         self.smartPauseSoundEnabled =
@@ -790,8 +797,8 @@ public final class PreferencesManager: ObservableObject {
         self.overtimeNudgeSoundEnabled =
             defaults.object(forKey: Keys.overtimeNudgeSoundEnabled) as? Bool ?? true
 
-        self.longBreakDurationSeconds =
-            defaults.object(forKey: Keys.longBreakDurationSeconds) as? Int ?? 5 * 60  // 5 minutes default
+        let rawLongBreakDur = defaults.object(forKey: Keys.longBreakDurationSeconds) as? Int ?? 5 * 60
+        self.longBreakDurationSeconds = min(max(rawLongBreakDur, 60), 3600)
 
         // Break Skip Difficulty defaults
         self.breakSkipDifficulty = defaults.string(forKey: Keys.breakSkipDifficulty) ?? "balanced"
@@ -800,7 +807,8 @@ public final class PreferencesManager: ObservableObject {
 
         // Long Breaks defaults
         self.longBreakEnabled = defaults.object(forKey: Keys.longBreakEnabled) as? Bool ?? true
-        self.longBreakInterval = defaults.object(forKey: Keys.longBreakInterval) as? Int ?? 4
+        let rawLongBreakInt = defaults.object(forKey: Keys.longBreakInterval) as? Int ?? 4
+        self.longBreakInterval = min(max(rawLongBreakInt, 1), 10)
 
         // Office Hours defaults
         self.officeHoursEnabled = defaults.object(forKey: Keys.officeHoursEnabled) as? Bool ?? false
@@ -812,7 +820,8 @@ public final class PreferencesManager: ObservableObject {
 
         // Countdown Before Break defaults
         self.countdownEnabled = defaults.object(forKey: Keys.countdownEnabled) as? Bool ?? true
-        self.countdownDuration = defaults.object(forKey: Keys.countdownDuration) as? Int ?? 5
+        let rawCountdown = defaults.object(forKey: Keys.countdownDuration) as? Int ?? 5
+        self.countdownDuration = min(max(rawCountdown, 0), 60)
 
         // Overtime Nudge defaults
         self.overtimeNudgeEnabled =
@@ -826,10 +835,12 @@ public final class PreferencesManager: ObservableObject {
 
         // Break Screen Appearance defaults
         self.breakBackgroundType = defaults.string(forKey: Keys.breakBackgroundType) ?? "wallpaper"
-        self.breakCustomImagePath = defaults.string(forKey: Keys.breakCustomImagePath) ?? ""
+        let rawImagePath = defaults.string(forKey: Keys.breakCustomImagePath) ?? ""
+        self.breakCustomImagePath = rawImagePath.hasPrefix("file://") || rawImagePath.hasPrefix("/") ? String(rawImagePath.prefix(1024)) : ""
         self.breakBlurBackground =
             defaults.object(forKey: Keys.breakBlurBackground) as? Bool ?? true
-        self.breakCustomMessages = defaults.stringArray(forKey: Keys.breakCustomMessages) ?? []
+        let rawCustomMessages = defaults.stringArray(forKey: Keys.breakCustomMessages) ?? []
+        self.breakCustomMessages = rawCustomMessages.prefix(20).map { String($0.prefix(200)) }
         self.breakHideMessages = defaults.object(forKey: Keys.breakHideMessages) as? Bool ?? false
         self.breakAlertPosition = defaults.string(forKey: Keys.breakAlertPosition) ?? "topCenter"
         self.breakGradientPreset = defaults.string(forKey: Keys.breakGradientPreset) ?? "sunset"
