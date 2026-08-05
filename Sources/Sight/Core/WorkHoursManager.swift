@@ -28,18 +28,18 @@ public final class WorkHoursManager: ObservableObject {
     // MARK: - Public API
 
     /// Check if breaks should be paused based on schedule
-    public func shouldPause() -> Bool {
+    public func shouldPause(currentDate: Date = Date()) -> Bool {
         let prefs = PreferencesManager.shared
 
         // Check working hours - pause if OUTSIDE configured working hours
-        if prefs.quietHoursEnabled && !isWithinWorkingHours() {
+        if prefs.quietHoursEnabled && !isWithinWorkingHours(currentDate: currentDate) {
             pauseReason = "Outside Working Hours"
             shouldPauseForSchedule = true
             return true
         }
 
         // Check active days
-        if !isActiveDay() {
+        if !isActiveDay(currentDate: currentDate) {
             pauseReason = "Rest Day"
             shouldPauseForSchedule = true
             return true
@@ -61,13 +61,12 @@ public final class WorkHoursManager: ObservableObject {
 
     /// Returns true if current time is WITHIN the configured working hours
     /// When enabled, the app should only remind during these hours
-    private func isWithinWorkingHours() -> Bool {
+    private func isWithinWorkingHours(currentDate: Date = Date()) -> Bool {
         let prefs = PreferencesManager.shared
         guard prefs.quietHoursEnabled else { return true }  // If disabled, always "working"
 
-        let now = Date()
         let calendar = Calendar.current
-        let currentHour = calendar.component(.hour, from: now)
+        let currentHour = calendar.component(.hour, from: currentDate)
 
         // prefs store hours (0-23), not minutes
         // These represent ACTIVE working hours (e.g., 9-17 means work from 9am to 5pm)
@@ -86,9 +85,9 @@ public final class WorkHoursManager: ObservableObject {
 
     // MARK: - Active Days
 
-    private func isActiveDay() -> Bool {
+    private func isActiveDay(currentDate: Date = Date()) -> Bool {
         let prefs = PreferencesManager.shared
-        let weekday = Calendar.current.component(.weekday, from: Date())
+        let weekday = Calendar.current.component(.weekday, from: currentDate)
 
         // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
         // activeDays: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
