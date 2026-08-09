@@ -1,0 +1,1 @@
+## 2026-08-09 - DateFormatter Caching\n**Learning:** The Swift codebase has a common anti-pattern of creating new `DateFormatter` and `ISO8601DateFormatter` instances inside mapping loops (e.g., `.map`). This is highly inefficient due to formatter initialization costs.\n**Action:** Extract formatters out of the map closures and reuse a single instance for better performance.
