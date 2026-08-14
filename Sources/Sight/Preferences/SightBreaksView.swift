@@ -234,15 +234,9 @@ struct SightBreaksView: View {
         }
     }
 
-    // ⚡ Bolt Performance Optimization: Cache DateFormatter
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
     private func formatTime(_ date: Date) -> String {
-        return Self.timeFormatter.string(from: date)
+        // ⚡ Bolt Performance Optimization: Use FormatStyle API
+        return date.formatted(date: .omitted, time: .shortened)
     }
 
     // MARK: - Reminders Section
