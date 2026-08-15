@@ -588,11 +588,6 @@ struct AnimatedBarChart: View {
     let animate: Bool
 
     private let barMaxHeight: CGFloat = 100
-    private let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f
-    }()
 
     private var maxBreaks: Int {
         max(1, dailyStats.map { $0.breaksCompleted }.max() ?? 1)
@@ -616,7 +611,8 @@ struct AnimatedBarChart: View {
                         .frame(height: animate ? barHeight(for: day.breaksCompleted) : 8)
 
                     // Day
-                    Text(dayFormatter.string(from: day.date))
+                    // ⚡ Bolt: Use FormatStyle instead of instantiating DateFormatter for performance
+                    Text(day.date.formatted(Date.FormatStyle().weekday(.abbreviated)))
                         .font(
                             .system(
                                 size: 11,
