@@ -1,0 +1,3 @@
+## 2023-10-25 - Cache DateFormatter
+**Learning:** `DateFormatter` is computationally expensive to initialize, and using `FormatStyle` with ISO8601 causes GMT timezone shifting regressions. Caching it statically is the optimal approach for fixed-format local-timezone strings, and using `nonisolated(unsafe)` handles Swift strict concurrency safely.
+**Action:** Extract expensive `DateFormatter` instantiations to `private static let` properties, using `#if compiler(>=5.10)` with `nonisolated(unsafe)` to satisfy both performance and strict concurrency requirements without breaking functionality.
