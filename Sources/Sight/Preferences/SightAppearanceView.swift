@@ -3,6 +3,7 @@ import SwiftUI
 
 // MARK: - Appearance Settings View
 
+@MainActor
 struct SightAppearanceView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
     @State private var showMessageEditor = false
