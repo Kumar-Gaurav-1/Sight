@@ -7,6 +7,20 @@ import os.log
 /// Implements game-theory logic: "Skipping is allowed but costly"
 public final class AdherenceManager: ObservableObject {
 
+    #if compiler(>=5.10)
+    nonisolated(unsafe) private static let csvDateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        return df
+    }()
+    #else
+    private static let csvDateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        return df
+    }()
+    #endif
+
     // MARK: - Published State
 
     @Published public private(set) var weeklyScore: Double = 100.0  // 0-100
@@ -697,11 +711,9 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(dateFormatter.string(from: day.date)),"
+            // ⚡ Bolt: Cache DateFormatter statically for performance to avoid repeated initialization
+            csv += "\(Self.csvDateFormatter.string(from: day.date)),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
             csv += "\(day.nudgesFollowed),"
