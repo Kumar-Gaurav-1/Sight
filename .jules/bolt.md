@@ -1,0 +1,3 @@
+## 2024-05-24 - Use cached DateFormatter for local timezone exports
+**Learning:** `ISO8601FormatStyle` defaults to UTC (Zulu time), which can cause 1-day shifts when exporting user local stats. While `FormatStyle` is generally preferred, replacing local `DateFormatter` with `ISO8601FormatStyle` can introduce timezone bugs.
+**Action:** To optimize `DateFormatter` safely without changing timezones, cache it in a `private static let` property (with `nonisolated(unsafe)` for strict concurrency, guarded by compiler version checks).
