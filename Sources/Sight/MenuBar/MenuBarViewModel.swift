@@ -170,9 +170,8 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                nextBreakText = "Break at \(formatter.string(from: date))"
+                // Performance Optimization: Use FormatStyle API instead of creating expensive DateFormatter in a frequent update loop
+                nextBreakText = "Break at \(date.formatted(date: .omitted, time: .shortened))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
                 let secs = remainingSeconds % 60
