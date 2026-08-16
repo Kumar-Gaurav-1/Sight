@@ -21,6 +21,8 @@ public final class XPCRendererClient: RendererAPI {
     private let connection: NSXPCConnection
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "XPC")
     private var _isAvailable = false
+    // ⚡ Bolt: Cache JSONEncoder to prevent repeated allocations in high-frequency IPC
+    private let jsonEncoder = JSONEncoder()
 
     public var isAvailable: Bool { _isAvailable }
 
@@ -86,7 +88,7 @@ public final class XPCRendererClient: RendererAPI {
     }
 
     public func showFloatingCounter(params: FloatingCounterParams) {
-        guard let data = try? JSONEncoder().encode(params) else {
+        guard let data = try? jsonEncoder.encode(params) else {
             logger.error("Failed to encode floating counter params")
             return
         }
@@ -119,6 +121,8 @@ public final class XPCRendererClient: RendererAPI {
 open class XPCRendererServiceBase: NSObject, XPCRendererProtocol {
 
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "XPCService")
+    // ⚡ Bolt: Cache JSONDecoder to prevent repeated allocations in high-frequency IPC
+    private let jsonDecoder = JSONDecoder()
 
     // SECURITY: Maximum allowed string lengths to prevent log injection and DoS
     private let maxStyleLength = 64
@@ -167,7 +171,7 @@ open class XPCRendererServiceBase: NSObject, XPCRendererProtocol {
             return
         }
         // Validate JSON structure
-        guard (try? JSONDecoder().decode(FloatingCounterParams.self, from: paramsData)) != nil
+        guard (try? jsonDecoder.decode(FloatingCounterParams.self, from: paramsData)) != nil
         else {
             logger.warning("Invalid params: failed to decode")
             reply(false)
