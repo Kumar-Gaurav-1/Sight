@@ -21,6 +21,8 @@ public final class XPCRendererClient: RendererAPI {
     private let connection: NSXPCConnection
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "XPC")
     private var _isAvailable = false
+    // Bolt: Cache JSONEncoder for performance in high-frequency IPC calls
+    private let encoder = JSONEncoder()
 
     public var isAvailable: Bool { _isAvailable }
 
@@ -86,7 +88,7 @@ public final class XPCRendererClient: RendererAPI {
     }
 
     public func showFloatingCounter(params: FloatingCounterParams) {
-        guard let data = try? JSONEncoder().encode(params) else {
+        guard let data = try? encoder.encode(params) else {
             logger.error("Failed to encode floating counter params")
             return
         }
