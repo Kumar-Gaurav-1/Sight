@@ -272,12 +272,10 @@ public final class InsightsEngine {
         // Day of week analysis
         let weekStats = adherence.getDailyStats(days: 7)
         if weekStats.count >= 7 {
-            let dayFormatter = DateFormatter()
-            dayFormatter.dateFormat = "EEEE"
-
+            // Bolt: Optimize by using modern FormatStyle instead of allocating an expensive DateFormatter
             var dayScores: [String: Double] = [:]
             for day in weekStats {
-                let dayName = dayFormatter.string(from: day.date)
+                let dayName = day.date.formatted(.dateTime.weekday(.wide))
                 dayScores[dayName] = day.dailyScore
             }
 
