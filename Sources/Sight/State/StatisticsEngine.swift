@@ -426,14 +426,12 @@ public final class StatisticsEngine: ObservableObject {
 
     /// Start a new work session
     public func startSession() {
-        guard currentSession == nil else {
-            logger.warning("Session already active, ignoring start request")
-            return
-        }
+        endSession() // Ensure any previous session is ended
 
         let session = WorkSession()
         currentSession = session
         logger.info("Started new work session: \(session.id)")
+
         persistSessions()
     }
 
