@@ -117,9 +117,10 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         var toggle = false
         iconAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
             [weak self] _ in
+            guard let self = self else { return }
             // Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                guard let self = self, let button = self.statusItem?.button else { return }
+            Task { @MainActor [self] in
+                guard let button = self.statusItem?.button else { return }
 
                 // Alternate between filled and empty icon
                 let iconName = toggle ? "bell.fill" : "bell"
@@ -241,6 +242,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     public func menuDidClose(_ menu: NSMenu) {
         // Cleanup with slight delay to ensure system is done
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                guard let self = self else { return }
             self?.statusItem?.menu = nil
             self?.currentMenu = nil
             self?.hostingController = nil
