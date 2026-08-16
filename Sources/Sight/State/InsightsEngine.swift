@@ -6,6 +6,21 @@ import os.log
 /// Generates personalized wellness insights based on user behavior patterns
 public final class InsightsEngine {
 
+    // Bolt: Caching DateFormatter for performance to avoid repeated allocations during analysis
+    #if compiler(>=5.10)
+    nonisolated(unsafe) private static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter
+    }()
+    #else
+    private static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter
+    }()
+    #endif
+
     // MARK: - Types
 
     /// Pattern detection thresholds
@@ -272,12 +287,9 @@ public final class InsightsEngine {
         // Day of week analysis
         let weekStats = adherence.getDailyStats(days: 7)
         if weekStats.count >= 7 {
-            let dayFormatter = DateFormatter()
-            dayFormatter.dateFormat = "EEEE"
-
             var dayScores: [String: Double] = [:]
             for day in weekStats {
-                let dayName = dayFormatter.string(from: day.date)
+                let dayName = InsightsEngine.dayFormatter.string(from: day.date)
                 dayScores[dayName] = day.dailyScore
             }
 
