@@ -118,6 +118,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         iconAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
             [weak self] _ in
             // Dispatch to MainActor for thread safety
+            guard let self = self else { return }
             Task { @MainActor [self] in
                 guard let button = self.statusItem?.button else { return }
 
