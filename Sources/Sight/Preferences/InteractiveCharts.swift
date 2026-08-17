@@ -84,6 +84,21 @@ struct WellnessGaugeView: View {
 
 // MARK: - Activity Heatmap View
 
+// Bolt: Caching DateFormatter instances in loops for performance
+#if compiler(>=5.10)
+nonisolated(unsafe) private let sharedHourFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "ha"
+    return formatter
+}()
+#else
+private let sharedHourFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "ha"
+    return formatter
+}()
+#endif
+
 /// 7-day × hourly activity heatmap
 struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
@@ -202,24 +217,9 @@ struct ActivityHeatmapView: View {
         }
     }
 
-    // Bolt: Caching DateFormatter instances in loops for performance
-    #if compiler(>=5.10)
-    nonisolated(unsafe) private static let hourFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "ha"
-        return formatter
-    }()
-    #else
-    private static let hourFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "ha"
-        return formatter
-    }()
-    #endif
-
     private func hourLabel(_ hour: Int) -> String {
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
-        return Self.hourFormatter.string(from: date)
+        return sharedHourFormatter.string(from: date)
     }
 
     private func intensityColor(_ intensity: Double) -> Color {
