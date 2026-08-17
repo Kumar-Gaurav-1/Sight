@@ -1,0 +1,3 @@
+## 2026-08-17 - DateFormatter Performance in Loops
+**Learning:** Instantiating `DateFormatter` repeatedly in loops or property getters is a known performance bottleneck in Swift. This is especially true when rendering charts where hour labels are calculated per index in SwiftUI (e.g. `InteractiveCharts.swift`). Caching the `DateFormatter` instance using `nonisolated(unsafe)` and `#if compiler(>=5.10)` improves rendering speed and avoids wasteful allocations without sacrificing thread safety, since Foundation guarantees thread-safety for reading on macOS.
+**Action:** Extract inline `DateFormatter` instances into statically cached properties when used in frequently called methods like `hourLabel`, formatting multiple loop iterations, or getters in SwiftUI views.
