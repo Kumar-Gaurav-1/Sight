@@ -284,7 +284,7 @@ public final class SocketRendererServer {
 
                 // Decode and handle message
                 let data = Data(messageBuffer)
-                if let message = try? decoder.decode(RendererMessage.self, from: data) {
+                if let message = try? self?.decoder.decode(RendererMessage.self, from: data) {
                     DispatchQueue.main.async {
                         self?.onMessage?(message)
                     }
