@@ -16,6 +16,9 @@ public final class SocketRendererClient: RendererAPI {
 
     public var isAvailable: Bool { _isAvailable }
 
+    // Bolt: Caching JSONEncoder for performance
+    private let encoder = JSONEncoder()
+
     // MARK: - Socket Path
 
     /// Default socket path in user's temporary directory
@@ -94,7 +97,7 @@ public final class SocketRendererClient: RendererAPI {
             }
 
             do {
-                let data = try JSONEncoder().encode(message)
+                let data = try encoder.encode(message)
                 let lengthData = withUnsafeBytes(of: UInt32(data.count).bigEndian) { Data($0) }
 
                 // Send length prefix
@@ -155,6 +158,9 @@ public final class SocketRendererServer {
     private var serverSocket: Int32 = -1
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "SocketServer")
     private let queue = DispatchQueue(label: "com.sight.socket.server")
+
+    // Bolt: Caching JSONDecoder for performance
+    private let decoder = JSONDecoder()
 
     public var onMessage: ((RendererMessage) -> Void)?
 
@@ -278,7 +284,7 @@ public final class SocketRendererServer {
 
                 // Decode and handle message
                 let data = Data(messageBuffer)
-                if let message = try? JSONDecoder().decode(RendererMessage.self, from: data) {
+                if let message = try? self?.decoder.decode(RendererMessage.self, from: data) {
                     DispatchQueue.main.async {
                         self?.onMessage?(message)
                     }
