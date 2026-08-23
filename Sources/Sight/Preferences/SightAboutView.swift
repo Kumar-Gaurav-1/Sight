@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - About View
 
 /// Premium about screen with app info, credits, and links
-struct SightAboutView: View {
+@MainActor struct SightAboutView: View {
     @State private var logoHovered = false
     @State private var showVersion = false
 
