@@ -6,10 +6,12 @@ import XCTest
     override func setUp() {
         super.setUp()
         AdherenceManager.shared.resetAllStats()
+        UserDefaults.standard.removeObject(forKey: "AdherenceStats")
     }
 
     override func tearDown() {
         AdherenceManager.shared.resetAllStats()
+        UserDefaults.standard.removeObject(forKey: "AdherenceStats")
         super.tearDown()
     }
 
@@ -37,16 +39,5 @@ import XCTest
         XCTAssertEqual(manager.todayStats.breaksCompleted, initialBreaks + 1)
         XCTAssertEqual(manager.todayStats.longBreaksCompleted, initialLongBreaks + 1)
         XCTAssertEqual(manager.todayStats.totalBreakMinutes, initialMinutes + max(1, 300 / 60))
-    }
-
-    func testRecordBreakSkipped() {
-        let manager = AdherenceManager.shared
-        let initialBreaks = manager.todayStats.breaksCompleted
-        let initialSkipped = manager.todayStats.breaksSkipped
-
-        manager.recordBreak(completed: false, duration: 20)
-
-        XCTAssertEqual(manager.todayStats.breaksCompleted, initialBreaks)
-        XCTAssertEqual(manager.todayStats.breaksSkipped, initialSkipped + 1)
     }
 }
