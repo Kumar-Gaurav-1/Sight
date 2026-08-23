@@ -357,11 +357,16 @@ extension View {
 
 // MARK: - Hoverable Card Modifier
 
-@MainActor struct HoverableCardModifier: ViewModifier {
-    @State private var isHovered = false
-
+struct HoverableCardModifier: ViewModifier {
     func body(content: Content) -> some View {
-        content
+        ModifierHelper(content: content)
+    }
+
+    struct ModifierHelper: View {
+        @State private var isHovered = false
+        let content: Content
+        var body: some View {
+            content
             .padding(SightTheme.cardPadding)
             .background(isHovered ? SightTheme.elevatedBackground : SightTheme.cardBackground)
             .cornerRadius(SightTheme.cardCornerRadius)
@@ -375,13 +380,20 @@ extension View {
                 isHovered = hovering
             }
     }
-}
+        }
+    }
 
 // MARK: - Custom Button Styles
 
-@MainActor struct SightPrimaryButtonStyle: ButtonStyle {
+struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        ButtonHelper(configuration: configuration)
+    }
+
+    struct ButtonHelper: View {
+        let configuration: Configuration
+        var body: some View {
+            configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
             .padding(.horizontal, 16)
@@ -398,14 +410,20 @@ extension View {
             .cornerRadius(8)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(SightTheme.springSnappy, value: configuration.isPressed)
+        }
     }
 }
 
-@MainActor struct SightSecondaryButtonStyle: ButtonStyle {
-    @State private var isHovered = false
-
+struct SightSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        ButtonHelper(configuration: configuration)
+    }
+
+    struct ButtonHelper: View {
+        @State private var isHovered = false
+        let configuration: Configuration
+        var body: some View {
+            configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
             .padding(.horizontal, 12)
@@ -428,14 +446,21 @@ extension View {
                     isHovered = hovering
                 }
             }
+        }
     }
 }
 
 // MARK: - Custom Toggle Style
 
-@MainActor struct SightToggleStyle: ToggleStyle {
+struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
-        HStack {
+        ToggleHelper(configuration: configuration)
+    }
+
+    struct ToggleHelper: View {
+        let configuration: Configuration
+        var body: some View {
+            HStack {
             configuration.label
             Spacer()
             ZStack {
@@ -462,6 +487,7 @@ extension View {
             .onTapGesture {
                 configuration.isOn.toggle()
             }
+        }
         }
     }
 }
