@@ -475,10 +475,9 @@ public final class StatisticsEngine: ObservableObject {
 
     /// Start a pause event
     public func startPause(reason: PauseReason, relatedApp: String? = nil) {
-        guard currentPauseEvent == nil else {
+        if currentPauseEvent != nil {
             logger.warning("Pause already active, completing previous pause")
             endPause()
-            return
         }
 
         let event = PauseEvent(reason: reason, relatedApp: relatedApp)
