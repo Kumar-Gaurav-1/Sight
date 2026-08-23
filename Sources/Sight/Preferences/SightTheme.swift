@@ -358,10 +358,15 @@ extension View {
 // MARK: - Hoverable Card Modifier
 
 struct HoverableCardModifier: ViewModifier {
-    @State private var isHovered = false
-
     func body(content: Content) -> some View {
-        content
+        ModifierHelper(content: content)
+    }
+
+    struct ModifierHelper: View {
+        @State private var isHovered = false
+        let content: Content
+        var body: some View {
+            content
             .padding(SightTheme.cardPadding)
             .background(isHovered ? SightTheme.elevatedBackground : SightTheme.cardBackground)
             .cornerRadius(SightTheme.cardCornerRadius)
@@ -375,13 +380,20 @@ struct HoverableCardModifier: ViewModifier {
                 isHovered = hovering
             }
     }
-}
+        }
+    }
 
 // MARK: - Custom Button Styles
 
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        ButtonHelper(configuration: configuration)
+    }
+
+    struct ButtonHelper: View {
+        let configuration: Configuration
+        var body: some View {
+            configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
             .padding(.horizontal, 16)
@@ -398,14 +410,20 @@ struct SightPrimaryButtonStyle: ButtonStyle {
             .cornerRadius(8)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(SightTheme.springSnappy, value: configuration.isPressed)
+        }
     }
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
-    @State private var isHovered = false
-
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        ButtonHelper(configuration: configuration)
+    }
+
+    struct ButtonHelper: View {
+        @State private var isHovered = false
+        let configuration: Configuration
+        var body: some View {
+            configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
             .padding(.horizontal, 12)
@@ -428,6 +446,7 @@ struct SightSecondaryButtonStyle: ButtonStyle {
                     isHovered = hovering
                 }
             }
+        }
     }
 }
 
@@ -435,7 +454,13 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
-        HStack {
+        ToggleHelper(configuration: configuration)
+    }
+
+    struct ToggleHelper: View {
+        let configuration: Configuration
+        var body: some View {
+            HStack {
             configuration.label
             Spacer()
             ZStack {
@@ -463,12 +488,13 @@ struct SightToggleStyle: ToggleStyle {
                 configuration.isOn.toggle()
             }
         }
+        }
     }
 }
 
 // MARK: - Progress Ring View
 
-struct ProgressRing: View {
+@MainActor struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
     let gradient: LinearGradient?
@@ -538,7 +564,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
-struct AnimatedCheckmark: View {
+@MainActor struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color
 
