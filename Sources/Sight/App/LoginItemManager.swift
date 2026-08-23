@@ -2,27 +2,17 @@ import Foundation
 import ServiceManagement
 import os.log
 
-/// Manages Launch at Login functionality
-/// Uses LaunchAgent for ad-hoc signed apps (SMAppService requires Developer ID signing)
+/// Manages Launch at Login functionality using modern SMAppService
 public final class LoginItemManager {
 
     public static let shared = LoginItemManager()
 
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.app", category: "LoginItem")
 
-    /// LaunchAgent plist path
-    private var launchAgentPath: URL {
-        let libraryPath = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library")
-            .appendingPathComponent("LaunchAgents")
-        return libraryPath.appendingPathComponent("com.kumargaurav.Sight.plist")
-    }
-
     /// Whether launch at login is currently enabled
     public var isEnabled: Bool {
         get {
-            // Check if LaunchAgent plist exists
-            return FileManager.default.fileExists(atPath: launchAgentPath.path)
+            return SMAppService.mainApp.status == .enabled
         }
         set {
             setEnabled(newValue)
@@ -36,118 +26,35 @@ public final class LoginItemManager {
         // Save preference
         UserDefaults.standard.set(enabled, forKey: "launchAtLogin")
 
-        if enabled {
-            createLaunchAgent()
-        } else {
-            removeLaunchAgent()
-        }
-    }
-
-    /// Create LaunchAgent plist for auto-start
-    private func createLaunchAgent() {
-        // Get the app path - prefer installed location over dev location
-        var appPath = Bundle.main.bundlePath
-
-        // If running from build directory, use the expected Applications path
-        if appPath.contains(".build/") || appPath.contains("/build/") {
-            let installedPath = "/Applications/Sight.app"
-            if FileManager.default.fileExists(atPath: installedPath) {
-                appPath = installedPath
-                logger.info("Using installed app path: \(appPath)")
+        do {
+            if enabled {
+                if SMAppService.mainApp.status == .enabled { return }
+                try SMAppService.mainApp.register()
+                logger.info("✓ Launch at Login enabled via SMAppService")
             } else {
-                logger.warning(
-                    "App not installed in /Applications - LaunchAgent may not work correctly")
+                if SMAppService.mainApp.status == .notRegistered { return }
+                try SMAppService.mainApp.unregister()
+                logger.info("✓ Launch at Login disabled via SMAppService")
             }
-        }
-
-        // Ensure LaunchAgents directory exists
-        let launchAgentsDir = launchAgentPath.deletingLastPathComponent()
-        do {
-            try FileManager.default.createDirectory(
-                at: launchAgentsDir, withIntermediateDirectories: true)
         } catch {
-            logger.error("Could not create LaunchAgents directory: \(error.localizedDescription)")
-            return
-        }
-
-        // Create plist content with open command for better reliability
-        let plistContent: [String: Any] = [
-            "Label": "com.kumargaurav.Sight",
-            "ProgramArguments": ["/usr/bin/open", "-a", appPath],
-            "RunAtLoad": true,
-            "KeepAlive": false,
-            "ProcessType": "Interactive",
-            "LimitLoadToSessionType": "Aqua",  // Only load in GUI sessions
-        ]
-
-        // Write plist
-        do {
-            let plistData = try PropertyListSerialization.data(
-                fromPropertyList: plistContent,
-                format: .xml,
-                options: 0
-            )
-            try plistData.write(to: launchAgentPath)
-            logger.info("✓ LaunchAgent created at: \(self.launchAgentPath.path)")
-            logger.info("  App path: \(appPath)")
-
-            // Load the agent immediately
-            loadLaunchAgent()
-
-        } catch {
-            logger.error("Failed to create LaunchAgent: \(error.localizedDescription)")
+            logger.error("Failed to update Launch at Login status: \(error.localizedDescription)")
         }
     }
 
-    /// Remove LaunchAgent plist
-    private func removeLaunchAgent() {
-        // Unload first
-        unloadLaunchAgent()
+    /// Clean up old plist-based LaunchAgent
+    private func cleanupLegacyLaunchAgent() {
+        let libraryPath = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library")
+            .appendingPathComponent("LaunchAgents")
+        let legacyPath = libraryPath.appendingPathComponent("com.kumargaurav.Sight.plist")
 
-        // Remove plist file
-        do {
-            if FileManager.default.fileExists(atPath: launchAgentPath.path) {
-                try FileManager.default.removeItem(at: launchAgentPath)
-                logger.info("✓ LaunchAgent removed")
+        if FileManager.default.fileExists(atPath: legacyPath.path) {
+            do {
+                try FileManager.default.removeItem(at: legacyPath)
+                logger.info("✓ Legacy LaunchAgent cleaned up")
+            } catch {
+                logger.error("Failed to clean up legacy LaunchAgent: \(error.localizedDescription)")
             }
-        } catch {
-            logger.error("Failed to remove LaunchAgent: \(error.localizedDescription)")
-        }
-    }
-
-    /// Load the LaunchAgent using launchctl
-    private func loadLaunchAgent() {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-        process.arguments = ["load", launchAgentPath.path]
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-            if process.terminationStatus == 0 {
-                logger.info("✓ LaunchAgent loaded")
-            } else {
-                logger.warning("LaunchAgent load returned status: \(process.terminationStatus)")
-            }
-        } catch {
-            logger.error("Failed to load LaunchAgent: \(error.localizedDescription)")
-        }
-    }
-
-    /// Unload the LaunchAgent using launchctl
-    private func unloadLaunchAgent() {
-        guard FileManager.default.fileExists(atPath: launchAgentPath.path) else { return }
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-        process.arguments = ["unload", launchAgentPath.path]
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-            logger.info("✓ LaunchAgent unloaded")
-        } catch {
-            logger.error("Failed to unload LaunchAgent: \(error.localizedDescription)")
         }
     }
 
@@ -159,22 +66,25 @@ public final class LoginItemManager {
         if prefEnabled != actualEnabled {
             logger.info(
                 "Syncing Launch at Login: preference=\(prefEnabled), actual=\(actualEnabled)")
-            if prefEnabled {
-                // User wants it enabled, but LaunchAgent doesn't exist
-                setEnabled(true)
-            } else {
-                // User wants it disabled
-                setEnabled(false)
-            }
+            setEnabled(prefEnabled)
         }
+
+        cleanupLegacyLaunchAgent()
     }
 
     /// Get human-readable status for UI
     public var statusDescription: String {
-        if isEnabled {
-            return "Enabled (LaunchAgent)"
-        } else {
+        switch SMAppService.mainApp.status {
+        case .enabled:
+            return "Enabled"
+        case .requiresApproval:
+            return "Requires Approval"
+        case .notFound:
+            return "Not Found"
+        case .notRegistered:
             return "Disabled"
+        @unknown default:
+            return "Unknown"
         }
     }
 }
