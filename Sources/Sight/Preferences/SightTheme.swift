@@ -357,7 +357,7 @@ extension View {
 
 // MARK: - Hoverable Card Modifier
 
-struct HoverableCardModifier: ViewModifier {
+@MainActor struct HoverableCardModifier: ViewModifier {
     @State private var isHovered = false
 
     func body(content: Content) -> some View {
@@ -379,7 +379,7 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-struct SightPrimaryButtonStyle: ButtonStyle {
+@MainActor struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
@@ -401,7 +401,7 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-struct SightSecondaryButtonStyle: ButtonStyle {
+@MainActor struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
@@ -433,7 +433,7 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 // MARK: - Custom Toggle Style
 
-struct SightToggleStyle: ToggleStyle {
+@MainActor struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
@@ -468,7 +468,7 @@ struct SightToggleStyle: ToggleStyle {
 
 // MARK: - Progress Ring View
 
-struct ProgressRing: View {
+@MainActor struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
     let gradient: LinearGradient?
@@ -538,7 +538,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
-struct AnimatedCheckmark: View {
+@MainActor struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color
 
