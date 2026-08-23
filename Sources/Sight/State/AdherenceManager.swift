@@ -393,14 +393,6 @@ public final class AdherenceManager: ObservableObject {
         }
     }
 
-    /// Record a break at the current hour (for hourly distribution tracking)
-    private func recordBreakHour() {
-        var today = getTodayStats()
-        let hour = Calendar.current.component(.hour, from: Date())
-        today.hourlyBreakDistribution[hour, default: 0] += 1
-        saveStats(today)
-    }
-
     /// Get hourly break distribution for a period
     public func getHourlyDistribution(for period: StatsPeriod) -> [Int: Int] {
         var distribution: [Int: Int] = [:]
