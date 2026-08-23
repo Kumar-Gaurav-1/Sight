@@ -321,14 +321,6 @@ public final class AdherenceManager: ObservableObject {
         logger.debug("Posture nudge recorded: shown=\(shown), followed=\(followed)")
     }
 
-    /// Record active screen time
-    /// - Parameter minutes: Number of minutes of active screen time to add
-    public func recordActiveTime(minutes: Int) {
-        var today = getTodayStats()
-        today.totalScreenTimeMinutes += minutes
-        saveStats(today)
-    }
-
     /// Record meeting time
     /// - Parameter minutes: Number of minutes spent in meeting
     public func recordMeetingTime(minutes: Int) {
