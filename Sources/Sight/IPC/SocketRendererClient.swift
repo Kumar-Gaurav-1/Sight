@@ -12,6 +12,8 @@ public final class SocketRendererClient: RendererAPI {
     private var socket: Int32 = -1
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "Socket")
     private let queue = DispatchQueue(label: "com.sight.socket", qos: .userInteractive)
+    // Bolt: Caching JSONEncoder for performance
+    private let encoder = JSONEncoder()
     private var _isAvailable = false
 
     public var isAvailable: Bool { _isAvailable }
@@ -94,7 +96,7 @@ public final class SocketRendererClient: RendererAPI {
             }
 
             do {
-                let data = try JSONEncoder().encode(message)
+                let data = try self.encoder.encode(message)
                 let lengthData = withUnsafeBytes(of: UInt32(data.count).bigEndian) { Data($0) }
 
                 // Send length prefix
@@ -155,6 +157,8 @@ public final class SocketRendererServer {
     private var serverSocket: Int32 = -1
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.renderer", category: "SocketServer")
     private let queue = DispatchQueue(label: "com.sight.socket.server")
+    // Bolt: Caching JSONDecoder for performance
+    private let decoder = JSONDecoder()
 
     public var onMessage: ((RendererMessage) -> Void)?
 
@@ -278,7 +282,7 @@ public final class SocketRendererServer {
 
                 // Decode and handle message
                 let data = Data(messageBuffer)
-                if let message = try? JSONDecoder().decode(RendererMessage.self, from: data) {
+                if let message = try? self?.decoder.decode(RendererMessage.self, from: data) {
                     DispatchQueue.main.async {
                         self?.onMessage?(message)
                     }
