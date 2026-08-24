@@ -615,12 +615,15 @@ public final class RuntimeProfiler: ObservableObject {
     public func getAnonymizedTelemetry() -> Data? {
         guard config.telemetryEnabled else { return nil }
 
+        // Bolt: Caching ISO8601DateFormatter for performance outside the loop
+        let dateFormatter = ISO8601DateFormatter()
+
         let payload: [String: Any] = [
             "schema_version": "1.0",
             "session_id": sessionId,
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    "timestamp": dateFormatter.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [
