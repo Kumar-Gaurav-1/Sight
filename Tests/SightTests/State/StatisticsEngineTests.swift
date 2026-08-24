@@ -24,7 +24,7 @@ final class StatisticsEngineTests: XCTestCase {
 
     func testInitialState() {
         XCTAssertNil(engine.currentSession)
-        XCTAssertTrue(engine.todaysSessions.isEmpty)
+        XCTAssertTrue(engine.todaySessions.isEmpty)
         XCTAssertNil(engine.currentPauseEvent)
         XCTAssertTrue(engine.insights.isEmpty)
     }
@@ -41,8 +41,8 @@ final class StatisticsEngineTests: XCTestCase {
 
         engine.endSession()
         XCTAssertNil(engine.currentSession)
-        XCTAssertEqual(engine.todaysSessions.count, 1)
-        XCTAssertFalse(engine.todaysSessions[0].isActive)
+        XCTAssertEqual(engine.todaySessions.count, 1)
+        XCTAssertFalse(engine.todaySessions[0].isActive)
     }
 
     func testStartMultipleSessionsDoesNotOverwrite() {
@@ -55,7 +55,7 @@ final class StatisticsEngineTests: XCTestCase {
 
     func testEndSessionWithoutActiveSession() {
         engine.endSession()
-        XCTAssertTrue(engine.todaysSessions.isEmpty)
+        XCTAssertTrue(engine.todaySessions.isEmpty)
     }
 
     func testRecordBreakAndNudge() {
