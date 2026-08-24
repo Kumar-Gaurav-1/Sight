@@ -717,7 +717,7 @@ struct LegendItem: View {
 
 struct ExportButton: View {
     let label: String
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     @State private var isHovered = false
 
