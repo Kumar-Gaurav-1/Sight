@@ -157,6 +157,12 @@ public final class AdherenceManager: ObservableObject {
 
     // MARK: - Properties
 
+    #if compiler(>=5.10)
+    nonisolated(unsafe) private static let sharedISOFormatter = ISO8601DateFormatter()
+    #else
+    private static let sharedISOFormatter = ISO8601DateFormatter()
+    #endif
+
     private var stats: [DayStats] = []
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.adherence", category: "Adherence")
 
@@ -657,8 +663,9 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
+        // Bolt: Caching ISO8601DateFormatter for performance
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            "exportDate": AdherenceManager.sharedISOFormatter.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,7 +674,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+                    "date": AdherenceManager.sharedISOFormatter.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -887,7 +894,8 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
-        let formatter = ISO8601DateFormatter()
+        // Bolt: Caching ISO8601DateFormatter for performance
+        let formatter = AdherenceManager.sharedISOFormatter
 
         for day in stats.sorted(by: { $0.date < $1.date }) {
             let line =
@@ -921,7 +929,7 @@ public final class AdherenceManager: ObservableObject {
             return nil
         }
 
-        let timestamp = ISO8601DateFormatter().string(from: Date())
+        let timestamp = AdherenceManager.sharedISOFormatter.string(from: Date())
             .replacingOccurrences(of: ":", with: "-")
 
         let filename: String
