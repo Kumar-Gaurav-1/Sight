@@ -397,7 +397,7 @@ public final class StatisticsEngine: ObservableObject {
     // MARK: - Published State
 
     @Published public private(set) var currentSession: WorkSession?
-    @Published public private(set) var todaysSessions: [WorkSession] = []
+    @Published public private(set) var todaySessions: [WorkSession] = []
     @Published public private(set) var currentPauseEvent: PauseEvent?
     @Published public private(set) var insights: [WellnessInsight] = []
 
@@ -445,7 +445,7 @@ public final class StatisticsEngine: ObservableObject {
         }
 
         session.complete()
-        todaysSessions.append(session)
+        todaySessions.append(session)
         currentSession = nil
         logger.info(
             "Ended work session: \(session.id), duration: \(session.totalDurationMinutes) min")
@@ -508,7 +508,7 @@ public final class StatisticsEngine: ObservableObject {
 
     /// Get today's total active screen time
     public var todayScreenTimeMinutes: Int {
-        var total = todaysSessions.reduce(0) { $0 + $1.activeDurationSeconds }
+        var total = todaySessions.reduce(0) { $0 + $1.activeDurationSeconds }
         if let session = currentSession {
             total += session.activeDurationSeconds
         }
@@ -523,7 +523,7 @@ public final class StatisticsEngine: ObservableObject {
 
     /// Get session statistics for today
     public var todaySessionStats: (count: Int, avgDuration: Int, totalActive: Int) {
-        let sessions = todaysSessions + (currentSession != nil ? [currentSession!] : [])
+        let sessions = todaySessions + (currentSession != nil ? [currentSession!] : [])
         let count = sessions.count
         let totalActive = sessions.reduce(0) { $0 + $1.activeDurationSeconds } / 60
         let avgDuration = count > 0 ? totalActive / count : 0
@@ -534,7 +534,7 @@ public final class StatisticsEngine: ObservableObject {
     public func todayPauseBreakdown() -> [PauseReason: (count: Int, minutes: Int)] {
         var breakdown: [PauseReason: (count: Int, minutes: Int)] = [:]
 
-        let allPauses = (todaysSessions + (currentSession != nil ? [currentSession!] : []))
+        let allPauses = (todaySessions + (currentSession != nil ? [currentSession!] : []))
             .flatMap { $0.pauseEvents }
 
         for pause in allPauses {
@@ -647,7 +647,7 @@ public final class StatisticsEngine: ObservableObject {
 
     private func persistSessions() {
         // Capture data on main actor before dispatching to background
-        let sessionsToSave = todaysSessions + (currentSession != nil ? [currentSession!] : [])
+        let sessionsToSave = todaySessions + (currentSession != nil ? [currentSession!] : [])
 
         persistenceQueue.async { [weak self] in
             do {
@@ -672,7 +672,7 @@ public final class StatisticsEngine: ObservableObject {
             Calendar.current.isDateInToday(savedDate)
         {
             // Separate active and completed sessions
-            todaysSessions = sessions.filter { !$0.isActive }
+            todaySessions = sessions.filter { !$0.isActive }
             if let active = sessions.first(where: { $0.isActive }) {
                 currentSession = active
             }
@@ -720,7 +720,7 @@ public final class StatisticsEngine: ObservableObject {
             endSession()
         }
 
-        todaysSessions.removeAll()
+        todaySessions.removeAll()
         insights.removeAll()
         UserDefaults.standard.removeObject(forKey: "TodayWorkSessions")
 
