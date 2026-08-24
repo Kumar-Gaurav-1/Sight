@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
+@MainActor
 enum SightTheme {
 
     // MARK: - Colors
@@ -380,6 +381,7 @@ struct HoverableCardModifier: ViewModifier {
 // MARK: - Custom Button Styles
 
 struct SightPrimaryButtonStyle: ButtonStyle {
+    @MainActor
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
@@ -404,6 +406,7 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
+    @MainActor
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
@@ -434,6 +437,7 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 // MARK: - Custom Toggle Style
 
 struct SightToggleStyle: ToggleStyle {
+    @MainActor
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
