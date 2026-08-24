@@ -5,7 +5,6 @@ import UniformTypeIdentifiers
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
-@MainActor
 struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
@@ -659,7 +658,6 @@ struct AnimatedBarChart: View {
         return max(12, CGFloat(breaks) / CGFloat(maxBreaks) * barMaxHeight)
     }
 
-    @MainActor
     private func barGradient(for day: AdherenceManager.DayStats) -> LinearGradient {
         let color: Color
         if day.breaksCompleted == 0 {
@@ -719,7 +717,7 @@ struct LegendItem: View {
 
 struct ExportButton: View {
     let label: String
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
     @State private var isHovered = false
 
