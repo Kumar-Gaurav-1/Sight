@@ -158,10 +158,21 @@ public final class AdherenceManager: ObservableObject {
     // MARK: - Properties
 
     private var stats: [DayStats] = []
+    // Bolt: Cache sorted array for performance across exports
+    private var cachedSortedStats: [DayStats]? = nil
     private let logger = Logger(subsystem: "com.kumargaurav.Sight.adherence", category: "Adherence")
 
     // SECURITY: Serial queue for thread-safe stats access
     private let statsQueue = DispatchQueue(label: "com.sight.adherence.stats", qos: .utility)
+
+    private func getSortedStats() -> [DayStats] {
+        return statsQueue.sync {
+            if let cached = cachedSortedStats { return cached }
+            let sorted = stats.sorted(by: { $0.date < $1.date })
+            cachedSortedStats = sorted
+            return sorted
+        }
+    }
 
     // Game Theory Constants
     private let skipCost: Double = 0.15  // 15% strain increase per skip
@@ -644,7 +655,10 @@ public final class AdherenceManager: ObservableObject {
 
     /// Reset all statistics
     public func resetAllStats() {
-        stats.removeAll()
+        statsQueue.sync {
+            self.stats.removeAll()
+            self.cachedSortedStats = nil
+        }
         todayStats = DayStats(date: Date())
         strainPenalty = 0.0
         currentStreak = 0
@@ -665,7 +679,7 @@ public final class AdherenceManager: ObservableObject {
                 "currentStreak": currentStreak,
                 "weeklyScore": weeklyScore,
             ],
-            "days": stats.map { day -> [String: Any] in
+            "days": getSortedStats().map { day -> [String: Any] in
                 [
                     "date": ISO8601DateFormatter().string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
@@ -700,7 +714,7 @@ public final class AdherenceManager: ObservableObject {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
 
-        for day in stats.sorted(by: { $0.date < $1.date }) {
+        for day in getSortedStats() {
             csv += "\(dateFormatter.string(from: day.date)),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
@@ -751,6 +765,7 @@ public final class AdherenceManager: ObservableObject {
         statsQueue.sync {
             self.stats.removeAll { Calendar.current.isDate($0.date, inSameDayAs: day.date) }
             self.stats.append(day)
+            self.cachedSortedStats = nil
         }
 
         // Update published property SYNCHRONOUSLY on main thread (critical for SwiftUI)
@@ -790,6 +805,7 @@ public final class AdherenceManager: ObservableObject {
             // Use statsQueue for thread-safe write
             statsQueue.sync {
                 self.stats = loaded
+                self.cachedSortedStats = nil
             }
 
             // Populate todayStats if exists
@@ -875,7 +891,7 @@ public final class AdherenceManager: ObservableObject {
         encoder.outputFormatting = .prettyPrinted
 
         do {
-            return try encoder.encode(stats)
+            return try encoder.encode(getSortedStats())
         } catch {
             logger.error("Failed to export JSON: \(error.localizedDescription)")
             return nil
@@ -889,7 +905,7 @@ public final class AdherenceManager: ObservableObject {
 
         let formatter = ISO8601DateFormatter()
 
-        for day in stats.sorted(by: { $0.date < $1.date }) {
+        for day in getSortedStats() {
             let line =
                 "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
             csv += line
