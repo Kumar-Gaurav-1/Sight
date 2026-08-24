@@ -882,16 +882,22 @@ public final class AdherenceManager: ObservableObject {
         }
     }
 
+    #if compiler(>=5.10)
+    // Bolt: Caching DateFormatter statically for performance
+    nonisolated(unsafe) private static let csvDateFormatter = ISO8601DateFormatter()
+    #else
+    // Bolt: Caching DateFormatter statically for performance
+    private static let csvDateFormatter = ISO8601DateFormatter()
+    #endif
+
     /// Export all stats to CSV format
     public func exportToCSV() -> String {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
-        let formatter = ISO8601DateFormatter()
-
         for day in stats.sorted(by: { $0.date < $1.date }) {
             let line =
-                "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
+                "\(AdherenceManager.csvDateFormatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
             csv += line
         }
 
