@@ -126,7 +126,7 @@ public final class TimerStateMachine: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // SECURITY: Dispatch to MainActor for thread safety
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.handleSystemWake()
             }
         }
@@ -138,7 +138,7 @@ public final class TimerStateMachine: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // SECURITY: Dispatch to MainActor for thread safety
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.handleSystemSleep()
             }
         }
