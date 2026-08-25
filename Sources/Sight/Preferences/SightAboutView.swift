@@ -11,7 +11,7 @@ struct SightAboutView: View {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     private let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
 
-    var body: some View {
+    @MainActor var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             Text("About")
@@ -51,7 +51,7 @@ struct SightAboutView: View {
 
     // MARK: - App Info Card
 
-    private var appInfoCard: some View {
+    @MainActor private var appInfoCard: some View {
         VStack(spacing: 20) {
             // Logo
             ZStack {
@@ -129,7 +129,7 @@ struct SightAboutView: View {
 
     // MARK: - Features Card
 
-    private var featuresCard: some View {
+    @MainActor private var featuresCard: some View {
         EnhancedSettingsCard(
             icon: "sparkles",
             iconColor: SightTheme.accent,
@@ -161,7 +161,7 @@ struct SightAboutView: View {
 
     // MARK: - Credits Card
 
-    private var creditsCard: some View {
+    @MainActor private var creditsCard: some View {
         EnhancedSettingsCard(
             icon: "heart.fill",
             iconColor: .pink,
@@ -187,7 +187,7 @@ struct SightAboutView: View {
 
     // MARK: - Links Card
 
-    private var linksCard: some View {
+    @MainActor private var linksCard: some View {
         EnhancedSettingsCard(
             icon: "link",
             iconColor: SightTheme.success,
@@ -212,7 +212,7 @@ struct SightAboutView: View {
 
     // MARK: - Legal Section
 
-    private var legalSection: some View {
+    @MainActor private var legalSection: some View {
         VStack(spacing: 8) {
             Text("© \(Calendar.current.component(.year, from: Date())) Sight. All rights reserved.")
                 .font(.system(size: 11))
@@ -250,7 +250,7 @@ struct FeatureRow: View {
     let title: String
     let description: String
 
-    var body: some View {
+    @MainActor var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 16))
@@ -282,7 +282,7 @@ struct LinkRow: View {
 
     @State private var isHovered = false
 
-    var body: some View {
+    @MainActor var body: some View {
         Button(action: {
             if let url = URL(string: url) {
                 NSWorkspace.shared.open(url)

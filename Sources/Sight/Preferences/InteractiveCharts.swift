@@ -202,14 +202,18 @@ struct ActivityHeatmapView: View {
         }
     }
 
-    private func hourLabel(_ hour: Int) -> String {
+    private static let hourFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "ha"
+        return formatter
+    }()
+
+    private func hourLabel(_ hour: Int) -> String {
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
-        return formatter.string(from: date)
+        return Self.hourFormatter.string(from: date)
     }
 
-    private func intensityColor(_ intensity: Double) -> Color {
+    @MainActor private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -237,7 +241,7 @@ struct HeatmapCell: View {
         return Double(value) / Double(maxValue)
     }
 
-    private var cellColor: Color {
+    @MainActor private var cellColor: Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
