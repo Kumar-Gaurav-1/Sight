@@ -213,7 +213,7 @@ struct ActivityHeatmapView: View {
         return Self.hourFormatter.string(from: date)
     }
 
-    private func intensityColor(_ intensity: Double) -> Color {
+    @MainActor private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -241,7 +241,7 @@ struct HeatmapCell: View {
         return Double(value) / Double(maxValue)
     }
 
-    private var cellColor: Color {
+    @MainActor private var cellColor: Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
