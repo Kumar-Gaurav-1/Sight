@@ -234,19 +234,11 @@ struct SightBreaksView: View {
         }
     }
 
-#if compiler(>=5.10)
-    nonisolated(unsafe) private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
-#else
     private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter
     }()
-#endif
 
     private func formatTime(_ date: Date) -> String {
         return Self.timeFormatter.string(from: date)

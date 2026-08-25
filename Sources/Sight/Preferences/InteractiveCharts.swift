@@ -202,19 +202,11 @@ struct ActivityHeatmapView: View {
         }
     }
 
-#if compiler(>=5.10)
-    nonisolated(unsafe) private static let hourFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "ha"
-        return formatter
-    }()
-#else
     private static let hourFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "ha"
         return formatter
     }()
-#endif
 
     private func hourLabel(_ hour: Int) -> String {
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!

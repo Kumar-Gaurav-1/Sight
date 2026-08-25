@@ -29,19 +29,11 @@ public final class MenuBarViewModel: ObservableObject {
     @Published public private(set) var dailyBreaks: Int = 0
     @Published public private(set) var isPaused: Bool = false
 
-#if compiler(>=5.10)
-    nonisolated(unsafe) private static let shortTimeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
-#else
     private static let shortTimeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter
     }()
-#endif
 
     // MARK: - Dependencies
 
