@@ -5,6 +5,27 @@ import os.log
 
 /// Tracks user adherence to wellness goals and manages incentives
 /// Implements game-theory logic: "Skipping is allowed but costly"
+#if compiler(>=5.10)
+nonisolated(unsafe) fileprivate let _sharedISO8601Formatter = ISO8601DateFormatter()
+nonisolated(unsafe) fileprivate let _sharedDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    return f
+}()
+#else
+fileprivate let _sharedISO8601Formatter = ISO8601DateFormatter()
+fileprivate let _sharedDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd"
+    return f
+}()
+#endif
+
+enum AdherenceFormatters {
+    static var iso8601: ISO8601DateFormatter { _sharedISO8601Formatter }
+    static var ymdDate: DateFormatter { _sharedDateFormatter }
+}
+
 public final class AdherenceManager: ObservableObject {
 
     // MARK: - Published State
@@ -658,7 +679,7 @@ public final class AdherenceManager: ObservableObject {
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            "exportDate": AdherenceFormatters.iso8601.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,7 +688,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+                    "date": AdherenceFormatters.iso8601.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -697,11 +718,8 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(dateFormatter.string(from: day.date)),"
+            csv += "\(AdherenceFormatters.ymdDate.string(from: day.date)),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
             csv += "\(day.nudgesFollowed),"
@@ -921,7 +939,7 @@ public final class AdherenceManager: ObservableObject {
             return nil
         }
 
-        let timestamp = ISO8601DateFormatter().string(from: Date())
+        let timestamp = AdherenceFormatters.iso8601.string(from: Date())
             .replacingOccurrences(of: ":", with: "-")
 
         let filename: String
