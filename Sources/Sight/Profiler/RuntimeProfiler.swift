@@ -620,7 +620,7 @@ public final class RuntimeProfiler: ObservableObject {
             "session_id": sessionId,
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    "timestamp": DateFormatterCache.iso8601.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [
