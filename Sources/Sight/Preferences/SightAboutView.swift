@@ -277,6 +277,7 @@ struct FeatureRow: View {
 
 // MARK: - Link Row
 
+@MainActor
 struct LinkRow: View {
     let icon: String
     let title: String
