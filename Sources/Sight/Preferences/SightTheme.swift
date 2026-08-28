@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Sight Theme
 
 /// Centralized theme for Sight-style premium dark UI
-@MainActor enum SightTheme {
+enum SightTheme {
 
     // MARK: - Colors
 
@@ -25,14 +25,12 @@ import SwiftUI
     // MARK: - Dynamic Accent Colors
 
     /// Primary accent color - dynamic based on user preference (hue slider)
-    @MainActor
     static var accent: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
     }
 
     /// Accent light variant - dynamic based on user preference
-    @MainActor
     static var accentLight: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.4, brightness: 1.0)
@@ -62,7 +60,6 @@ import SwiftUI
     // MARK: - Gradients
 
     /// Primary accent gradient - dynamic based on user preference
-    @MainActor
     static var accentGradient: LinearGradient {
         LinearGradient(
             colors: [accent, accentLight],
@@ -379,7 +376,7 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-@MainActor struct SightPrimaryButtonStyle: ButtonStyle {
+struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
@@ -401,7 +398,7 @@ struct HoverableCardModifier: ViewModifier {
     }
 }
 
-@MainActor struct SightSecondaryButtonStyle: ButtonStyle {
+struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
@@ -433,7 +430,7 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Toggle Style
 
-@MainActor struct SightToggleStyle: ToggleStyle {
+struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label

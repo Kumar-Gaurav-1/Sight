@@ -5,7 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
-@MainActor struct WellnessGaugeView: View {
+struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
 
@@ -85,7 +85,7 @@ import SwiftUI
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
-@MainActor struct ActivityHeatmapView: View {
+struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
 
@@ -224,7 +224,7 @@ import SwiftUI
     }
 }
 
-@MainActor struct HeatmapCell: View {
+struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
     let isSelected: Bool
@@ -278,7 +278,7 @@ import SwiftUI
 // MARK: - Time Breakdown Chart
 
 /// Donut chart showing time distribution
-@MainActor struct TimeBreakdownChart: View {
+struct TimeBreakdownChart: View {
     let screenTime: Int
     let breakTime: Int
     let meetingTime: Int
@@ -389,7 +389,7 @@ import SwiftUI
 // MARK: - Comparison Bar View
 
 /// Week-over-week comparison visualization
-@MainActor struct ComparisonBarView: View {
+struct ComparisonBarView: View {
     let currentValue: Double
     let previousValue: Double
     let label: String
@@ -505,7 +505,7 @@ import SwiftUI
 // MARK: - Trend Line Chart
 
 /// Simple line chart for showing trends
-@MainActor struct TrendLineChart: View {
+struct TrendLineChart: View {
     let values: [Double]
     let labels: [String]
     let animate: Bool
@@ -634,7 +634,7 @@ import SwiftUI
 // MARK: - Insight Card View
 
 /// Card displaying a wellness insight
-@MainActor struct InsightCardView: View {
+struct InsightCardView: View {
     let insight: WellnessInsight
 
     @State private var isHovered = false
@@ -683,7 +683,7 @@ import SwiftUI
 // MARK: - Nudge Compliance Card
 
 /// Visual representation of nudge compliance
-@MainActor struct NudgeComplianceCard: View {
+struct NudgeComplianceCard: View {
     let blinkShown: Int
     let blinkFollowed: Int
     let postureShown: Int
@@ -732,7 +732,7 @@ import SwiftUI
     }
 }
 
-@MainActor struct ComplianceRing: View {
+struct ComplianceRing: View {
     let value: Double  // 0-1
     let icon: String
     let label: String
