@@ -153,7 +153,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self else { return }
 
-            Task { @MainActor in
+            Task { @MainActor [self] in
                 // Resume timer if it was paused by user (manual break)
                 if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
                     self.logger.info("Manual break ended, resuming timer")
@@ -170,7 +170,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self else { return }
 
-            Task { @MainActor in
+            Task { @MainActor [self] in
                 self.logger.info("Take break requested via notification")
                 self.menuBarController?.viewModel.triggerShortBreak()
             }
@@ -183,9 +183,9 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] notification in
             guard let self = self else { return }
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
 
-            Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+            Task { @MainActor [self] in
                 self.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
                 self.stateMachine.postpone(minutes: minutes)
@@ -234,7 +234,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             guard let self = self else { return }
             self.logger.info("Onboarding completed - starting timer")
-            Task { @MainActor in
+            Task { @MainActor [self] in
                 self.startTimerIfAppropriate()
             }
         }
