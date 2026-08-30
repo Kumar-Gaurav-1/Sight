@@ -29,6 +29,13 @@ public final class MenuBarViewModel: ObservableObject {
     @Published public private(set) var dailyBreaks: Int = 0
     @Published public private(set) var isPaused: Bool = false
 
+    // Formatters
+    private let shortTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
     // MARK: - Dependencies
 
     private let stateMachine: TimerStateMachine
@@ -170,9 +177,7 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                nextBreakText = "Break at \(formatter.string(from: date))"
+                nextBreakText = "Break at \(shortTimeFormatter.string(from: date))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
                 let secs = remainingSeconds % 60
