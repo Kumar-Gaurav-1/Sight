@@ -183,7 +183,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] notification in
             let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
-            Task { @MainActor [weak self] in
+            Task { @MainActor [self] in
                 guard let self = self else { return }
                 self.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
