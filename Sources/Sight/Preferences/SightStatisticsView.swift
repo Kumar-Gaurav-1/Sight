@@ -588,11 +588,7 @@ struct AnimatedBarChart: View {
     let animate: Bool
 
     private let barMaxHeight: CGFloat = 100
-    private let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f
-    }()
+    // Uses shared Formatters.shortDayFormatter
 
     private var maxBreaks: Int {
         max(1, dailyStats.map { $0.breaksCompleted }.max() ?? 1)
@@ -616,7 +612,7 @@ struct AnimatedBarChart: View {
                         .frame(height: animate ? barHeight(for: day.breaksCompleted) : 8)
 
                     // Day
-                    Text(dayFormatter.string(from: day.date))
+                    Text(Formatters.shortDayFormatter.string(from: day.date))
                         .font(
                             .system(
                                 size: 11,
