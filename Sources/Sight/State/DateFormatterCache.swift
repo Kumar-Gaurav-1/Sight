@@ -1,5 +1,6 @@
 import Foundation
 
+// Performance optimization: Cached to avoid expensive O(N) initializations during export loops.
 public enum DateFormatterCache {
     #if compiler(>=5.10)
     nonisolated(unsafe) public static let sharedISO8601 = ISO8601DateFormatter()
