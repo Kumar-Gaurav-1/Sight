@@ -118,9 +118,8 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         iconAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) {
             [weak self] _ in
             // Dispatch to MainActor for thread safety
-            Task { @MainActor [self] in
-                guard let self else { return }
-                guard let button = self.statusItem?.button else { return }
+            Task { @MainActor in
+                guard let button = self?.statusItem?.button else { return }
 
                 // Alternate between filled and empty icon
                 let iconName = toggle ? "bell.fill" : "bell"
