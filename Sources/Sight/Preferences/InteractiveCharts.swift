@@ -85,6 +85,7 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
+@MainActor
 struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
@@ -202,13 +203,18 @@ struct ActivityHeatmapView: View {
         }
     }
 
-    private func hourLabel(_ hour: Int) -> String {
+    private static let hourFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "ha"
+        return formatter
+    }()
+
+    private func hourLabel(_ hour: Int) -> String {
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
-        return formatter.string(from: date)
+        return Self.hourFormatter.string(from: date)
     }
 
+    @MainActor
     private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
