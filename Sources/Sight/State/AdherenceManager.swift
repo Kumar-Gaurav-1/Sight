@@ -171,6 +171,14 @@ public final class AdherenceManager: ObservableObject {
 
     public static let shared = AdherenceManager()
 
+
+fileprivate final class FormatterCache: @unchecked Sendable {
+    static let iso: ISO8601DateFormatter = {
+        return ISO8601DateFormatter()
+    }()
+}
+
+
     // Timer for periodic sync
     private var syncTimer: Timer?
 
@@ -658,7 +666,7 @@ public final class AdherenceManager: ObservableObject {
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            "exportDate": FormatterCache.iso.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,7 +675,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+                    "date": FormatterCache.iso.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -887,7 +895,7 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
-        let formatter = ISO8601DateFormatter()
+        let formatter = FormatterCache.iso
 
         for day in stats.sorted(by: { $0.date < $1.date }) {
             let line =
@@ -921,7 +929,7 @@ public final class AdherenceManager: ObservableObject {
             return nil
         }
 
-        let timestamp = ISO8601DateFormatter().string(from: Date())
+        let timestamp = FormatterCache.iso.string(from: Date())
             .replacingOccurrences(of: ":", with: "-")
 
         let filename: String
