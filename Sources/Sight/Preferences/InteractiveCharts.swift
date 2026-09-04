@@ -5,7 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
-struct WellnessGaugeView: View {
+@MainActor struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
 
@@ -85,7 +85,7 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
-struct ActivityHeatmapView: View {
+@MainActor struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
 
@@ -209,7 +209,7 @@ struct ActivityHeatmapView: View {
         return formatter.string(from: date)
     }
 
-    private func intensityColor(_ intensity: Double) -> Color {
+    @MainActor private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
@@ -224,7 +224,7 @@ struct ActivityHeatmapView: View {
     }
 }
 
-struct HeatmapCell: View {
+@MainActor struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
     let isSelected: Bool
@@ -278,7 +278,7 @@ struct HeatmapCell: View {
 // MARK: - Time Breakdown Chart
 
 /// Donut chart showing time distribution
-struct TimeBreakdownChart: View {
+@MainActor struct TimeBreakdownChart: View {
     let screenTime: Int
     let breakTime: Int
     let meetingTime: Int
@@ -634,7 +634,7 @@ struct TrendLineChart: View {
 // MARK: - Insight Card View
 
 /// Card displaying a wellness insight
-struct InsightCardView: View {
+@MainActor struct InsightCardView: View {
     let insight: WellnessInsight
 
     @State private var isHovered = false
