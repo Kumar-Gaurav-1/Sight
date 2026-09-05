@@ -865,7 +865,7 @@ public final class PreferencesManager: ObservableObject {
                 "soundEnabled": soundEnabled,
             ],
             "metadata": [
-                "lastModified": ISO8601DateFormatter().string(from: Date()),
+                "lastModified": sharedISO8601Formatter.string(from: Date()),
                 "platform": "macOS",
             ],
         ]
