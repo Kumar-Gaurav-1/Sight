@@ -77,7 +77,7 @@ public final class TimerStateMachine: ObservableObject {
 
     // MARK: - Singleton
 
-    nonisolated(unsafe) public static var shared: TimerStateMachine!
+    nonisolated(unsafe) public static let shared: TimerStateMachine = TimerStateMachine()
 
     // MARK: - Private Properties
 
