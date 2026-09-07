@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
-struct SightStatisticsView: View {
+@MainActor struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
     @State private var showResetConfirmation = false
