@@ -3,6 +3,13 @@ import Foundation
 import IOKit.ps
 import os.log
 
+// MARK: - Performance Optimizations
+
+/// Statically cached formatters to prevent expensive allocations
+fileprivate final class SharedFormatters: @unchecked Sendable {
+    static let iso8601 = ISO8601DateFormatter()
+}
+
 // MARK: - System Metrics
 
 /// Current system resource metrics
@@ -620,7 +627,7 @@ public final class RuntimeProfiler: ObservableObject {
             "session_id": sessionId,
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    "timestamp": SharedFormatters.iso8601.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [
