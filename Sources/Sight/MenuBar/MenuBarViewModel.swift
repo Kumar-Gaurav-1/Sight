@@ -2,6 +2,16 @@ import AppKit
 import Combine
 import Foundation
 
+// Performance: Cache DateFormatter to avoid 1 allocation per second during timer ticks
+fileprivate final class SharedFormatters: @unchecked Sendable {
+    static let shared = SharedFormatters()
+    let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.timeStyle = .short
+        return f
+    }()
+}
+
 @MainActor
 public final class MenuBarViewModel: ObservableObject {
 
@@ -99,7 +109,7 @@ public final class MenuBarViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // Dispatch to MainActor for thread safety
-            Task { @MainActor in
+            Task { @MainActor [self] in
                 guard let self = self else { return }
                 // Resume timer if we paused it for a manual break
                 if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
@@ -170,9 +180,8 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                nextBreakText = "Break at \(formatter.string(from: date))"
+                // Performance: Reuse cached formatter to avoid 1 allocation per second
+                nextBreakText = "Break at \(SharedFormatters.shared.timeFormatter.string(from: date))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
                 let secs = remainingSeconds % 60
