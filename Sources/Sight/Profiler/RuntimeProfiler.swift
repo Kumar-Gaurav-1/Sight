@@ -615,15 +615,14 @@ public final class RuntimeProfiler: ObservableObject {
     public func getAnonymizedTelemetry() -> Data? {
         guard config.telemetryEnabled else { return nil }
 
+        // ⚡ Bolt: Cache ISO8601DateFormatter outside map loop to avoid expensive instantiation per event
+        let formatter = ISO8601DateFormatter()
         let payload: [String: Any] = [
             "schema_version": "1.0",
             "session_id": sessionId,
-            "events": {
-                // ⚡ Bolt: Cache ISO8601DateFormatter outside map loop to avoid expensive instantiation per event
-                let formatter = ISO8601DateFormatter()
-                return telemetryEvents.map { event -> [String: Any] in
-                    [
-                        "timestamp": formatter.string(from: event.timestamp),
+            "events": telemetryEvents.map { event -> [String: Any] in
+                [
+                    "timestamp": formatter.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [
@@ -633,8 +632,7 @@ public final class RuntimeProfiler: ObservableObject {
                         "throttle_events": event.metrics.throttleEvents,
                     ],
                 ]
-                }
-            }(),
+            },
             "summary": [
                 "throttle_downs": throttleDownCount,
                 "throttle_ups": throttleUpCount,

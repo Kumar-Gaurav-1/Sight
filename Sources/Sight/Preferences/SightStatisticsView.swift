@@ -425,7 +425,7 @@ struct SightStatisticsView: View {
 
     private func exportCSV() {
         Task.detached(priority: .userInitiated) {
-            let csv = await MainActor.run(body: { self.adherence.exportAsCSV() })
+            let csv = await MainActor.run(body: { self.adherence.exportToCSV() })
 
             await MainActor.run {
                 let savePanel = NSSavePanel()

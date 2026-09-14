@@ -657,20 +657,19 @@ public final class AdherenceManager: ObservableObject {
 
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
+        // ⚡ Bolt: Cache ISO8601DateFormatter outside map loop to avoid expensive instantiation per day
+        let formatter = ISO8601DateFormatter()
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            "exportDate": formatter.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
                 "currentStreak": currentStreak,
                 "weeklyScore": weeklyScore,
             ],
-            "days": {
-                // ⚡ Bolt: Cache ISO8601DateFormatter outside map loop to avoid expensive instantiation per day
-                let formatter = ISO8601DateFormatter()
-                return stats.map { day -> [String: Any] in
-                    [
-                        "date": formatter.string(from: day.date),
+            "days": stats.map { day -> [String: Any] in
+                [
+                    "date": formatter.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
