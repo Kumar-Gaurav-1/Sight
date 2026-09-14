@@ -665,9 +665,12 @@ public final class AdherenceManager: ObservableObject {
                 "currentStreak": currentStreak,
                 "weeklyScore": weeklyScore,
             ],
-            "days": stats.map { day -> [String: Any] in
-                [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+            "days": {
+                // ⚡ Bolt: Cache ISO8601DateFormatter outside map loop to avoid expensive instantiation per day
+                let formatter = ISO8601DateFormatter()
+                return stats.map { day -> [String: Any] in
+                    [
+                        "date": formatter.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
