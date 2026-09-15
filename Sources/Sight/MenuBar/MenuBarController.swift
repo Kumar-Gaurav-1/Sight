@@ -119,7 +119,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
             [weak self] _ in
             // Dispatch to MainActor for thread safety
             Task { @MainActor in
-                guard let self = self, let button = self.statusItem?.button else { return }
+                guard let self, let button = self.statusItem?.button else { return }
 
                 // Alternate between filled and empty icon
                 let iconName = toggle ? "bell.fill" : "bell"
