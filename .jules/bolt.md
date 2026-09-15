@@ -1,0 +1,3 @@
+## YYYY-MM-DD - Caching DateFormatters
+**Learning:** Frequent initialization of `DateFormatter` and `ISO8601DateFormatter` in loops and computed properties causes redundant memory allocations and performance bottlenecks. These initializations are expensive. Caching them as shared instances wrapped in `@unchecked Sendable` using a singleton `SharedFormatters` class significantly improves performance, especially when strictly managing thread safety for Swift 6.
+**Action:** Statically cache DateFormatter and ISO8601DateFormatter instances globally, using `#if compiler(>=5.10)` checks for `@unchecked Sendable` and initializing them only once. Use them throughout the app by accessing `SharedFormatters.shared.<formatterName>`.
