@@ -486,8 +486,7 @@ private struct SightToggleBody: View {
             }
             .animation(SightTheme.springSnappy, value: configuration.isOn)
             .onTapGesture {
-                var config = configuration
-                config.isOn.toggle()
+                configuration.isOn.toggle()
             }
         }
     }
