@@ -381,6 +381,14 @@ struct HoverableCardModifier: ViewModifier {
 
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonBody(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightPrimaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -402,9 +410,17 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonBody(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightSecondaryButtonBody: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -435,6 +451,16 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightToggleBody(configuration: configuration)
+    }
+}
+
+@MainActor
+private struct SightToggleBody: View {
+    let configuration: ToggleStyle.Configuration
+    // ToggleStyle Configuration's isOn has a nonmutating setter.
+
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
@@ -460,7 +486,8 @@ struct SightToggleStyle: ToggleStyle {
             }
             .animation(SightTheme.springSnappy, value: configuration.isOn)
             .onTapGesture {
-                configuration.isOn.toggle()
+                var config = configuration
+                config.isOn.toggle()
             }
         }
     }
