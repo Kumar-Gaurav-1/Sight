@@ -3,6 +3,26 @@ import Combine
 import Foundation
 import os.log
 
+
+#if compiler(>=5.10)
+// ⚡ Bolt Optimization:
+// Instantiating ISO8601DateFormatter is highly computationally expensive and causes redundant memory allocations.
+// We are statically caching and reusing this formatter to significantly improve performance during repeated serialization (e.g. in loops or frequent events).
+fileprivate final class SharedFormatters: @unchecked Sendable {
+    static let shared = SharedFormatters()
+    let iso8601 = ISO8601DateFormatter()
+}
+#else
+// ⚡ Bolt Optimization:
+// Instantiating ISO8601DateFormatter is highly computationally expensive and causes redundant memory allocations.
+// We are statically caching and reusing this formatter to significantly improve performance during repeated serialization (e.g. in loops or frequent events).
+fileprivate final class SharedFormatters {
+    static let shared = SharedFormatters()
+    let iso8601 = ISO8601DateFormatter()
+}
+#endif
+
+
 /// Manages user preferences with UserDefaults persistence
 /// Provides JSON schema output for external tools
 public final class PreferencesManager: ObservableObject {
@@ -865,7 +885,7 @@ public final class PreferencesManager: ObservableObject {
                 "soundEnabled": soundEnabled,
             ],
             "metadata": [
-                "lastModified": ISO8601DateFormatter().string(from: Date()),
+                "lastModified": SharedFormatters.shared.iso8601.string(from: Date()),
                 "platform": "macOS",
             ],
         ]
