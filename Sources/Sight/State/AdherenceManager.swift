@@ -3,6 +3,20 @@ import Combine
 import Foundation
 import os.log
 
+
+#if compiler(>=5.10)
+fileprivate final class SharedFormatters: @unchecked Sendable {
+    static let shared = SharedFormatters()
+    let iso8601 = ISO8601DateFormatter()
+}
+#else
+fileprivate final class SharedFormatters {
+    static let shared = SharedFormatters()
+    let iso8601 = ISO8601DateFormatter()
+}
+#endif
+
+
 /// Tracks user adherence to wellness goals and manages incentives
 /// Implements game-theory logic: "Skipping is allowed but costly"
 public final class AdherenceManager: ObservableObject {
@@ -658,7 +672,7 @@ public final class AdherenceManager: ObservableObject {
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            "exportDate": SharedFormatters.shared.iso8601.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,7 +681,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+                    "date": SharedFormatters.shared.iso8601.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -887,7 +901,7 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
-        let formatter = ISO8601DateFormatter()
+        let formatter = SharedFormatters.shared.iso8601
 
         for day in stats.sorted(by: { $0.date < $1.date }) {
             let line =
@@ -921,7 +935,7 @@ public final class AdherenceManager: ObservableObject {
             return nil
         }
 
-        let timestamp = ISO8601DateFormatter().string(from: Date())
+        let timestamp = SharedFormatters.shared.iso8601.string(from: Date())
             .replacingOccurrences(of: ":", with: "-")
 
         let filename: String

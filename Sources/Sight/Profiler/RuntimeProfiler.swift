@@ -3,6 +3,20 @@ import Foundation
 import IOKit.ps
 import os.log
 
+
+#if compiler(>=5.10)
+fileprivate final class SharedFormatters: @unchecked Sendable {
+    static let shared = SharedFormatters()
+    let iso8601 = ISO8601DateFormatter()
+}
+#else
+fileprivate final class SharedFormatters {
+    static let shared = SharedFormatters()
+    let iso8601 = ISO8601DateFormatter()
+}
+#endif
+
+
 // MARK: - System Metrics
 
 /// Current system resource metrics
@@ -620,7 +634,7 @@ public final class RuntimeProfiler: ObservableObject {
             "session_id": sessionId,
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    "timestamp": SharedFormatters.shared.iso8601.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [
