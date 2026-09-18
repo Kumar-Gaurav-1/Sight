@@ -2,6 +2,17 @@ import AppKit
 import Combine
 import Foundation
 
+fileprivate final class MenuBarFormatters: @unchecked Sendable {
+    static let shared = MenuBarFormatters()
+    let shortTimeFormatter: DateFormatter
+
+    private init() {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        self.shortTimeFormatter = formatter
+    }
+}
+
 @MainActor
 public final class MenuBarViewModel: ObservableObject {
 
@@ -170,9 +181,8 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                nextBreakText = "Break at \(formatter.string(from: date))"
+                // ⚡ Bolt Optimization: Use cached formatter instead of instantiating every second
+                nextBreakText = "Break at \(MenuBarFormatters.shared.shortTimeFormatter.string(from: date))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
                 let secs = remainingSeconds % 60
