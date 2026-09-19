@@ -5,6 +5,7 @@ import os.log
 
 
 #if compiler(>=5.10)
+// Cached shared formatters to avoid expensive repeated instantiations during loops and mapping operations.
 nonisolated(unsafe) fileprivate let sharedISO8601Formatter = ISO8601DateFormatter()
 #else
 fileprivate let sharedISO8601Formatter = ISO8601DateFormatter()
