@@ -658,7 +658,8 @@ public final class AdherenceManager: ObservableObject {
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
         let exportData: [String: Any] = [
-            "exportDate": ISO8601DateFormatter().string(from: Date()),
+            // Performance: Use cached SharedFormatters
+            "exportDate": SharedFormatters.shared.isoFormatter.string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -667,7 +668,8 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": ISO8601DateFormatter().string(from: day.date),
+                    // Performance: Use cached SharedFormatters
+                    "date": SharedFormatters.shared.isoFormatter.string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -887,11 +889,10 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
-        let formatter = ISO8601DateFormatter()
-
         for day in stats.sorted(by: { $0.date < $1.date }) {
+            // Performance: Use cached SharedFormatters
             let line =
-                "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
+                "\(SharedFormatters.shared.isoFormatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
             csv += line
         }
 
@@ -921,7 +922,8 @@ public final class AdherenceManager: ObservableObject {
             return nil
         }
 
-        let timestamp = ISO8601DateFormatter().string(from: Date())
+        // Performance: Use cached SharedFormatters
+        let timestamp = SharedFormatters.shared.isoFormatter.string(from: Date())
             .replacingOccurrences(of: ":", with: "-")
 
         let filename: String
