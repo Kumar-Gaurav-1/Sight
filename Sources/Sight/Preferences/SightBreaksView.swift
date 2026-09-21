@@ -235,9 +235,8 @@ struct SightBreaksView: View {
     }
 
     private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        // ⚡ Bolt: Use globally cached DateFormatter for time to avoid repeated expensive allocations
+        return SharedFormatters.shortTime.string(from: date)
     }
 
     // MARK: - Reminders Section
