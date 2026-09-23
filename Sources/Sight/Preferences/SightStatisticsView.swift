@@ -655,6 +655,7 @@ struct AnimatedBarChart: View {
         return max(12, CGFloat(breaks) / CGFloat(maxBreaks) * barMaxHeight)
     }
 
+    @MainActor
     private func barGradient(for day: AdherenceManager.DayStats) -> LinearGradient {
         let color: Color
         if day.breaksCompleted == 0 {
