@@ -97,10 +97,10 @@ public final class MenuBarViewModel: ObservableObject {
             forName: NSNotification.Name("SightBreakEnded"),
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+) { [weak self] _ in
+            guard let self = self else { return }
             // Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                guard let self = self else { return }
+            Task { @MainActor [self] in
                 // Resume timer if we paused it for a manual break
                 if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
                     self.stateMachine.resume()
@@ -170,9 +170,8 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                nextBreakText = "Break at \(formatter.string(from: date))"
+                // Bolt: Use shared formatter to avoid expensive allocations
+                nextBreakText = "Break at \(SharedFormatters.shared.shortTime.string(from: date))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
                 let secs = remainingSeconds % 60
