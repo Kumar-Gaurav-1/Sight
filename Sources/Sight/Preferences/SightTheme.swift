@@ -379,9 +379,16 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-@MainActor
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonView(configuration: configuration)
+    }
+}
+
+struct SightPrimaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
+
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -402,42 +409,53 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-@MainActor
 struct SightSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonView(configuration: configuration)
+    }
+}
+
+struct SightSecondaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .foregroundColor(SightTheme.textPrimary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(
-                isHovered
-                    ? SightTheme.elevatedBackground.opacity(1.2) : SightTheme.elevatedBackground
-            )
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(
-                        isHovered ? SightTheme.accent.opacity(0.5) : SightTheme.border, lineWidth: 1
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isHovered ? SightTheme.elevatedBackground : SightTheme.cardBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(
+                                isHovered ? SightTheme.accent.opacity(0.5) : SightTheme.border, lineWidth: 1
+                            )
                     )
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(SightTheme.springSnappy, value: isHovered)
             .animation(SightTheme.springSnappy, value: configuration.isPressed)
             .onHover { hovering in
-                withAnimation(SightTheme.easeQuick) {
-                    isHovered = hovering
-                }
+                isHovered = hovering
             }
     }
 }
 
 // MARK: - Custom Toggle Style
 
-@MainActor
 struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightToggleView(configuration: configuration)
+    }
+}
+
+struct SightToggleView: View {
+    let configuration: ToggleStyle.Configuration
+
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
@@ -461,9 +479,10 @@ struct SightToggleStyle: ToggleStyle {
                     .shadow(color: SightTheme.shadowSoft, radius: 2, x: 0, y: 1)
                     .offset(x: configuration.isOn ? 9 : -9)
             }
-            .animation(SightTheme.springSnappy, value: configuration.isOn)
             .onTapGesture {
-                configuration.isOn.toggle()
+                withAnimation(SightTheme.springSnappy) {
+                    configuration.isOn.toggle()
+                }
             }
         }
     }
