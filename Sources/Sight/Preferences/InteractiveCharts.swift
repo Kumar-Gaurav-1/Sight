@@ -203,10 +203,9 @@ struct ActivityHeatmapView: View {
     }
 
     private func hourLabel(_ hour: Int) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "ha"
+        // Bolt: Cached DateFormatter
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
-        return formatter.string(from: date)
+        return SightFormatters.shared.ha_nospace.string(from: date)
     }
 
     private func intensityColor(_ intensity: Double) -> Color {
