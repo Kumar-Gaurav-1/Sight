@@ -25,7 +25,6 @@ enum SightTheme {
     // MARK: - Dynamic Accent Colors
 
     /// Primary accent color - dynamic based on user preference (hue slider)
-    @MainActor
     static var accent: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
@@ -62,8 +61,7 @@ enum SightTheme {
     // MARK: - Gradients
 
     /// Primary accent gradient - dynamic based on user preference
-    @MainActor
-    static var accentGradient: LinearGradient {
+    @MainActor static var accentGradient: LinearGradient {
         LinearGradient(
             colors: [accent, accentLight],
             startPoint: .topLeading,
