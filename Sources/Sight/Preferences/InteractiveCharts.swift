@@ -5,7 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
-struct WellnessGaugeView: View {
+@MainActor struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
 
@@ -85,7 +85,7 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
-struct ActivityHeatmapView: View {
+@MainActor struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
 
@@ -207,6 +207,7 @@ struct ActivityHeatmapView: View {
         return SharedFormatters.shared.hourAmPm.string(from: date)
     }
 
+    @MainActor
     private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
@@ -222,7 +223,7 @@ struct ActivityHeatmapView: View {
     }
 }
 
-struct HeatmapCell: View {
+@MainActor struct HeatmapCell: View {
     let value: Int
     let maxValue: Int
     let isSelected: Bool
@@ -276,7 +277,7 @@ struct HeatmapCell: View {
 // MARK: - Time Breakdown Chart
 
 /// Donut chart showing time distribution
-struct TimeBreakdownChart: View {
+@MainActor struct TimeBreakdownChart: View {
     let screenTime: Int
     let breakTime: Int
     let meetingTime: Int
@@ -387,7 +388,7 @@ struct TimeBreakdownChart: View {
 // MARK: - Comparison Bar View
 
 /// Week-over-week comparison visualization
-struct ComparisonBarView: View {
+@MainActor struct ComparisonBarView: View {
     let currentValue: Double
     let previousValue: Double
     let label: String
@@ -503,7 +504,7 @@ struct ComparisonBarView: View {
 // MARK: - Trend Line Chart
 
 /// Simple line chart for showing trends
-struct TrendLineChart: View {
+@MainActor struct TrendLineChart: View {
     let values: [Double]
     let labels: [String]
     let animate: Bool
@@ -632,7 +633,7 @@ struct TrendLineChart: View {
 // MARK: - Insight Card View
 
 /// Card displaying a wellness insight
-struct InsightCardView: View {
+@MainActor struct InsightCardView: View {
     let insight: WellnessInsight
 
     @State private var isHovered = false
@@ -681,7 +682,7 @@ struct InsightCardView: View {
 // MARK: - Nudge Compliance Card
 
 /// Visual representation of nudge compliance
-struct NudgeComplianceCard: View {
+@MainActor struct NudgeComplianceCard: View {
     let blinkShown: Int
     let blinkFollowed: Int
     let postureShown: Int
@@ -730,7 +731,7 @@ struct NudgeComplianceCard: View {
     }
 }
 
-struct ComplianceRing: View {
+@MainActor struct ComplianceRing: View {
     let value: Double  // 0-1
     let icon: String
     let label: String
