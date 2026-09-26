@@ -204,12 +204,11 @@ public enum WellnessInsight: Codable, Identifiable, Equatable {
         case .decliningTrend(let metric, let pct):
             return "📉 \(metric) down \(Int(pct))%"
         case .peakProductivityTime(let hour):
-            let formatter = DateFormatter()
-            formatter.dateFormat = "h a"
+            // ⚡ Bolt: Use globally cached hour formatter for peak focus times
             if let date = Calendar.current.date(
                 bySettingHour: hour, minute: 0, second: 0, of: Date())
             {
-                return "⏰ Peak focus: \(formatter.string(from: date))"
+                return "⏰ Peak focus: \(SharedFormatters.hourAmPm.string(from: date))"
             } else {
                 return "⏰ Peak focus: \(hour):00"
             }
