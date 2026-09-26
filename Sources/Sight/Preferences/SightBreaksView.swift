@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Breaks Settings View
 
+@MainActor
 struct SightBreaksView: View {
     @ObservedObject private var preferences = PreferencesManager.shared
     @State private var selectedTab = 0
@@ -595,6 +596,7 @@ struct SightBreaksView: View {
 
 // MARK: - Sound Setting Row
 
+@MainActor
 struct SoundSettingRow: View {
     let title: String
     let subtitle: String
@@ -673,6 +675,7 @@ struct SoundSettingRow: View {
 
 // MARK: - Interval Card
 
+@MainActor
 struct IntervalCard: View {
     let title: String
     let subtitle: String
@@ -767,6 +770,7 @@ enum SkipDifficulty: String, CaseIterable {
     }
 }
 
+@MainActor
 struct SkipDifficultyCard: View {
     let mode: SkipDifficulty
     let isSelected: Bool
@@ -839,6 +843,7 @@ struct SkipDifficultyCard: View {
 
 // MARK: - Setting Row
 
+@MainActor
 struct SettingRow<Accessory: View>: View {
     let icon: String
     let iconColor: Color
@@ -879,6 +884,7 @@ struct SettingRow<Accessory: View>: View {
 
 // MARK: - Info Card
 
+@MainActor
 struct InfoCard: View {
     let icon: String
     let text: String

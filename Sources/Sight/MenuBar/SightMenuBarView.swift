@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Menu Bar View (macOS System Settings Style - Enhanced)
 
+@MainActor
 struct SightMenuBarView: View {
     @ObservedObject var viewModel: MenuBarViewModel
     @ObservedObject var adherence = AdherenceManager.shared
@@ -308,6 +309,7 @@ struct SightMenuBarView: View {
 
 // MARK: - Status Row (Enhanced)
 
+@MainActor
 private struct StatusRow: View {
     let icon: String
     let iconColor: Color
@@ -352,6 +354,7 @@ private struct StatusRow: View {
 
 // MARK: - Action Row (Enhanced)
 
+@MainActor
 private struct ActionRow: View {
     let icon: String
     let title: String
