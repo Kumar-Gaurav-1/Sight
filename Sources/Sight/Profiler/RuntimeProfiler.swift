@@ -618,9 +618,10 @@ public final class RuntimeProfiler: ObservableObject {
         let payload: [String: Any] = [
             "schema_version": "1.0",
             "session_id": sessionId,
+            // ⚡ Bolt: Use globally cached ISO8601DateFormatter in telemetry mapping
             "events": telemetryEvents.map { event -> [String: Any] in
                 [
-                    "timestamp": ISO8601DateFormatter().string(from: event.timestamp),
+                    "timestamp": SharedFormatters.iso8601.string(from: event.timestamp),
                     "event_type": event.eventType.rawValue,
                     "quality_tier": event.qualityTier.description,
                     "metrics": [

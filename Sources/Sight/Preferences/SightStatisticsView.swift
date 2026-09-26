@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 // MARK: - Enhanced Statistics View
 
 /// Premium statistics screen with comprehensive break activity, wellness metrics, and insights
+@MainActor
 struct SightStatisticsView: View {
     @ObservedObject private var adherence = AdherenceManager.shared
     @State private var selectedPeriod: AdherenceManager.StatsPeriod = .today
@@ -583,16 +584,13 @@ struct DetailStatCard: View {
 
 // MARK: - Animated Bar Chart
 
+@MainActor
 struct AnimatedBarChart: View {
     let dailyStats: [AdherenceManager.DayStats]
     let animate: Bool
 
     private let barMaxHeight: CGFloat = 100
-    private let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f
-    }()
+    // ⚡ Bolt: Removing redundant dayFormatter property; will use SharedFormatters.shortDayName directly
 
     private var maxBreaks: Int {
         max(1, dailyStats.map { $0.breaksCompleted }.max() ?? 1)
@@ -616,7 +614,7 @@ struct AnimatedBarChart: View {
                         .frame(height: animate ? barHeight(for: day.breaksCompleted) : 8)
 
                     // Day
-                    Text(dayFormatter.string(from: day.date))
+                    Text(SharedFormatters.shortDayName.string(from: day.date))
                         .font(
                             .system(
                                 size: 11,
