@@ -281,6 +281,7 @@ extension View {
     }
 
     /// Apply Sight card with hover effect
+    @MainActor
     func sightCardHoverable() -> some View {
         self.modifier(HoverableCardModifier())
     }
@@ -357,6 +358,7 @@ extension View {
 
 // MARK: - Hoverable Card Modifier
 
+@MainActor
 struct HoverableCardModifier: ViewModifier {
     @State private var isHovered = false
 
@@ -381,6 +383,14 @@ struct HoverableCardModifier: ViewModifier {
 
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonView(configuration: configuration)
+    }
+}
+
+@MainActor
+struct SightPrimaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -468,6 +478,7 @@ struct SightToggleStyle: ToggleStyle {
 
 // MARK: - Progress Ring View
 
+@MainActor
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
@@ -501,6 +512,7 @@ struct ProgressRing: View {
 
 // MARK: - Shimmer Effect
 
+@MainActor
 struct ShimmerModifier: ViewModifier {
     @State private var phase: CGFloat = 0
 
@@ -531,6 +543,7 @@ struct ShimmerModifier: ViewModifier {
 }
 
 extension View {
+    @MainActor
     func shimmer() -> some View {
         modifier(ShimmerModifier())
     }
@@ -538,6 +551,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
+@MainActor
 struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color
