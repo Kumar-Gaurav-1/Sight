@@ -184,8 +184,10 @@ public class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] notification in
             guard let self = self else { return }
 
-            Task { @MainActor in
-                let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+            // Extract values outside the concurrent task since Notification is not Sendable
+            let minutes = (notification.userInfo?["minutes"] as? Int) ?? 5
+
+            Task { @MainActor [self] in
                 self.logger.info("Break postponed for \(minutes) minutes via notification")
                 // Postpone the break by adding time to the work interval
                 self.stateMachine.postpone(minutes: minutes)
