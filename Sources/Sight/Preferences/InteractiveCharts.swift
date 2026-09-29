@@ -208,6 +208,7 @@ struct ActivityHeatmapView: View {
         return SharedFormatters.shared.shortHourAmPm.string(from: date)
     }
 
+    @MainActor
     private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
