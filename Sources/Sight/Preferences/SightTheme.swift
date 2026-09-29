@@ -31,7 +31,6 @@ enum SightTheme {
     }
 
     /// Accent light variant - dynamic based on user preference
-    @MainActor
     static var accentLight: Color {
         let hue = PreferencesManager.shared.accentHue
         return Color(hue: hue, saturation: 0.4, brightness: 1.0)
