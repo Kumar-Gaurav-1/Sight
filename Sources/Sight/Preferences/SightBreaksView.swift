@@ -234,10 +234,9 @@ struct SightBreaksView: View {
         }
     }
 
+    // ⚡ Bolt: Use globally cached DateFormatter to avoid expensive allocations in render loop
     private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        return SharedFormatters.shared.shortTime.string(from: date)
     }
 
     // MARK: - Reminders Section
