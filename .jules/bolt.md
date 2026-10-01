@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - Self-referential Singletons in Auto-refactoring
+**Learning:** When using an automated script to replace local instances (e.g., `ISO8601DateFormatter()`) with a shared singleton across the codebase, the script must explicitly exclude the file where the singleton is defined. Otherwise, the script replaces the singleton's internal initialization closure with a self-reference, causing infinite recursion and crashes on first use.
+**Action:** Always exclude the newly created utility files (or the specific lines defining the singleton) when running global regex replacements, or write the new utility file *after* running the global replacement script.
