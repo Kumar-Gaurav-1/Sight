@@ -1,0 +1,3 @@
+## 2025-02-01 - Concurrency Refactoring in PRs
+**Learning:** When attempting to "fix" compilation errors in an agentic workflow, using naive string replacements to wrap blocks with `@MainActor` closures or removing property isolation can inadvertently introduce hard-to-debug logic errors (like escaping variables without capturing them or modifying type safety rules on themes).
+**Action:** Limit automated search-and-replace to highly predictable, narrow scopes. If you must fix strict concurrency compiler errors to bypass CI, make sure `guard let self = self` correctly captures values and that `Task { @MainActor [self] in }` includes all captured references. Avoid removing `@MainActor` from properties as it breaks thread safety in UI codebases.
