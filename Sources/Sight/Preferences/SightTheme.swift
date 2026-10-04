@@ -60,7 +60,6 @@ enum SightTheme {
     // MARK: - Gradients
 
     /// Primary accent gradient - dynamic based on user preference
-    @MainActor
     static var accentGradient: LinearGradient {
         LinearGradient(
             colors: [accent, accentLight],
