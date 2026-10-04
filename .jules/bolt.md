@@ -1,0 +1,3 @@
+## 2024-10-04 - Cache DateFormatter instances in loops
+**Learning:** Found multiple places in the Sight app codebase (e.g., `MenuBarViewModel`, `AdherenceManager`, `RuntimeProfiler`) where `DateFormatter` and `ISO8601DateFormatter` were being instantiated inside loops, computed properties, or frequently called methods (like `updateDerivedProperties()` which runs every second). DateFormatters are expensive to initialize and re-configuring them is not thread-safe.
+**Action:** Introduced a `SharedFormatters` singleton class marked as `@unchecked Sendable` to globally cache pre-configured formatters. This reduces CPU load and memory allocations, especially in the tight UI loops of `MenuBarViewModel` and data export methods.
