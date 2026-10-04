@@ -99,8 +99,8 @@ public final class MenuBarViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // Dispatch to MainActor for thread safety
-            Task { @MainActor in
-                guard let self = self else { return }
+            guard let self = self else { return }
+            Task { @MainActor [self] in
                 // Resume timer if we paused it for a manual break
                 if self.stateMachine.isPaused && self.stateMachine.pauseSource == .user {
                     self.stateMachine.resume()
@@ -170,8 +170,7 @@ public final class MenuBarViewModel: ObservableObject {
             // Calculate ETA with granular countdown
             if remainingSeconds > 120 {
                 let date = Date().addingTimeInterval(TimeInterval(remainingSeconds))
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
+                let formatter = SharedFormatters.shared.shortTime
                 nextBreakText = "Break at \(formatter.string(from: date))"
             } else if remainingSeconds > 30 {
                 let mins = remainingSeconds / 60
