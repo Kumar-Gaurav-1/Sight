@@ -379,29 +379,36 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-@MainActor struct SightPrimaryButtonStyle: ButtonStyle {
+struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Group {
-                    if configuration.isPressed {
-                        SightTheme.accent.opacity(0.8)
-                    } else {
-                        SightTheme.accentGradient
+        StyleBody(configuration: configuration)
+    }
+
+    struct StyleBody: View {
+        let configuration: ButtonStyle.Configuration
+        var body: some View {
+            configuration.label
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Group {
+                        if configuration.isPressed {
+                            SightTheme.accent.opacity(0.8)
+                        } else {
+                            SightTheme.accentGradient
+                        }
                     }
-                }
-            )
-            .cornerRadius(8)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(SightTheme.springSnappy, value: configuration.isPressed)
+                )
+                .cornerRadius(8)
+                .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+                .animation(SightTheme.springSnappy, value: configuration.isPressed)
+        }
     }
 }
 
-@MainActor struct SightSecondaryButtonStyle: ButtonStyle {
+struct SightSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
@@ -433,7 +440,7 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Toggle Style
 
-@MainActor struct SightToggleStyle: ToggleStyle {
+struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack {
             configuration.label
