@@ -381,23 +381,30 @@ struct HoverableCardModifier: ViewModifier {
 
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Group {
-                    if configuration.isPressed {
-                        SightTheme.accent.opacity(0.8)
-                    } else {
-                        SightTheme.accentGradient
+        StyleBody(configuration: configuration)
+    }
+
+    struct StyleBody: View {
+        let configuration: ButtonStyle.Configuration
+        var body: some View {
+            configuration.label
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Group {
+                        if configuration.isPressed {
+                            SightTheme.accent.opacity(0.8)
+                        } else {
+                            SightTheme.accentGradient
+                        }
                     }
-                }
-            )
-            .cornerRadius(8)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(SightTheme.springSnappy, value: configuration.isPressed)
+                )
+                .cornerRadius(8)
+                .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+                .animation(SightTheme.springSnappy, value: configuration.isPressed)
+        }
     }
 }
 
