@@ -1,0 +1,3 @@
+## 2024-10-06 - DateFormatter Instantiation in Loops and Hot Paths
+**Learning:** Found multiple instances of `DateFormatter` and `ISO8601DateFormatter` being instantiated inside loops or frequently called methods (like `exportToCSV` and UI formatting helpers). Instantiating formatters is computationally expensive in Swift.
+**Action:** Created a `SharedFormatters` singleton (`@unchecked Sendable`) to cache globally shared `DateFormatter` instances with pre-configured date/time styles. Replaced local instantiations across the codebase with this cache to reduce memory allocation overhead and improve execution speed, particularly in iterative data processing.
