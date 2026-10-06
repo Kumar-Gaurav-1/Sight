@@ -235,8 +235,7 @@ struct SightBreaksView: View {
     }
 
     private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
+        let formatter = SharedFormatters.shared.shortTime
         return formatter.string(from: date)
     }
 
