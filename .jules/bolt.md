@@ -1,0 +1,3 @@
+## 2024-05-18 - Globally cached DateFormatters for Performance
+**Learning:** `DateFormatter` and `ISO8601DateFormatter` initialization in Swift is surprisingly expensive. Creating new instances inside tight loops (like chart rendering or CSV exporting) or frequently called methods (like `updateTimer()` in `MenuBarViewModel`) causes unnecessary CPU overhead.
+**Action:** Created a globally shared `SharedFormatters` class annotated with `@unchecked Sendable` to provide singleton access to commonly used date formatters. Replaced local initializations across the codebase (e.g. `AdherenceManager`, `RuntimeProfiler`, `InteractiveCharts`, `SightStatisticsView`, `InsightsEngine`, `MenuBarViewModel`) with `SharedFormatters.shared.<formatter>` access.
