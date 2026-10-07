@@ -280,6 +280,7 @@ struct HeatmapCell: View {
 // MARK: - Time Breakdown Chart
 
 /// Donut chart showing time distribution
+@MainActor
 struct TimeBreakdownChart: View {
     let screenTime: Int
     let breakTime: Int
