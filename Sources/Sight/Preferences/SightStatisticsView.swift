@@ -583,16 +583,14 @@ struct DetailStatCard: View {
 
 // MARK: - Animated Bar Chart
 
+@MainActor
 struct AnimatedBarChart: View {
     let dailyStats: [AdherenceManager.DayStats]
     let animate: Bool
 
     private let barMaxHeight: CGFloat = 100
-    private let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f
-    }()
+    // Bolt: Cache DateFormatter instances in loops/frequent methods
+    private let dayFormatter = SharedFormatters.shared.shortDay
 
     private var maxBreaks: Int {
         max(1, dailyStats.map { $0.breaksCompleted }.max() ?? 1)
