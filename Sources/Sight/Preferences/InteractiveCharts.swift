@@ -203,8 +203,8 @@ struct ActivityHeatmapView: View {
     }
 
     private func hourLabel(_ hour: Int) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "ha"
+        // Bolt: Cache DateFormatter instances in loops/frequent methods
+        let formatter = SharedFormatters.shared.hourAMPM
         let date = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
         return formatter.string(from: date)
     }
