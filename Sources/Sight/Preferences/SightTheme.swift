@@ -402,7 +402,6 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
-    @State private var isHovered = false
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

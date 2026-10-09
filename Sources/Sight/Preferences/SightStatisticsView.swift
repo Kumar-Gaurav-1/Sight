@@ -583,6 +583,7 @@ struct DetailStatCard: View {
 
 // MARK: - Animated Bar Chart
 
+@MainActor
 struct AnimatedBarChart: View {
     let dailyStats: [AdherenceManager.DayStats]
     let animate: Bool
