@@ -275,7 +275,7 @@ import SwiftUI
 
 // MARK: - Link Row
 
-struct LinkRow: View {
+@MainActor struct LinkRow: View {
     let icon: String
     let title: String
     let url: String

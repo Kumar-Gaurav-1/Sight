@@ -379,8 +379,10 @@ struct HoverableCardModifier: ViewModifier {
 
 // MARK: - Custom Button Styles
 
-struct SightPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
+@MainActor struct SightPrimaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
+
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -401,10 +403,17 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-struct SightSecondaryButtonStyle: ButtonStyle {
+struct SightPrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonView(configuration: configuration)
+    }
+}
+
+@MainActor struct SightSecondaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -424,17 +433,23 @@ struct SightSecondaryButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .animation(SightTheme.springSnappy, value: configuration.isPressed)
             .onHover { hovering in
-                withAnimation(SightTheme.easeQuick) {
-                    isHovered = hovering
-                }
+                isHovered = hovering
             }
+    }
+}
+
+struct SightSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonView(configuration: configuration)
     }
 }
 
 // MARK: - Custom Toggle Style
 
-struct SightToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
+@MainActor struct SightToggleStyleView: View {
+    let configuration: ToggleStyle.Configuration
+
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
@@ -455,7 +470,7 @@ struct SightToggleStyle: ToggleStyle {
                 Circle()
                     .fill(.white)
                     .frame(width: 22, height: 22)
-                    .shadow(color: SightTheme.shadowSoft, radius: 2, x: 0, y: 1)
+                    .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                     .offset(x: configuration.isOn ? 9 : -9)
             }
             .animation(SightTheme.springSnappy, value: configuration.isOn)
@@ -466,9 +481,15 @@ struct SightToggleStyle: ToggleStyle {
     }
 }
 
+struct SightToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SightToggleStyleView(configuration: configuration)
+    }
+}
+
 // MARK: - Progress Ring View
 
-struct ProgressRing: View {
+@MainActor struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
     let gradient: LinearGradient?
@@ -538,7 +559,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
-struct AnimatedCheckmark: View {
+@MainActor struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color
 
