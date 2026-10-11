@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - About View
 
 /// Premium about screen with app info, credits, and links
-struct SightAboutView: View {
+@MainActor struct SightAboutView: View {
     @State private var logoHovered = false
     @State private var showVersion = false
 
@@ -245,7 +245,7 @@ struct SightAboutView: View {
 
 // MARK: - Feature Row
 
-struct FeatureRow: View {
+@MainActor struct FeatureRow: View {
     let icon: String
     let title: String
     let description: String
@@ -275,7 +275,7 @@ struct FeatureRow: View {
 
 // MARK: - Link Row
 
-struct LinkRow: View {
+@MainActor struct LinkRow: View {
     let icon: String
     let title: String
     let url: String
