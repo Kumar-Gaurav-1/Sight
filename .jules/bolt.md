@@ -1,0 +1,3 @@
+## 2024-10-12 - Cache DateFormatter instances in loops
+**Learning:** Found multiple places in the codebase where DateFormatter and ISO8601DateFormatter were being repeatedly instantiated inside functions, computed properties, or even tight loops (e.g., when exporting stats as CSV/JSON or generating chart labels). DateFormatter initialization is notoriously slow in Swift.
+**Action:** Created a `SharedFormatters` class with globally shared `@unchecked Sendable` DateFormatter instances and replaced local initializations with references to the shared instances to significantly reduce CPU overhead and memory allocations.
