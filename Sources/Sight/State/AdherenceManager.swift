@@ -568,9 +568,7 @@ public final class AdherenceManager: ObservableObject {
 
         // Find best day
         let bestDayStats = thisWeekStats.max(by: { $0.dailyScore < $1.dailyScore })
-        let dayFormatter = DateFormatter()
-        dayFormatter.dateFormat = "EEEE"
-        let bestDayName = bestDayStats.map { dayFormatter.string(from: $0.date) } ?? "N/A"
+        let bestDayName = bestDayStats.map { SharedFormatters.shared.dayOfWeekFull.string(from: $0.date) } ?? "N/A"
 
         // Calculate trend
         let lastWeekAvg =
