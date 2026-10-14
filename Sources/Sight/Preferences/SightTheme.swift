@@ -26,14 +26,16 @@ enum SightTheme {
 
     /// Primary accent color - dynamic based on user preference (hue slider)
     static var accent: Color {
-        let hue = MainActor.assumeIsolated { PreferencesManager.shared.accentHue }
-        return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
+        let hue = UserDefaults.standard.double(forKey: "accentHue")
+        let actualHue = UserDefaults.standard.object(forKey: "accentHue") == nil ? 0.52 : hue
+        return Color(hue: actualHue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
     }
 
     /// Accent light variant - dynamic based on user preference
     static var accentLight: Color {
-        let hue = MainActor.assumeIsolated { PreferencesManager.shared.accentHue }
-        return Color(hue: hue, saturation: 0.4, brightness: 1.0)
+        let hue = UserDefaults.standard.double(forKey: "accentHue")
+        let actualHue = UserDefaults.standard.object(forKey: "accentHue") == nil ? 0.52 : hue
+        return Color(hue: actualHue, saturation: 0.4, brightness: 1.0)
     }
 
     /// Secondary text color (System Secondary)
