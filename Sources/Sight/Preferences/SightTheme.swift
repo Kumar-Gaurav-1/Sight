@@ -25,17 +25,17 @@ enum SightTheme {
     // MARK: - Dynamic Accent Colors
 
     /// Primary accent color - dynamic based on user preference (hue slider)
-    @MainActor
     static var accent: Color {
-        let hue = PreferencesManager.shared.accentHue
-        return Color(hue: hue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
+        let hue = UserDefaults.standard.double(forKey: "accentHue")
+        let actualHue = UserDefaults.standard.object(forKey: "accentHue") == nil ? 0.52 : hue
+        return Color(hue: actualHue, saturation: 0.7, brightness: 0.9)  // Slightly brighter for visibility
     }
 
     /// Accent light variant - dynamic based on user preference
-    @MainActor
     static var accentLight: Color {
-        let hue = PreferencesManager.shared.accentHue
-        return Color(hue: hue, saturation: 0.4, brightness: 1.0)
+        let hue = UserDefaults.standard.double(forKey: "accentHue")
+        let actualHue = UserDefaults.standard.object(forKey: "accentHue") == nil ? 0.52 : hue
+        return Color(hue: actualHue, saturation: 0.4, brightness: 1.0)
     }
 
     /// Secondary text color (System Secondary)
@@ -62,7 +62,6 @@ enum SightTheme {
     // MARK: - Gradients
 
     /// Primary accent gradient - dynamic based on user preference
-    @MainActor
     static var accentGradient: LinearGradient {
         LinearGradient(
             colors: [accent, accentLight],
