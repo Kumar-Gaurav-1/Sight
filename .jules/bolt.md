@@ -1,0 +1,3 @@
+## 2024-06-25 - DateFormatter Overhead in Loops
+**Learning:** Instantiating `DateFormatter` and `ISO8601DateFormatter` within tight loops (like iterating over historical stats in `AdherenceManager`) or frequently refreshed properties (like the `MenuBarViewModel` timer updates) is a significant performance bottleneck in Swift. Standard SwiftUI rendering makes this even worse by re-instantiating them repeatedly.
+**Action:** Always create a centralized, globally shared cache (e.g., `SharedFormatters: @unchecked Sendable`) to initialize formatters exactly once. Reuse these instances for read-only operations across the entire app.
