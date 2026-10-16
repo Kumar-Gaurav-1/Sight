@@ -33,15 +33,15 @@ public final class SharedFormatters: @unchecked Sendable {
         return formatter
     }()
 
-    public let shortTime: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
     public let haNoSpace: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "ha"
+        return formatter
+    }()
+
+    public let shortTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
         return formatter
     }()
 

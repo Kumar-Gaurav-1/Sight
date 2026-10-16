@@ -882,11 +882,9 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
-        let formatter = ISO8601DateFormatter()
-
         for day in stats.sorted(by: { $0.date < $1.date }) {
             let line =
-                "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
+                "\(SharedFormatters.shared.iso8601.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
             csv += line
         }
 
