@@ -1,0 +1,3 @@
+## 2024-10-17 - Globably Caching DateFormatters
+**Learning:** `DateFormatter` instantiations are expensive. When caching them across the entire app as a globally shared object, ensure that different styles (e.g., `"ha"` vs `"h a"`) get their own specific formatters to preserve localization rather than relying on string replacement. Also, when using `@unchecked Sendable` singleton or static instances, avoid duplicating a wrapper in multiple files to preserve DRY principles, instead opt for a global `SharedFormatters` util.
+**Action:** Always create a `Utils/SharedFormatters.swift` containing static cached `DateFormatter` configurations for expensive reuse in SwiftUI rendering loops, avoiding duplicate `fileprivate` singletons across files.
