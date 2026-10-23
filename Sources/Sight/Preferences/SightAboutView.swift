@@ -245,7 +245,7 @@ import SwiftUI
 
 // MARK: - Feature Row
 
-struct FeatureRow: View {
+@MainActor struct FeatureRow: View {
     let icon: String
     let title: String
     let description: String
