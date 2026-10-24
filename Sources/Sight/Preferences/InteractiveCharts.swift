@@ -5,20 +5,20 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
-struct WellnessGaugeView: View {
+@MainActor struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
 
     @State private var animatedScore: Double = 0
 
-    private var scoreColor: Color {
+    @MainActor private var scoreColor: Color {
         if score >= 80 { return SightTheme.success }
         if score >= 60 { return SightTheme.accent }
         if score >= 40 { return SightTheme.warning }
         return SightTheme.danger
     }
 
-    private var scoreGradient: AngularGradient {
+    @MainActor private var scoreGradient: AngularGradient {
         AngularGradient(
             gradient: Gradient(colors: [
                 SightTheme.danger,
@@ -207,7 +207,7 @@ struct ActivityHeatmapView: View {
         return Formatters.shared.ha.string(from: date).replacingOccurrences(of: " ", with: "")
     }
 
-    private func intensityColor(_ intensity: Double) -> Color {
+    @MainActor private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
         } else if intensity < 0.3 {
