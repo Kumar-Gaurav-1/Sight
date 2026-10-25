@@ -145,7 +145,6 @@ enum SightTheme {
     }
 
     /// Get gradient for current user preference
-    @MainActor
     static var breakGradient: LinearGradient {
         let presetName = PreferencesManager.shared.breakGradientPreset
         let preset = GradientPreset(rawValue: presetName) ?? .sunset
@@ -156,7 +155,6 @@ enum SightTheme {
     static let glassBackground = Color.white.opacity(0.08)
 
     /// Subtle glow color using accent
-    @MainActor
     static var glowColor: Color {
         accent.opacity(0.4)
     }
@@ -257,7 +255,6 @@ enum SightTheme {
 
 extension SightTheme {
     /// Check if reduced motion is enabled
-    @MainActor
     static var reduceMotion: Bool {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
@@ -381,6 +378,14 @@ struct HoverableCardModifier: ViewModifier {
 
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonView(configuration: configuration)
+    }
+}
+
+@MainActor
+struct SightPrimaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -402,9 +407,17 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonView(configuration: configuration)
+    }
+}
+
+@MainActor
+struct SightSecondaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
 
-    func makeBody(configuration: Configuration) -> some View {
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -435,6 +448,14 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightToggleView(configuration: configuration)
+    }
+}
+
+@MainActor
+struct SightToggleView: View {
+    let configuration: ToggleStyle.Configuration
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
@@ -468,6 +489,7 @@ struct SightToggleStyle: ToggleStyle {
 
 // MARK: - Progress Ring View
 
+@MainActor
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
@@ -538,6 +560,7 @@ extension View {
 
 // MARK: - Animated Checkmark
 
+@MainActor
 struct AnimatedCheckmark: View {
     @State private var trimEnd: CGFloat = 0
     let color: Color

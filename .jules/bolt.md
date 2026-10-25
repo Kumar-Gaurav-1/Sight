@@ -1,0 +1,3 @@
+## 2023-10-25 - Cache DateFormatter instances across codebase
+**Learning:** Instantiating `DateFormatter` repeatedly (e.g. inside loops, SwiftUI render bodies, or getters) is computationally expensive in Swift and causes measurable performance regression. In macOS/SwiftUI apps, creating them frequently on-demand can lead to UI stutters.
+**Action:** Always extract `DateFormatter` instantiations into a single globally shared utility class (using `@unchecked Sendable` singleton if appropriate, or carefully configuring static properties). Ensure properties like `.timeZone` and `.locale` are set to `.autoupdatingCurrent` so they dynamically adapt to system changes while remaining cached.

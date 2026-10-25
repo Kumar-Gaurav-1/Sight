@@ -5,6 +5,7 @@ import os.log
 
 /// Manages user preferences with UserDefaults persistence
 /// Provides JSON schema output for external tools
+@MainActor
 public final class PreferencesManager: ObservableObject {
 
     // MARK: - UserDefaults Keys
@@ -865,7 +866,7 @@ public final class PreferencesManager: ObservableObject {
                 "soundEnabled": soundEnabled,
             ],
             "metadata": [
-                "lastModified": ISO8601DateFormatter().string(from: Date()),
+                "lastModified": SharedFormatters.shared.iso8601Formatter.string(from: Date()),
                 "platform": "macOS",
             ],
         ]
