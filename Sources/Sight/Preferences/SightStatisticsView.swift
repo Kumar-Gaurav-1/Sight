@@ -588,11 +588,8 @@ struct AnimatedBarChart: View {
     let animate: Bool
 
     private let barMaxHeight: CGFloat = 100
-    private let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f
-    }()
+    // ⚡ Bolt: Cache DateFormatter instances to avoid expensive instantiation
+    private let dayFormatter = SharedFormatters.shared.shortDayNameFormatter
 
     private var maxBreaks: Int {
         max(1, dailyStats.map { $0.breaksCompleted }.max() ?? 1)
