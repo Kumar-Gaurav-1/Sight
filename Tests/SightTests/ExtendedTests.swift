@@ -62,7 +62,7 @@ final class MockRendererAPI: RendererAPI {
 
 // MARK: - Timer State Extended Tests
 
-final class TimerStateExtendedTests: XCTestCase {
+@MainActor final class TimerStateExtendedTests: XCTestCase {
     
     // MARK: - State Transition Tests
     
@@ -191,11 +191,11 @@ final class TimerStateExtendedTests: XCTestCase {
 
 // MARK: - Renderer API Mock Tests
 
-final class RendererAPIMockTests: XCTestCase {
+@MainActor final class RendererAPIMockTests: XCTestCase {
     
     var mockRenderer: MockRendererAPI!
     
-    override func setUp() {
+    @MainActor override func setUp() {
         super.setUp()
         mockRenderer = MockRendererAPI()
     }
@@ -261,7 +261,7 @@ final class RendererAPIMockTests: XCTestCase {
 
 // MARK: - Smart Pause Extended Tests
 
-final class SmartPauseExtendedTests: XCTestCase {
+@MainActor final class SmartPauseExtendedTests: XCTestCase {
     
     func testPauseSignalCombinedWeights() {
         // Simulate multiple signals
@@ -347,7 +347,7 @@ final class SmartPauseExtendedTests: XCTestCase {
 
 // MARK: - Integration Tests
 
-final class IntegrationTests: XCTestCase {
+@MainActor final class IntegrationTests: XCTestCase {
     
     func testTimerStateTransitions() {
         let timer = TimerStateMachine(rendererEnabled: false)

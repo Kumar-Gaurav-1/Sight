@@ -1,19 +1,19 @@
 import XCTest
 @testable import Sight
 
-final class PreferencesManagerTests: XCTestCase {
+@MainActor final class PreferencesManagerTests: XCTestCase {
     
     var preferences: PreferencesManager!
     var testDefaults: UserDefaults!
     
-    override func setUp() {
+    @MainActor override func setUp() {
         super.setUp()
         testDefaults = UserDefaults(suiteName: "com.sight.tests")
         testDefaults.removePersistentDomain(forName: "com.sight.tests")
         preferences = PreferencesManager(defaults: testDefaults)
     }
     
-    override func tearDown() {
+    @MainActor override func tearDown() {
         testDefaults.removePersistentDomain(forName: "com.sight.tests")
         testDefaults = nil
         preferences = nil

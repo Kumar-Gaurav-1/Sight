@@ -1,7 +1,7 @@
 import XCTest
 @testable import Sight
 
-final class FloatingWindowTests: XCTestCase {
+@MainActor final class FloatingWindowTests: XCTestCase {
     
     // MARK: - Spring Physics Tests
     
