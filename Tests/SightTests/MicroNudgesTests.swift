@@ -2,7 +2,7 @@ import XCTest
 
 @testable import Sight
 
-final class MicroNudgesTests: XCTestCase {
+@MainActor final class MicroNudgesTests: XCTestCase {
 
     // MARK: - Nudge Type Tests
 

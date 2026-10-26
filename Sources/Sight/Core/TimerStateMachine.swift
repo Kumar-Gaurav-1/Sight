@@ -126,9 +126,8 @@ public final class TimerStateMachine: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // SECURITY: Dispatch to MainActor for thread safety
-            guard let self = self else { return }
-            Task { @MainActor [self] in
-                self.handleSystemWake()
+            Task { @MainActor in
+                self?.handleSystemWake()
             }
         }
 
@@ -139,9 +138,8 @@ public final class TimerStateMachine: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             // SECURITY: Dispatch to MainActor for thread safety
-            guard let self = self else { return }
-            Task { @MainActor [self] in
-                self.handleSystemSleep()
+            Task { @MainActor in
+                self?.handleSystemSleep()
             }
         }
     }

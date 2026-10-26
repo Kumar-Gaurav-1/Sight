@@ -1,7 +1,7 @@
 import XCTest
 @testable import Sight
 
-final class RuntimeProfilerTests: XCTestCase {
+@MainActor final class RuntimeProfilerTests: XCTestCase {
     
     // MARK: - Quality Tier Tests
     

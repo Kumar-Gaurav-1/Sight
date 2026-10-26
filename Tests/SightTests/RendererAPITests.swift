@@ -1,7 +1,7 @@
 import XCTest
 @testable import Sight
 
-final class RendererAPITests: XCTestCase {
+@MainActor final class RendererAPITests: XCTestCase {
     
     // MARK: - BreakStyle Tests
     

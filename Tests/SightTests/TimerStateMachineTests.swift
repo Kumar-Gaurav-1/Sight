@@ -1,17 +1,17 @@
 import XCTest
 @testable import Sight
 
-final class TimerStateMachineTests: XCTestCase {
+@MainActor final class TimerStateMachineTests: XCTestCase {
     
     var stateMachine: TimerStateMachine!
     
-    override func setUp() {
+    @MainActor override func setUp() {
         super.setUp()
         // Disable renderer to prevent UNUserNotificationCenter crashes
         stateMachine = TimerStateMachine(configuration: .debug, rendererEnabled: false)
     }
     
-    override func tearDown() {
+    @MainActor override func tearDown() {
         stateMachine.stop()
         stateMachine = nil
         super.tearDown()

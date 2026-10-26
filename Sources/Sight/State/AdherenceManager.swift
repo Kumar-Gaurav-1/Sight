@@ -568,7 +568,9 @@ public final class AdherenceManager: ObservableObject {
 
         // Find best day
         let bestDayStats = thisWeekStats.max(by: { $0.dailyScore < $1.dailyScore })
-        let bestDayName = bestDayStats.map { SharedFormatters.shared.eeee.string(from: $0.date) } ?? "N/A"
+        let dayFormatter = DateFormatter()
+        dayFormatter.dateFormat = "EEEE"
+        let bestDayName = bestDayStats.map { dayFormatter.string(from: $0.date) } ?? "N/A"
 
         // Calculate trend
         let lastWeekAvg =
@@ -656,7 +658,7 @@ public final class AdherenceManager: ObservableObject {
     /// Export all statistics as JSON
     public func exportAsJSON() -> Data? {
         let exportData: [String: Any] = [
-            "exportDate": SharedFormatters.shared.iso8601.string(from: Date()),
+            "exportDate": ISO8601DateFormatter().string(from: Date()),
             "version": 1,
             "summary": [
                 "totalDays": stats.count,
@@ -665,7 +667,7 @@ public final class AdherenceManager: ObservableObject {
             ],
             "days": stats.map { day -> [String: Any] in
                 [
-                    "date": SharedFormatters.shared.iso8601.string(from: day.date),
+                    "date": ISO8601DateFormatter().string(from: day.date),
                     "breaksCompleted": day.breaksCompleted,
                     "breaksSkipped": day.breaksSkipped,
                     "nudgesFollowed": day.nudgesFollowed,
@@ -695,8 +697,11 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
 
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(SharedFormatters.shared.yyyyMMdd.string(from: day.date)),"
+            csv += "\(dateFormatter.string(from: day.date)),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
             csv += "\(day.nudgesFollowed),"
@@ -882,9 +887,11 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Total Minutes,Daily Score\n"
 
+        let formatter = ISO8601DateFormatter()
+
         for day in stats.sorted(by: { $0.date < $1.date }) {
             let line =
-                "\(SharedFormatters.shared.iso8601.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
+                "\(formatter.string(from: day.date)),\(day.breaksCompleted),\(day.breaksSkipped),\(day.nudgesFollowed),\(day.nudgesSnoozed),\(day.totalBreakMinutes),\(String(format: "%.1f", day.dailyScore))\n"
             csv += line
         }
 
@@ -914,7 +921,7 @@ public final class AdherenceManager: ObservableObject {
             return nil
         }
 
-        let timestamp = SharedFormatters.shared.iso8601.string(from: Date())
+        let timestamp = ISO8601DateFormatter().string(from: Date())
             .replacingOccurrences(of: ":", with: "-")
 
         let filename: String

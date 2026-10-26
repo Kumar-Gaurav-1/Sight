@@ -1,7 +1,7 @@
 import XCTest
 @testable import Sight
 
-final class SmartPauseTests: XCTestCase {
+@MainActor final class SmartPauseTests: XCTestCase {
     
     // MARK: - Pause Signal Tests
     

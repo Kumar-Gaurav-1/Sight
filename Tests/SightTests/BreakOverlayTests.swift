@@ -1,7 +1,7 @@
 import XCTest
 @testable import Sight
 
-final class BreakOverlayTests: XCTestCase {
+@MainActor final class BreakOverlayTests: XCTestCase {
     
     // MARK: - Quality Tier Tests
     

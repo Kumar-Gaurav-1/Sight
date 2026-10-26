@@ -1,7 +1,7 @@
 import XCTest
 @testable import Sight
 
-final class AccessibilityTests: XCTestCase {
+@MainActor final class AccessibilityTests: XCTestCase {
     
     // MARK: - Accessibility Mode Tests
     
