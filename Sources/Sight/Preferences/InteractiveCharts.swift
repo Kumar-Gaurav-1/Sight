@@ -6,7 +6,6 @@ import SwiftUI
 
 /// Animated circular gauge showing wellness score
 @MainActor
-@MainActor
 struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
@@ -87,7 +86,6 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
-@MainActor
 @MainActor
 struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
@@ -213,7 +211,6 @@ struct ActivityHeatmapView: View {
     }
 
     @MainActor
-    @MainActor
     private func intensityColor(_ intensity: Double) -> Color {
         if intensity < 0.1 {
             return Color.white.opacity(0.05)
@@ -229,7 +226,6 @@ struct ActivityHeatmapView: View {
     }
 }
 
-@MainActor
 @MainActor
 struct HeatmapCell: View {
     let value: Int
@@ -285,7 +281,6 @@ struct HeatmapCell: View {
 // MARK: - Time Breakdown Chart
 
 /// Donut chart showing time distribution
-@MainActor
 @MainActor
 struct TimeBreakdownChart: View {
     let screenTime: Int
@@ -398,7 +393,6 @@ struct TimeBreakdownChart: View {
 // MARK: - Comparison Bar View
 
 /// Week-over-week comparison visualization
-@MainActor
 @MainActor
 struct ComparisonBarView: View {
     let currentValue: Double
@@ -516,7 +510,6 @@ struct ComparisonBarView: View {
 // MARK: - Trend Line Chart
 
 /// Simple line chart for showing trends
-@MainActor
 @MainActor
 struct TrendLineChart: View {
     let values: [Double]
@@ -648,7 +641,6 @@ struct TrendLineChart: View {
 
 /// Card displaying a wellness insight
 @MainActor
-@MainActor
 struct InsightCardView: View {
     let insight: WellnessInsight
 
@@ -699,7 +691,6 @@ struct InsightCardView: View {
 
 /// Visual representation of nudge compliance
 @MainActor
-@MainActor
 struct NudgeComplianceCard: View {
     let blinkShown: Int
     let blinkFollowed: Int
@@ -749,7 +740,6 @@ struct NudgeComplianceCard: View {
     }
 }
 
-@MainActor
 @MainActor
 struct ComplianceRing: View {
     let value: Double  // 0-1
