@@ -9,3 +9,11 @@
 ## 2024-10-28 - Swift 5.10 vs Older Compiler Syntax Errors
 **Learning:** In Swift environments where `nonisolated(unsafe)` causes syntax errors (e.g., yielding 'expected var keyword in property declaration'), the compiler version is older than Swift 5.10.
 **Action:** Wrap the declaration in `#if compiler(>=5.10)` blocks with an `#else` fallback matching the original declaration (e.g., standard `public static var`). Do not arbitrarily change a `var` to a `let` to fix the syntax error, as this breaks initialization patterns.
+
+## 2024-10-28 - Implicit @MainActor vs Strict Concurrency
+**Learning:** If standard SwiftUI views trigger "main actor-isolated static property can not be referenced from a non-isolated context" for things like `SightTheme.accent`, explicitly annotate the entire `View` struct with `@MainActor`.
+**Action:** When fixing actor isolation errors in a SwiftUI file containing multiple view structs, ensure `@MainActor` is applied to all relevant view structs within the file (e.g., helper subviews like `ScoreGaugeView`, `TrendSparklineView`), not just the primary view.
+
+## 2024-10-28 - NotificationCenter Observers in Swift 6
+**Learning:** In Swift 6 strict concurrency, `Foundation.Notification` does not conform to the `Sendable` protocol. Capturing it in a `@Sendable` closure (`NotificationCenter.default.addObserver`) paired with an internal `Task` causes errors.
+**Action:** Ensure non-sendable types are processed synchronously outside the Task, passing only the extracted, sendable values (e.g., primitive integers like `minutes`) into the concurrent context.

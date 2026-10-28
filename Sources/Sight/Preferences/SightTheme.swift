@@ -383,7 +383,6 @@ struct SightPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-@MainActor
 struct SightPrimaryButtonView: View {
     let configuration: ButtonStyle.Configuration
     var body: some View {
@@ -413,7 +412,6 @@ struct SightSecondaryButtonStyle: ButtonStyle {
     }
 }
 
-@MainActor
 struct SightSecondaryButtonView: View {
     let configuration: ButtonStyle.Configuration
     @State private var isHovered = false
@@ -452,7 +450,6 @@ struct SightToggleStyle: ToggleStyle {
     }
 }
 
-@MainActor
 struct SightToggleView: View {
     let configuration: ToggleStyle.Configuration
     var body: some View {
