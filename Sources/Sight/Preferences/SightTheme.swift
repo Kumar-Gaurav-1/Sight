@@ -304,10 +304,8 @@ extension View {
     }
 
     /// Add glow effect
-    @MainActor
     func glowEffect(_ color: Color? = nil, radius: CGFloat = 10) -> some View {
-        let effectColor = color ?? SightTheme.accent
-        return self.shadow(color: effectColor.opacity(0.5), radius: radius, x: 0, y: 0)
+        modifier(GlowEffectModifier(color: color, radius: radius))
     }
 
     /// Enhanced glassmorphism effect with depth
@@ -381,6 +379,14 @@ struct HoverableCardModifier: ViewModifier {
 
 struct SightPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightPrimaryButtonView(configuration: configuration)
+    }
+}
+
+@MainActor
+struct SightPrimaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -402,9 +408,16 @@ struct SightPrimaryButtonStyle: ButtonStyle {
 }
 
 struct SightSecondaryButtonStyle: ButtonStyle {
-    @State private var isHovered = false
-
     func makeBody(configuration: Configuration) -> some View {
+        SightSecondaryButtonView(configuration: configuration)
+    }
+}
+
+@MainActor
+struct SightSecondaryButtonView: View {
+    let configuration: ButtonStyle.Configuration
+    @State private var isHovered = false
+    var body: some View {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .foregroundColor(.white)
@@ -435,6 +448,14 @@ struct SightSecondaryButtonStyle: ButtonStyle {
 
 struct SightToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
+        SightToggleView(configuration: configuration)
+    }
+}
+
+@MainActor
+struct SightToggleView: View {
+    let configuration: ToggleStyle.Configuration
+    var body: some View {
         HStack {
             configuration.label
             Spacer()
@@ -482,6 +503,7 @@ struct ProgressRing: View {
         self.gradient = gradient
     }
 
+    @MainActor
     var body: some View {
         let displayGradient = gradient ?? SightTheme.accentGradient
         ZStack {
@@ -560,5 +582,18 @@ struct AnimatedCheckmark: View {
                 trimEnd = 1
             }
         }
+    }
+}
+
+// MARK: - Glow Effect Modifier
+
+struct GlowEffectModifier: ViewModifier {
+    let color: Color?
+    let radius: CGFloat
+
+    @MainActor
+    func body(content: Content) -> some View {
+        let effectColor = color ?? SightTheme.accent
+        content.shadow(color: effectColor.opacity(0.5), radius: radius, x: 0, y: 0)
     }
 }
