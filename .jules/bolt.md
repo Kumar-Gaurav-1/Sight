@@ -1,0 +1,3 @@
+## 2024-05-18 - Caching DateFormatter instances
+**Learning:** `DateFormatter` initialization is extremely slow in Swift. Instantiating it in loops or frequently called functions is a known performance bottleneck.
+**Action:** When working with `DateFormatter` in Swift, cache instances globally (e.g. using a global singleton or shared utility class) and reuse them instead of creating them dynamically inside views or loops. Make sure to use `@unchecked Sendable` and a `final class` singleton when doing so in a Swift 6 strict concurrency environment to avoid cascading isolation errors. Also set the `.timeZone` and `.locale` properties to `.autoupdatingCurrent` to adapt to system changes.
