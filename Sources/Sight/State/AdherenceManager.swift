@@ -568,9 +568,8 @@ public final class AdherenceManager: ObservableObject {
 
         // Find best day
         let bestDayStats = thisWeekStats.max(by: { $0.dailyScore < $1.dailyScore })
-        let dayFormatter = DateFormatter()
-        dayFormatter.dateFormat = "EEEE"
-        let bestDayName = bestDayStats.map { dayFormatter.string(from: $0.date) } ?? "N/A"
+        // ⚡ Bolt: Use globally cached DateFormatter for performance
+        let bestDayName = bestDayStats.map { Formatters.shared.fullDay.string(from: $0.date) } ?? "N/A"
 
         // Calculate trend
         let lastWeekAvg =
@@ -697,11 +696,9 @@ public final class AdherenceManager: ObservableObject {
         var csv =
             "Date,Breaks Completed,Breaks Skipped,Nudges Followed,Nudges Snoozed,Break Minutes,Short Breaks,Long Breaks,Daily Score\n"
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-
+        // ⚡ Bolt: Use globally cached DateFormatter for performance
         for day in stats.sorted(by: { $0.date < $1.date }) {
-            csv += "\(dateFormatter.string(from: day.date)),"
+            csv += "\(Formatters.shared.yyyyMMdd.string(from: day.date)),"
             csv += "\(day.breaksCompleted),"
             csv += "\(day.breaksSkipped),"
             csv += "\(day.nudgesFollowed),"
