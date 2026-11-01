@@ -5,6 +5,7 @@ import SwiftUI
 // MARK: - Wellness Gauge View
 
 /// Animated circular gauge showing wellness score
+@MainActor
 struct WellnessGaugeView: View {
     let score: Double  // 0-100
     let animate: Bool
@@ -85,6 +86,7 @@ struct WellnessGaugeView: View {
 // MARK: - Activity Heatmap View
 
 /// 7-day × hourly activity heatmap
+@MainActor
 struct ActivityHeatmapView: View {
     let hourlyDistribution: [Int: Int]  // hour (0-23) -> count
     let animate: Bool
