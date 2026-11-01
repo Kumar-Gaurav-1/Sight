@@ -5,7 +5,6 @@ import os.log
 
 /// Manages user preferences with UserDefaults persistence
 /// Provides JSON schema output for external tools
-@MainActor
 public final class PreferencesManager: ObservableObject {
 
     // MARK: - UserDefaults Keys
