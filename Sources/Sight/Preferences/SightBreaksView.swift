@@ -235,7 +235,9 @@ struct SightBreaksView: View {
     }
 
     private func formatTime(_ date: Date) -> String {
-        return SharedFormatters.shared.shortTime.string(from: date)
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 
     // MARK: - Reminders Section

@@ -1,3 +1,3 @@
-## 2024-06-12 - Caching DateFormatter instances
-**Learning:** `DateFormatter` and `ISO8601DateFormatter` are expensive to initialize and are used heavily in loops and UI components across the codebase.
-**Action:** Create a global cache for specific formatters and replace local initializations to improve performance.
+## 2026-11-02 - Fixing Strict Concurrency Syntax Errors in CI
+**Learning:** In Swift 6 strict concurrency, indiscriminately applying `@MainActor` to simple static UI properties (e.g., `Color`, `LinearGradient`) inside centralized theme structs or enums causes pervasive 'main actor-isolated static property can not be referenced from a non-isolated context' compilation errors across all non-isolated SwiftUI views and initializers referencing them. Additionally, older Swift compilers used in CI environments will fail with 'expected var keyword in property declaration' when they encounter `nonisolated(unsafe)`.
+**Action:** Leave foundational UI types like `Color` unannotated, as they are inherently `Sendable`. For singletons or static properties using `nonisolated(unsafe)`, wrap the declaration in `#if compiler(>=5.10)` blocks with an `#else` fallback matching the original declaration (e.g., standard `public static var`) to ensure backward compatibility.
