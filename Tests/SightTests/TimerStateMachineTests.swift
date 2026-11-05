@@ -1,7 +1,7 @@
 import XCTest
 @testable import Sight
 
-final class TimerStateMachineTests: XCTestCase {
+@MainActor final class TimerStateMachineTests: XCTestCase {
     
     var stateMachine: TimerStateMachine!
     
