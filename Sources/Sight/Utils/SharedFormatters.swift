@@ -1,5 +1,8 @@
 import Foundation
 
+/// A globally shared cache of `DateFormatter` and `ISO8601DateFormatter` instances.
+/// ⚡ Bolt Optimization: DateFormatter creation is highly computationally expensive.
+/// Caching them here prevents significant CPU overhead and object allocations during UI rendering and data processing.
 public final class SharedFormatters: @unchecked Sendable {
     public static let shared = SharedFormatters()
 
