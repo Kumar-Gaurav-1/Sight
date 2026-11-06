@@ -1,0 +1,3 @@
+## 2024-05-18 - Caching DateFormatter instances
+**Learning:** `DateFormatter` instantiation is notoriously expensive in Swift/Foundation. Creating new instances frequently, especially in loop bodies or computed properties called during UI renders, can significantly impact CPU usage and lead to UI hitches.
+**Action:** When working on Swift applications, introduce a globally shared wrapper that provides pre-configured, lazily-initialized or statically-initialized `DateFormatter` singletons for common formats (e.g. `timeStyle = .short`, `dateFormat = "EEEE"`). Replace local allocations with these shared formatters.
